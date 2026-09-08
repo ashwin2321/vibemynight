@@ -1,0 +1,47 @@
+name: vibemynight
+description: VibeMyNight - event discovery and Navratri pass inquiry app (customer + admin).
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Networking
+  dio: ^5.5.0
+
+  # Routing
+  go_router: ^14.2.0
+
+  # Local secure storage for the admin JWT (web falls back to browser storage internally)
+  flutter_secure_storage: ^9.2.2
+
+  # Value equality for model classes without full Freezed codegen (kept lightweight per Phase 7)
+  equatable: ^2.0.5
+
+  # Opening the wa.me URL returned by the backend
+  url_launcher: ^6.3.0
+
+  # Icons used across the premium dark UI
+  cupertino_icons: ^1.0.8
+
+  # Admin image uploads (artist photos, event images) - works via bytes so
+  # it's the same code path on Web (no filesystem) and mobile/desktop.
+  file_picker: ^8.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
