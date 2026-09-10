@@ -37,6 +37,9 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
+                        // Cloud and container health check endpoints
+                        .requestMatchers("/", "/health", "/api/v1/health", "/error", "/favicon.ico", "/actuator/**").permitAll()
+
                         // Auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
 

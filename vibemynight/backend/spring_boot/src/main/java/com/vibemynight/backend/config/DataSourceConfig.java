@@ -103,10 +103,19 @@ public class DataSourceConfig {
             config.setUsername(mysqlUser != null ? mysqlUser : "root");
             config.setPassword(mysqlPassword != null ? mysqlPassword : "");
         } else {
-            log.info("Connecting via standard configured DataSource URL: {}", fallbackUrl);
-            config.setJdbcUrl(fallbackUrl);
-            config.setUsername(fallbackUsername);
-            config.setPassword(fallbackPassword);
+            String isCloud = System.getenv("PORT");
+            if (isCloud != null && !isCloud.trim().isEmpty() && fallbackUrl.contains("localhost")) {
+                log.info("No cloud MySQL host provided. Using resilient embedded in-memory database to prevent startup crash.");
+                config.setDriverClassName("org.h2.Driver");
+                config.setJdbcUrl("jdbc:h2:mem:vibemynight;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE");
+                config.setUsername("sa");
+                config.setPassword("");
+            } else {
+                log.info("Connecting via standard configured DataSource URL: {}", fallbackUrl);
+                config.setJdbcUrl(fallbackUrl);
+                config.setUsername(fallbackUsername);
+                config.setPassword(fallbackPassword);
+            }
         }
 
         // Resilient connection pool settings for cloud environments
