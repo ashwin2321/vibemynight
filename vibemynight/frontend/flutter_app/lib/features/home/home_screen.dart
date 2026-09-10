@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
+import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/gradient_button.dart';
@@ -16,9 +17,11 @@ import '../events/widgets/event_card.dart';
 /// - 100% DYNAMIC: All Featured Nights, Upcoming Events, and Featured Artists
 ///   are loaded directly from the live Spring Boot Backend APIs.
 /// - Hero with concert crowd background, "Events Now Live" pill, bold gradient typography & CTA buttons.
+/// - Spotlight 3D Carousel on mobile view with adjacent posters peeking.
 /// - Interactive Category Filter Chips Bar (Navratri 2026, DJ & EDM, Live Concerts, VIP Exclusives).
-/// - Featured Nights: Responsive 3:4 Poster Event Cards with floating date pills, price tags & neon glow.
+/// - Featured Nights: 2-Column Responsive 3:4 Poster Event Cards on mobile with floating date pills, price tags & neon glow.
 /// - Circular "Events by Artist & DJs" strip with smooth left/right chevron navigation.
+/// - Floating Bottom Navigation Bar on mobile with VIP Passes WhatsApp integration.
 /// - Why VibeMyNight: 4 glass cards with neon icon badges.
 /// - Shimmer Skeleton Loading: Zero blank screen lag.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -46,6 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF07070E),
       appBar: const AppNavbar(currentRoute: '/'),
+      bottomNavigationBar: const AppBottomNav(currentRoute: '/'),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(publishedEventsProvider);
@@ -60,13 +64,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // 1. HERO SECTION
               _HeroSection(whatsappNumber: whatsappNumber),
 
+              // 1.5 SPOTLIGHT 3D CAROUSEL (MOBILE & TABLET SPOTLIGHT)
+              _MobileSpotlightCarousel(eventsAsync: eventsAsync),
+
               // 2. CATEGORY FILTER CHIPS BAR
               _CategoryFilterBar(
                 selectedCategory: _selectedCategory,
                 onCategorySelected: (cat) => setState(() => _selectedCategory = cat),
               ),
 
-              // 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS)
+              // 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS - 2 COLUMNS ON MOBILE)
               _FeaturedNightsSection(
                 eventsAsync: eventsAsync,
                 selectedCategory: _selectedCategory,
@@ -527,7 +534,342 @@ class _CategoryFilterBarState extends State<_CategoryFilterBar> {
 }
 
 // ==========================================
-// 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS)
+// 1.5 MOBILE SPOTLIGHT 3D CAROUSEL (SHOWMATES STYLE)
+// ==========================================
+class _MobileSpotlightCarousel extends StatefulWidget {
+  final AsyncValue<List<EventSummary>> eventsAsync;
+
+  const _MobileSpotlightCarousel({required this.eventsAsync});
+
+  @override
+  State<_MobileSpotlightCarousel> createState() => _MobileSpotlightCarouselState();
+}
+
+class _MobileSpotlightCarouselState extends State<_MobileSpotlightCarousel> {
+  int _activePage = 0;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.84);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    if (!isMobile) return const SizedBox.shrink();
+
+    return widget.eventsAsync.maybeWhen(
+      data: (events) {
+        if (events.isEmpty) return const SizedBox.shrink();
+        final displayList = events.take(5).toList();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFFA855F7), Color(0xFFEC4899)]),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'SPOTLIGHT EVENTS',
+                      style: TextStyle(
+                        color: Color(0xFFC084FC),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 290,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: displayList.length,
+                  onPageChanged: (index) => setState(() => _activePage = index),
+                  itemBuilder: (context, index) {
+                    final event = displayList[index];
+                    final isCurrent = index == _activePage;
+                    final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
+
+                    return AnimatedScale(
+                      scale: isCurrent ? 1.0 : 0.93,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      child: GestureDetector(
+                        onTap: () => context.push(targetRoute),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isCurrent
+                                    ? const Color(0xFF8B5CF6).withValues(alpha: 0.35)
+                                    : Colors.black.withValues(alpha: 0.5),
+                                blurRadius: isCurrent ? 16 : 8,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                // Poster image
+                                Image.network(
+                                  event.thumbnail ?? event.mainImage ?? HomeScreen._heroImg,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: const Color(0xFF16102A),
+                                    child: const Center(
+                                      child: Icon(Icons.nightlife, color: Colors.white24, size: 48),
+                                    ),
+                                  ),
+                                ),
+                                // Gradient Overlay
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black.withValues(alpha: 0.1),
+                                        Colors.black.withValues(alpha: 0.4),
+                                        const Color(0xFF07070E).withValues(alpha: 0.95),
+                                      ],
+                                      stops: const [0.0, 0.45, 1.0],
+                                    ),
+                                  ),
+                                ),
+                                // Top Badges
+                                Positioned(
+                                  top: 12,
+                                  left: 12,
+                                  right: 12,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      if (event.startDate.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(alpha: 0.75),
+                                            borderRadius: BorderRadius.circular(16),
+                                            border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.5)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 12),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                event.startDate,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      if (event.featured)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(colors: [Color(0xFFA855F7), Color(0xFFEC4899)]),
+                                            borderRadius: BorderRadius.circular(14),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.local_fire_department, color: Colors.white, size: 12),
+                                              SizedBox(width: 3),
+                                              Text(
+                                                'FEATURED',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                // Bottom Details
+                                Positioned(
+                                  bottom: 14,
+                                  left: 14,
+                                  right: 14,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        event.name,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.location_on, color: Color(0xFF60A5FA), size: 13),
+                                          const SizedBox(width: 3),
+                                          Expanded(
+                                            child: Builder(
+                                              builder: (_) {
+                                                final locParts = [
+                                                  if (event.location != null && event.location!.isNotEmpty) event.location!,
+                                                  if (event.city != null && event.city!.isNotEmpty) event.city!,
+                                                ].where((s) => s.isNotEmpty).join(', ');
+                                                final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
+
+                                                return Text(
+                                                  displayLoc,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Colors.white.withValues(alpha: 0.75),
+                                                    fontSize: 11.5,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Starts from',
+                                                style: TextStyle(
+                                                  fontSize: 9.5,
+                                                  color: Colors.white.withValues(alpha: 0.5),
+                                                ),
+                                              ),
+                                              Text(
+                                                event.startingPrice != null
+                                                    ? '₹${event.startingPrice!.toInt()}'
+                                                    : '₹499',
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Color(0xFFA855F7),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [Color(0xFFA855F7), Color(0xFF6366F1)],
+                                              ),
+                                              borderRadius: BorderRadius.circular(16),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Get Pass',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 4),
+                                                Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 13),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Dots indicator
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(displayList.length, (idx) {
+                  final isCurrent = idx == _activePage;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: isCurrent ? 20 : 6,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: isCurrent ? const Color(0xFFA855F7) : Colors.white24,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
+            ],
+          ),
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+}
+
+// ==========================================
+// 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS - 2 COLUMNS ON MOBILE)
 // ==========================================
 class _FeaturedNightsSection extends ConsumerWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
@@ -543,11 +885,11 @@ class _FeaturedNightsSection extends ConsumerWidget {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
-    final cols = isDesktop ? 4 : (isTablet ? 2 : 1);
+    final cols = isDesktop ? 4 : (isTablet ? 3 : 2);
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 48 : 16,
+        horizontal: isDesktop ? 48 : 12,
         vertical: isDesktop ? 32 : 16,
       ),
       child: Center(
@@ -578,7 +920,7 @@ class _FeaturedNightsSection extends ConsumerWidget {
                         Text(
                           'Featured Nights',
                           style: TextStyle(
-                            fontSize: isDesktop ? 32 : 22,
+                            fontSize: isDesktop ? 32 : 20,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
@@ -621,7 +963,7 @@ class _FeaturedNightsSection extends ConsumerWidget {
 
               // Dynamic Events Grid with 3:4 Poster EventCard
               eventsAsync.when(
-                loading: () => ShimmerCardGrid(count: cols * 2, cardHeight: 380),
+                loading: () => ShimmerCardGrid(count: cols * 2, cardHeight: 320),
                 error: (err, _) => Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
@@ -779,16 +1121,17 @@ class _FeaturedNightsSection extends ConsumerWidget {
 
                   return LayoutBuilder(
                     builder: (context, constraints) {
-                      final itemWidth = (constraints.maxWidth - (cols - 1) * 16) / cols;
+                      final spacing = isDesktop ? 16.0 : 10.0;
+                      final itemWidth = (constraints.maxWidth - (cols - 1) * spacing) / cols;
                       return Wrap(
-                        spacing: 16,
-                        runSpacing: 20,
+                        spacing: spacing,
+                        runSpacing: spacing + 6,
                         children: filtered.take(8).map((event) {
                           return SizedBox(
                             width: itemWidth,
                             child: EventCard(
                               event: event,
-                              imageHeight: isDesktop ? 220 : 190,
+                              imageHeight: isDesktop ? 220 : 165,
                             ),
                           );
                         }).toList(),
@@ -806,7 +1149,7 @@ class _FeaturedNightsSection extends ConsumerWidget {
 }
 
 // ==========================================
-// 3. UPCOMING EVENTS SECTION (DYNAMIC)
+// 3. UPCOMING EVENTS SECTION (DYNAMIC - 2 COLUMNS ON MOBILE)
 // ==========================================
 class _UpcomingEventsSection extends StatelessWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
@@ -818,7 +1161,7 @@ class _UpcomingEventsSection extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 900;
     final isTablet = size.width >= 600 && size.width < 900;
-    final cols = isDesktop ? 3 : (isTablet ? 2 : 1);
+    final cols = isDesktop ? 3 : (isTablet ? 2 : 2);
 
     return Padding(
       padding: EdgeInsets.symmetric(

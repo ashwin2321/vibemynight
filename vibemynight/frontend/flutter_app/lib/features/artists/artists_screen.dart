@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/error_view.dart';
@@ -25,6 +26,7 @@ class ArtistsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppNavbar(currentRoute: '/artists'),
+      bottomNavigationBar: const AppBottomNav(currentRoute: '/artists'),
       body: SingleChildScrollView(
         child: Column(
           children: [

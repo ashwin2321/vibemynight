@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/error_view.dart';
@@ -60,15 +61,18 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(publishedEventsProvider);
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width >= 768;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppNavbar(currentRoute: '/events'),
+      bottomNavigationBar: const AppBottomNav(currentRoute: '/events'),
       body: SingleChildScrollView(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 12, vertical: isDesktop ? 32 : 16),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1100),
@@ -226,24 +230,27 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                           return LayoutBuilder(
                             builder: (context, constraints) {
                               final width = constraints.maxWidth;
-                              final crossAxisCount = width > 950 ? 3 : (width > 600 ? 2 : 1);
-                              return GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  mainAxisSpacing: 20,
-                                  crossAxisSpacing: 20,
-                                  childAspectRatio: crossAxisCount == 1 ? 0.95 : 0.74,
-                                ),
-                                itemCount: filtered.length,
-                                itemBuilder: (context, index) => FadeIn(
-                                  delay: Duration(milliseconds: index * 30),
-                                  child: EventCard(
-                                    event: filtered[index],
-                                    imageHeight: crossAxisCount == 1 ? 220 : 200,
-                                  ),
-                                ),
+                              final isDesktopGrid = width >= 950;
+                              final isTabletGrid = width >= 600 && width < 950;
+                              final cols = isDesktopGrid ? 3 : (isTabletGrid ? 3 : 2);
+                              final spacing = isDesktopGrid ? 20.0 : 10.0;
+                              final itemWidth = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+
+                              return Wrap(
+                                spacing: spacing,
+                                runSpacing: spacing + 6,
+                                children: List.generate(filtered.length, (index) {
+                                  return SizedBox(
+                                    width: itemWidth,
+                                    child: FadeIn(
+                                      delay: Duration(milliseconds: index * 30),
+                                      child: EventCard(
+                                        event: filtered[index],
+                                        imageHeight: isDesktopGrid ? 220 : 165,
+                                      ),
+                                    ),
+                                  );
+                                }),
                               );
                             },
                           );

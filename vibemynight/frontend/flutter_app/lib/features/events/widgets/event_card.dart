@@ -25,24 +25,25 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
     final hasStartDate = event.startDate.isNotEmpty;
+    final isCompact = MediaQuery.of(context).size.width < 600;
 
     return GlassCard(
       padding: EdgeInsets.zero,
-      borderRadius: 18,
+      borderRadius: isCompact ? 14 : 18,
       onTap: () => context.push(targetRoute),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. POSTER IMAGE WITH OVERLAYS
+          // 1. POSTER IMAGE WITH OVERLAYS (3:4 Ratio)
           Stack(
             children: [
               Hero(
                 tag: 'event-image-${event.id}',
                 child: NetworkImageBox(
                   url: event.thumbnail ?? event.mainImage,
-                  height: imageHeight,
+                  height: isCompact ? 165 : imageHeight,
                   width: double.infinity,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 14 : 18)),
                 ),
               ),
               // Gradient bottom shadow on image for readability
@@ -50,7 +51,7 @@ class EventCard extends StatelessWidget {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 60,
+                height: 50,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -67,20 +68,23 @@ class EventCard extends StatelessWidget {
               // Top-left: Date & Time pill
               if (hasStartDate)
                 Positioned(
-                  top: 10,
-                  left: 10,
+                  top: 8,
+                  left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 7 : 10,
+                      vertical: isCompact ? 3 : 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xE607070E),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 8,
+                          blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -88,13 +92,13 @@ class EventCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 12),
-                        const SizedBox(width: 5),
+                        Icon(Icons.calendar_month, color: const Color(0xFFC084FC), size: isCompact ? 10 : 12),
+                        const SizedBox(width: 4),
                         Text(
                           event.startDate,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 11,
+                            fontSize: isCompact ? 9.5 : 11,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -104,17 +108,22 @@ class EventCard extends StatelessWidget {
                 ),
               // Top-right: Featured / Selling Fast tag
               if (event.featured)
-                const Positioned(
-                  top: 10,
-                  right: 10,
-                  child: _FeaturedBadge(),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _FeaturedBadge(isCompact: isCompact),
                 ),
             ],
           ),
 
           // 2. EVENT DETAILS BODY
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            padding: EdgeInsets.fromLTRB(
+              isCompact ? 10 : 14,
+              isCompact ? 8 : 12,
+              isCompact ? 10 : 14,
+              isCompact ? 10 : 14,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -123,20 +132,20 @@ class EventCard extends StatelessWidget {
                   event.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: isCompact ? 13 : 15,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     height: 1.25,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: isCompact ? 4 : 6),
 
                 // Location / Venue
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, color: Color(0xFF60A5FA), size: 14),
-                    const SizedBox(width: 4),
+                    Icon(Icons.location_on_outlined, color: const Color(0xFF60A5FA), size: isCompact ? 12 : 14),
+                    const SizedBox(width: 3),
                     Expanded(
                       child: Text(
                         [
@@ -147,7 +156,7 @@ class EventCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.65),
-                          fontSize: 12,
+                          fontSize: isCompact ? 10.5 : 12,
                         ),
                       ),
                     ),
@@ -156,11 +165,11 @@ class EventCard extends StatelessWidget {
 
                 // Featured Artist
                 if (event.featuredArtistName != null && event.featuredArtistName!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Row(
                     children: [
-                      const Icon(Icons.mic_none, color: Color(0xFFA855F7), size: 14),
-                      const SizedBox(width: 4),
+                      Icon(Icons.mic_none, color: const Color(0xFFA855F7), size: isCompact ? 12 : 14),
+                      const SizedBox(width: 3),
                       Expanded(
                         child: Text(
                           event.featuredArtistName!,
@@ -168,7 +177,7 @@ class EventCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.65),
-                            fontSize: 12,
+                            fontSize: isCompact ? 10.5 : 12,
                           ),
                         ),
                       ),
@@ -176,13 +185,14 @@ class EventCard extends StatelessWidget {
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                SizedBox(height: isCompact ? 8 : 12),
                 const Divider(height: 1, color: Color(0x1FFFFFFF)),
-                const SizedBox(height: 10),
+                SizedBox(height: isCompact ? 6 : 10),
 
                 // Bottom Price & Action Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +200,7 @@ class EventCard extends StatelessWidget {
                         Text(
                           'from',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: isCompact ? 9 : 10,
                             color: Colors.white.withValues(alpha: 0.45),
                           ),
                         ),
@@ -198,36 +208,39 @@ class EventCard extends StatelessWidget {
                           event.startingPrice != null
                               ? '₹${event.startingPrice!.toInt()}'
                               : '₹499',
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: isCompact ? 13 : 16,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFFA855F7),
+                            color: const Color(0xFFA855F7),
                           ),
                         ),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isCompact ? 8 : 12,
+                        vertical: isCompact ? 4 : 6,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Get Pass',
+                            isCompact ? 'Passes' : 'Get Pass',
                             style: TextStyle(
-                              color: Color(0xFFC084FC),
-                              fontSize: 11,
+                              color: const Color(0xFFC084FC),
+                              fontSize: isCompact ? 9.5 : 11,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          SizedBox(width: 3),
-                          Icon(Icons.arrow_forward, color: Color(0xFFC084FC), size: 12),
+                          const SizedBox(width: 2),
+                          Icon(Icons.arrow_forward, color: const Color(0xFFC084FC), size: isCompact ? 10 : 12),
                         ],
                       ),
                     ),
@@ -247,12 +260,17 @@ extension on String {
 }
 
 class _FeaturedBadge extends StatelessWidget {
-  const _FeaturedBadge();
+  final bool isCompact;
+
+  const _FeaturedBadge({this.isCompact = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 6 : 8,
+        vertical: isCompact ? 2.5 : 4,
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: AppColors.brandGradient),
         borderRadius: BorderRadius.circular(14),
@@ -264,16 +282,16 @@ class _FeaturedBadge extends StatelessWidget {
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_fire_department, color: Colors.white, size: 11),
-          SizedBox(width: 3),
+          Icon(Icons.local_fire_department, color: Colors.white, size: isCompact ? 9 : 11),
+          const SizedBox(width: 3),
           Text(
             'FEATURED',
             style: TextStyle(
-              fontSize: 10,
               color: Colors.white,
+              fontSize: isCompact ? 8.5 : 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
             ),

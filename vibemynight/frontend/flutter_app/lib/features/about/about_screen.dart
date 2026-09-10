@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/glass_card.dart';
@@ -34,6 +35,7 @@ class AboutScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppNavbar(currentRoute: '/about'),
+      bottomNavigationBar: const AppBottomNav(currentRoute: '/about'),
       body: SingleChildScrollView(
         child: Column(
           children: [

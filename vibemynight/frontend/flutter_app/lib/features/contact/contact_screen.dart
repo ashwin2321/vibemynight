@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/glass_card.dart';
@@ -41,6 +42,7 @@ class ContactScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppNavbar(currentRoute: '/contact'),
+      bottomNavigationBar: const AppBottomNav(currentRoute: '/contact'),
       body: SingleChildScrollView(
         child: Column(
           children: [
