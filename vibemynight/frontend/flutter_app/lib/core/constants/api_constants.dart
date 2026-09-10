@@ -6,12 +6,16 @@
 class ApiConstants {
   ApiConstants._();
 
-  /// Overridden per-flavor via --dart-define=API_BASE_URL=... at build time.
-  /// Defaults to a local backend for development.
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:8080/api/v1',
-  );
+  static String get baseUrl {
+    const raw = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'https://vibemynight-production.up.railway.app/api/v1',
+    );
+    if (raw.endsWith('/api/v1')) {
+      return raw;
+    }
+    return raw.endsWith('/') ? '${raw}api/v1' : '$raw/api/v1';
+  }
 
   // ---- Public ----
   static const String events = '/events';
