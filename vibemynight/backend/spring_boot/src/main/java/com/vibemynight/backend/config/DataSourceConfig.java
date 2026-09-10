@@ -20,22 +20,22 @@ public class DataSourceConfig {
     @Value("${DATABASE_URL:#{null}}")
     private String databaseUrl;
 
-    @Value("${MYSQL_URL:#{null}}")
+    @Value("${MYSQL_URL:${MYSQLURL:#{null}}}")
     private String mysqlUrl;
 
-    @Value("${MYSQLHOST:#{null}}")
+    @Value("${MYSQL_HOST:${MYSQLHOST:#{null}}}")
     private String mysqlHost;
 
-    @Value("${MYSQLPORT:#{null}}")
+    @Value("${MYSQL_PORT:${MYSQLPORT:#{null}}}")
     private String mysqlPort;
 
-    @Value("${MYSQLDATABASE:#{null}}")
+    @Value("${MYSQL_DATABASE:${MYSQLDATABASE:#{null}}}")
     private String mysqlDatabase;
 
-    @Value("${MYSQLUSER:#{null}}")
+    @Value("${MYSQL_USER:${MYSQLUSER:#{null}}}")
     private String mysqlUser;
 
-    @Value("${MYSQLPASSWORD:#{null}}")
+    @Value("${MYSQL_PASSWORD:${MYSQLPASSWORD:#{null}}}")
     private String mysqlPassword;
 
     @Value("${spring.datasource.url:jdbc:mysql://localhost:3306/vibemynight?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true}")
