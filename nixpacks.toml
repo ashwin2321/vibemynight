@@ -1,8 +1,8 @@
-﻿[phases.setup]
-nixPkgs = ["maven", "temurin-bin-21"]
+[phases.setup]
+nixPkgs = ["maven", "jdk21"]
 
 [phases.build]
-cmds = ["cd vibemynight/backend/spring_boot && mvn clean package -DskipTests"]
+cmds = ["mvn -f vibemynight/backend/spring_boot/pom.xml clean package -DskipTests"]
 
 [start]
 cmd = "java -Dserver.port=${PORT:-8080} -jar vibemynight/backend/spring_boot/target/vibemynight-backend-0.1.0.jar"
