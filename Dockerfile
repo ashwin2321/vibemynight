@@ -17,4 +17,4 @@ EXPOSE 8080
 ENV PORT=8080
 ENV IMAGE_STORAGE_LOCAL_PATH=/app/uploads
 
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]
