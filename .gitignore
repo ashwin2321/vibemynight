@@ -8,3 +8,10 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+
+# Old prototypes and local office documentation
+documentation/
+VibeMyNight App Development (1)/
+~$*.xlsx
+~$*.docx
+*.tmp
