@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -126,12 +127,99 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                           onRetry: () => ref.invalidate(publishedEventsProvider),
                         ),
                         data: (events) {
+                          if (events.isEmpty) {
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFFA855F7).withValues(alpha: 0.12),
+                                    const Color(0xFFEC4899).withValues(alpha: 0.06),
+                                    Colors.white.withValues(alpha: 0.02),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.25)),
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.local_fire_department, size: 16, color: Color(0xFFF59E0B)),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'SEASON 2026 LINEUPS DROPPING SOON',
+                                          style: TextStyle(
+                                            color: Color(0xFFF59E0B),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Exclusive Passes & VIP Tables Releasing Shortly!',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 580),
+                                    child: const Text(
+                                      'We are curating the biggest AC Dome Garba nights, EDM concerts, and celebrity lineups for 2026. Connect on WhatsApp for early-bird booking alerts and VIP reservations.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 22),
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.chat, size: 18, color: Colors.white),
+                                    label: const Text(
+                                      'WhatsApp Pass Inquiries',
+                                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF25D366),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    onPressed: () {
+                                      final uri = Uri.parse(
+                                        'https://wa.me/917041615131?text=Hi%20VibeMyNight!%20I%20want%20to%20inquire%20about%20upcoming%20passes%20and%20VIP%20tables.',
+                                      );
+                                      launchUrl(uri, mode: LaunchMode.externalApplication);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                           final filtered = _apply(events);
                           if (filtered.isEmpty) {
                             return const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(48),
-                                child: Text('No events match your search.', style: TextStyle(color: AppColors.textSecondary)),
+                                child: Text('No events match your search filters.', style: TextStyle(color: AppColors.textSecondary)),
                               ),
                             );
                           }

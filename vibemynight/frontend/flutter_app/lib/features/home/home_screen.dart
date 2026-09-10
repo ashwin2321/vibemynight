@@ -476,7 +476,7 @@ class _CategoryFilterBarState extends State<_CategoryFilterBar> {
 // ==========================================
 // 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS)
 // ==========================================
-class _FeaturedNightsSection extends StatelessWidget {
+class _FeaturedNightsSection extends ConsumerWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
   final String selectedCategory;
 
@@ -486,7 +486,7 @@ class _FeaturedNightsSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
@@ -568,20 +568,33 @@ class _FeaturedNightsSection extends StatelessWidget {
               eventsAsync.when(
                 loading: () => ShimmerCardGrid(count: cols * 2, cardHeight: 380),
                 error: (err, _) => Container(
-                  padding: const EdgeInsets.all(24),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
+                    color: Colors.white.withValues(alpha: 0.02),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                   ),
                   child: Center(
                     child: Column(
                       children: [
-                        Text('Unable to load events: $err', style: const TextStyle(color: Colors.white70)),
-                        const SizedBox(height: 12),
-                        OutlinedButton(
-                          onPressed: () => context.push('/admin/events'),
-                          child: const Text('Manage in Admin Panel'),
+                        const Icon(Icons.refresh_rounded, size: 36, color: Color(0xFFA855F7)),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Updating latest schedule...',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Tap below to refresh upcoming events or reach out on WhatsApp.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white60, fontSize: 13),
+                        ),
+                        const SizedBox(height: 14),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.refresh, size: 16),
+                          onPressed: () => ref.invalidate(publishedEventsProvider),
+                          label: const Text('Refresh Events'),
                         ),
                       ],
                     ),
@@ -591,31 +604,105 @@ class _FeaturedNightsSection extends StatelessWidget {
                   if (events.isEmpty) {
                     return Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.02),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFFA855F7).withValues(alpha: 0.12),
+                            const Color(0xFFEC4899).withValues(alpha: 0.06),
+                            Colors.white.withValues(alpha: 0.02),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.25)),
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.event_note, size: 48, color: Color(0xFFA855F7)),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'No published events yet.',
-                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Create and publish events in the Admin panel to display them here.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white54, fontSize: 13),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.local_fire_department, size: 16, color: Color(0xFFF59E0B)),
+                                SizedBox(width: 6),
+                                Text(
+                                  'SEASON 2026 LINEUPS DROPPING SOON',
+                                  style: TextStyle(
+                                    color: Color(0xFFF59E0B),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.add),
-                            label: const Text('Create Event in Admin'),
-                            onPressed: () => context.push('/admin/events/new'),
+                          const Text(
+                            'Exclusive Passes & VIP Tables Releasing Shortly!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 580),
+                            child: const Text(
+                              'We are curating the biggest AC Dome Garba nights, EDM concerts, and celebrity lineups for 2026. Connect on WhatsApp for early-bird booking alerts and VIP reservations.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            alignment: WrapAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.chat, size: 18, color: Colors.white),
+                                label: const Text(
+                                  'WhatsApp Pass Inquiries',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF25D366),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () {
+                                  final uri = Uri.parse(
+                                    'https://wa.me/917041615131?text=Hi%20VibeMyNight!%20I%20want%20to%20inquire%20about%20upcoming%20passes%20and%20VIP%20tables.',
+                                  );
+                                  launchUrl(uri, mode: LaunchMode.externalApplication);
+                                },
+                              ),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.explore, size: 18, color: Colors.white),
+                                label: const Text(
+                                  'Explore Artists',
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.white24),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () => context.push('/artists'),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1034,6 +1121,11 @@ class _FeaturedArtistsSectionState extends State<_FeaturedArtistsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final artists = widget.artistsAsync.valueOrNull;
+    if (widget.artistsAsync.hasValue && (artists == null || artists.isEmpty)) {
+      return const SizedBox.shrink();
+    }
+
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 768;
 
@@ -1110,19 +1202,7 @@ class _FeaturedArtistsSectionState extends State<_FeaturedArtistsSection> {
                 error: (_, __) => const SizedBox.shrink(),
                 data: (artists) {
                   if (artists.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.02),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'No artists registered yet.',
-                          style: TextStyle(color: Colors.white54),
-                        ),
-                      ),
-                    );
+                    return const SizedBox.shrink();
                   }
 
                   return SingleChildScrollView(
