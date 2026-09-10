@@ -24,10 +24,10 @@ public class AdminSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${ADMIN_SEED_EMAIL:}")
+    @Value("${ADMIN_SEED_EMAIL:admin@vibemynight.com}")
     private String seedEmail;
 
-    @Value("${ADMIN_SEED_PASSWORD:}")
+    @Value("${ADMIN_SEED_PASSWORD:Admin@123}")
     private String seedPassword;
 
     @Override
