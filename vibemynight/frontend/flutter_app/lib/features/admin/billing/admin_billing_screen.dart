@@ -90,43 +90,48 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
 
   String _generateInvoiceText() {
     final buffer = StringBuffer();
-    buffer.writeln('🧾 *VIBEMYNIGHT — OFFICIAL BOOKING INVOICE*');
-    buffer.writeln('════════════════════════════════════');
-    buffer.writeln('📋 *Invoice No:* ${_invoiceNoController.text.trim()}');
-    buffer.writeln('📅 *Date:* ${_invoiceDate.day}/${_invoiceDate.month}/${_invoiceDate.year}');
-    buffer.writeln('👤 *Billed To:* ${_customerNameController.text.trim()}');
-    buffer.writeln('📱 *Phone:* ${_customerPhoneController.text.trim()}');
+    buffer.writeln('🧾 *VIBEMYNIGHT INVOICE*');
+    buffer.writeln('———————————————');
+    buffer.writeln('🆔 ${_invoiceNoController.text.trim()}');
+    buffer.writeln('📅 ${_invoiceDate.day}/${_invoiceDate.month}/${_invoiceDate.year}');
+    buffer.writeln('');
+    buffer.writeln('👤 ${_customerNameController.text.trim()}');
+    buffer.writeln('📱 ${_customerPhoneController.text.trim()}');
     if (_customerEmailController.text.trim().isNotEmpty) {
-      buffer.writeln('✉️ *Email:* ${_customerEmailController.text.trim()}');
+      buffer.writeln('✉️ ${_customerEmailController.text.trim()}');
     }
-    buffer.writeln('────────────────────────────────────');
-    buffer.writeln('🎟️ *Event:* ${_eventNameController.text.trim()}');
-    buffer.writeln('🎫 *Pass Tier:* ${_passTypeController.text.trim()}');
-    buffer.writeln('🔢 *Quantity:* $_quantity');
-    buffer.writeln('💵 *Rate per pass:* ₹${_unitPrice.toStringAsFixed(0)}');
-    buffer.writeln('📊 *Subtotal:* ₹${_subtotal.toStringAsFixed(0)}');
+    buffer.writeln('———————————————');
+    buffer.writeln('📌 ${_eventNameController.text.trim()}');
+    buffer.writeln('🎟️ ${_passTypeController.text.trim()} × $_quantity');
+    buffer.writeln('💵 Rate: ₹${_unitPrice.toStringAsFixed(0)}');
     if (_discount > 0) {
-      buffer.writeln('🏷️ *Discount:* -₹${_discount.toStringAsFixed(0)}');
+      buffer.writeln('🏷️ Discount: -₹${_discount.toStringAsFixed(0)}');
     }
     if (_taxAmount > 0) {
-      buffer.writeln('🏛️ *GST/Tax (${_taxPercent.toStringAsFixed(0)}%):* +₹${_taxAmount.toStringAsFixed(0)}');
+      buffer.writeln('🏛️ GST (${_taxPercent.toStringAsFixed(0)}%): +₹${_taxAmount.toStringAsFixed(0)}');
     }
-    buffer.writeln('────────────────────────────────────');
-    buffer.writeln('💰 *GRAND TOTAL:* ₹${_grandTotal.toStringAsFixed(0)}');
-    buffer.writeln('💳 *Payment Mode:* $_paymentMethod');
-    buffer.writeln('📌 *Payment Status:* $_paymentStatus');
-    buffer.writeln('════════════════════════════════════');
+    buffer.writeln('———————————————');
+    buffer.writeln('💰 *Total: ₹${_grandTotal.toStringAsFixed(0)}*');
+    buffer.writeln('💳 Mode: $_paymentMethod');
+    buffer.writeln('✅ Status: $_paymentStatus');
+    buffer.writeln('———————————————');
     if (_notesController.text.trim().isNotEmpty) {
-      buffer.writeln('📝 *Note:* ${_notesController.text.trim()}');
+      buffer.writeln('📝 ${_notesController.text.trim()}');
+      buffer.writeln('———————————————');
     }
-    buffer.writeln('✨ _Verified by VibeMyNight Pass Management_');
+    buffer.writeln('✨ _Verified by VibeMyNight_');
     return buffer.toString();
   }
 
   Future<void> _shareOnWhatsApp() async {
-    final phone = _customerPhoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    String phone = _customerPhoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (phone.length == 10) {
+      phone = '91$phone';
+    }
     final text = Uri.encodeComponent(_generateInvoiceText());
-    final url = phone.isNotEmpty ? 'https://wa.me/$phone?text=$text' : 'https://wa.me/?text=$text';
+    final url = phone.isNotEmpty
+        ? 'https://api.whatsapp.com/send?phone=$phone&text=$text'
+        : 'https://api.whatsapp.com/send?text=$text';
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -309,12 +314,15 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
                   initialValue: _selectedInquiry,
                   hint: const Text('Select an Inquiry to Auto-Populate'),
                   dropdownColor: AppColors.surface,
+                  isExpanded: true,
                   items: inquiries.map((inq) {
                     return DropdownMenuItem(
                       value: inq,
                       child: Text(
                         '#${inq.inquiryNumber} · ${inq.customerName} (${inq.eventName})',
                         style: const TextStyle(fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     );
                   }).toList(),
@@ -488,6 +496,7 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   initialValue: _paymentMethod,
+                  isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Payment Method', isDense: true),
                   dropdownColor: AppColors.surface,
                   items: _paymentMethods.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
@@ -498,6 +507,7 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   initialValue: _paymentStatus,
+                  isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Payment Status', isDense: true),
                   dropdownColor: AppColors.surface,
                   items: _paymentStatuses.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),

@@ -112,7 +112,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
               onPressed: () async {
                 Navigator.pop(ctx);
                 final text = Uri.encodeComponent('Check out ${event.name} on VibeMyNight!\nBook passes now: $link');
-                final uri = Uri.parse('https://wa.me/?text=$text');
+                final uri = Uri.parse('https://api.whatsapp.com/send?text=$text');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }

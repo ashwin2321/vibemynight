@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/admin_providers.dart';
 import '../../../core/providers/data_providers.dart';
+import '../../../core/providers/pass_template_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/glass_card.dart';
@@ -219,8 +220,6 @@ class _AdminPassFormState extends ConsumerState<_AdminPassForm> {
   bool _submitting = false;
   String? _error;
 
-  static const _types = ['REGULAR', 'VIP', 'COUPLE', 'GROUP', 'EARLY_BIRD', 'PREMIUM', 'CUSTOM'];
-
   @override
   void initState() {
     super.initState();
@@ -232,6 +231,55 @@ class _AdminPassFormState extends ConsumerState<_AdminPassForm> {
     _description = TextEditingController(text: p?.description ?? '');
     _benefits = TextEditingController(text: p?.benefits.join(', ') ?? '');
     _type = p?.type ?? 'REGULAR';
+  }
+
+  Future<void> _promptAddCategory() async {
+    final controller = TextEditingController();
+    final newCat = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.divider)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_box_outlined, color: AppColors.neonPurple, size: 20),
+            SizedBox(width: 8),
+            Text('Add Custom Pass Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Enter custom category code (e.g. DIAMOND, GOLDEN_CIRCLE, VIP_LOUNGE, FEMALE, STUDENT)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(labelText: 'Category Code *', hintText: 'e.g. DIAMOND'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonPurple),
+            onPressed: () {
+              final text = controller.text.trim().toUpperCase().replaceAll(' ', '_');
+              if (text.isNotEmpty) Navigator.pop(ctx, text);
+            },
+            child: const Text('Add Category'),
+          ),
+        ],
+      ),
+    );
+    if (newCat != null && newCat.isNotEmpty) {
+      await ref.read(passCategoriesProvider.notifier).addCategory(newCat);
+      if (mounted) {
+        setState(() => _type = newCat);
+      }
+    }
   }
 
   @override
@@ -280,6 +328,9 @@ class _AdminPassFormState extends ConsumerState<_AdminPassForm> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.passId != null;
+    final categories = ref.watch(passCategoriesProvider);
+    final allCategoryOptions = categories.contains(_type) ? categories : [_type, ...categories];
+
     return AdminShell(
       title: isEdit ? 'Edit Pass' : 'Create Pass',
       currentPath: '/admin/events',
@@ -296,9 +347,36 @@ class _AdminPassFormState extends ConsumerState<_AdminPassForm> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Pass Type *'),
-              items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-              onChanged: (v) => setState(() => _type = v ?? _type),
+              isExpanded: true,
+              dropdownColor: AppColors.surface,
+              decoration: InputDecoration(
+                labelText: 'Pass Type *',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.add_circle_outline, color: AppColors.neonPink, size: 20),
+                  tooltip: 'Add Custom Category',
+                  onPressed: _promptAddCategory,
+                ),
+              ),
+              items: [
+                ...allCategoryOptions.map((t) => DropdownMenuItem(value: t, child: Text(t, overflow: TextOverflow.ellipsis))),
+                const DropdownMenuItem(
+                  value: '__ADD_NEW__',
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_circle, size: 16, color: AppColors.neonPink),
+                      SizedBox(width: 6),
+                      Text('+ Custom Type...', style: TextStyle(color: AppColors.neonPink, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+              onChanged: (v) {
+                if (v == '__ADD_NEW__') {
+                  _promptAddCategory();
+                } else if (v != null) {
+                  setState(() => _type = v);
+                }
+              },
             ),
             const SizedBox(height: 12),
             TextFormField(

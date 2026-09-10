@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -160,6 +161,8 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _type,
+              isExpanded: true,
+              dropdownColor: AppColors.surface,
               decoration: const InputDecoration(labelText: 'Type *'),
               items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
               onChanged: (v) => setState(() => _type = v ?? _type),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/providers/dome_layout_provider.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -69,6 +71,7 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
   late final TextEditingController _contactNumber;
   late final TextEditingController _email;
   bool _featured = false;
+  bool _hasDomeLayout = false;
   bool _submitting = false;
   String? _error;
 
@@ -93,6 +96,12 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
     _contactNumber = TextEditingController(text: e?.contactNumber ?? '');
     _email = TextEditingController(text: e?.email ?? '');
     _featured = e?.featured ?? false;
+    _hasDomeLayout = e != null &&
+        (ref.read(domeLayoutProvider).isEnabledFor(e) ||
+            e.rules.contains('FEATURE_DOME_LAYOUT') ||
+            e.highlights.contains('FEATURE_DOME_LAYOUT') ||
+            e.name.toLowerCase().contains('ac dome') ||
+            (e.venue?.toLowerCase().contains('dome') ?? false));
   }
 
   @override
@@ -148,8 +157,17 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
       final admin = ref.read(adminServiceProvider);
       if (widget.eventId != null) {
         await admin.updateEvent(widget.eventId!, body);
+        await ref.read(domeLayoutProvider.notifier).setEventDomeLayout(
+          eventId: widget.eventId,
+          slug: _slug.text.trim(),
+          enabled: _hasDomeLayout,
+        );
       } else {
         await admin.createEvent(body);
+        await ref.read(domeLayoutProvider.notifier).setEventDomeLayout(
+          slug: _slug.text.trim(),
+          enabled: _hasDomeLayout,
+        );
       }
       ref.invalidate(adminEventsProvider);
       if (mounted) context.pop();
@@ -248,7 +266,21 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
             const SizedBox(height: 12),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Featured'),
+              title: const Row(
+                children: [
+                  Icon(Icons.stadium_outlined, color: AppColors.neonPurple, size: 20),
+                  SizedBox(width: 8),
+                  Text('AC Dome / Stadium Layout Map', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              subtitle: const Text('Renders interactive visual stage, fanpit, diamond, gold stands & price filter map on event booking page'),
+              value: _hasDomeLayout,
+              onChanged: (v) => setState(() => _hasDomeLayout = v),
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Featured Event'),
               value: _featured,
               onChanged: (v) => setState(() => _featured = v),
             ),

@@ -92,30 +92,35 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          _FilterChip(
-                            label: 'All Events',
-                            selected: _filter == _EventFilter.all,
-                            onSelected: () => setState(() => _filter = _EventFilter.all),
-                          ),
-                          const SizedBox(width: 8),
-                          _FilterChip(
-                            label: 'Featured',
-                            selected: _filter == _EventFilter.featured,
-                            onSelected: () => setState(() => _filter = _EventFilter.featured),
-                          ),
-                          const SizedBox(width: 8),
-                          _FilterChip(
-                            label: 'Upcoming',
-                            selected: _filter == _EventFilter.upcoming,
-                            onSelected: () => setState(() => _filter = _EventFilter.upcoming),
-                          ),
-                        ],
+                      // Category and Status Chips
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _FilterChip(
+                              label: '🔥 All Events',
+                              selected: _filter == _EventFilter.all,
+                              onSelected: () => setState(() => _filter = _EventFilter.all),
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: '⭐ Featured',
+                              selected: _filter == _EventFilter.featured,
+                              onSelected: () => setState(() => _filter = _EventFilter.featured),
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: '📅 Upcoming',
+                              selected: _filter == _EventFilter.upcoming,
+                              onSelected: () => setState(() => _filter = _EventFilter.upcoming),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 28),
                       eventsAsync.when(
-                        loading: () => const Center(child: Padding(padding: EdgeInsets.all(40), child: LoadingView())),
+                        loading: () => const ShimmerCardGrid(count: 6, cardHeight: 380),
                         error: (err, _) => ErrorView(
                           message: err.toString(),
                           onRetry: () => ref.invalidate(publishedEventsProvider),
@@ -133,7 +138,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                           return LayoutBuilder(
                             builder: (context, constraints) {
                               final width = constraints.maxWidth;
-                              final crossAxisCount = width > 900 ? 3 : (width > 550 ? 2 : 1);
+                              final crossAxisCount = width > 950 ? 3 : (width > 600 ? 2 : 1);
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -141,12 +146,15 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                   crossAxisCount: crossAxisCount,
                                   mainAxisSpacing: 20,
                                   crossAxisSpacing: 20,
-                                  childAspectRatio: 0.72,
+                                  childAspectRatio: crossAxisCount == 1 ? 0.95 : 0.74,
                                 ),
                                 itemCount: filtered.length,
                                 itemBuilder: (context, index) => FadeIn(
-                                  delay: Duration(milliseconds: index * 40),
-                                  child: EventCard(event: filtered[index]),
+                                  delay: Duration(milliseconds: index * 30),
+                                  child: EventCard(
+                                    event: filtered[index],
+                                    imageHeight: crossAxisCount == 1 ? 220 : 200,
+                                  ),
                                 ),
                               );
                             },
@@ -181,8 +189,13 @@ class _FilterChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onSelected(),
       selectedColor: AppColors.neonPurple,
-      backgroundColor: AppColors.surfaceGlass,
-      labelStyle: TextStyle(color: selected ? Colors.white : AppColors.textSecondary),
+      backgroundColor: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : Colors.white70,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+        fontSize: 13,
+      ),
     );
   }
 }

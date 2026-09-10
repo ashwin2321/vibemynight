@@ -12,10 +12,10 @@ import '../../../models/inquiry_admin_summary.dart';
 import '../widgets/admin_shell.dart';
 import '../widgets/status_badge.dart';
 
-/// Full Admin Dashboard matching Figma and requirement:
-/// - Quick action shortcuts (+ Create Event, + Add Artist, Bulk Import, Public Preview, Site Settings)
-/// - Live Metrics & Stat Cards (Total Events, Published, Artists, Total Inquiries, Confirmed, Passes Sold, Revenue)
-/// - Recent Inquiries Feed with quick actions and status badges.
+/// Full Admin Dashboard with Luxury Glassmorphic Styling:
+/// - Quick action shortcuts (+ Create Event, + Add Artist, Inquiries, Settings)
+/// - Live System Metric Cards with subtle neon glow & gradient backdrops
+/// - Recent Inquiries Feed with customer avatars and status chips.
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
@@ -26,17 +26,12 @@ class AdminDashboardScreen extends ConsumerWidget {
     final inquiriesAsync = ref.watch(adminInquiriesProvider(const InquiryFilterParams()));
 
     return AdminShell(
-      title: 'Dashboard',
+      title: 'Admin Dashboard',
       currentPath: '/admin/dashboard',
       actions: [
         IconButton(
-          tooltip: 'Public Site Preview',
-          icon: const Icon(Icons.open_in_new, color: AppColors.neonPurple),
-          onPressed: () => context.push('/'),
-        ),
-        IconButton(
           tooltip: 'Refresh Metrics',
-          icon: const Icon(Icons.refresh),
+          icon: const Icon(Icons.refresh_rounded, size: 20),
           onPressed: () {
             ref.invalidate(adminEventsProvider);
             ref.invalidate(adminArtistsProvider);
@@ -51,57 +46,89 @@ class AdminDashboardScreen extends ConsumerWidget {
           ref.invalidate(adminInquiriesProvider(const InquiryFilterParams()));
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Quick Actions Bar
               _QuickActionsSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
               // 2. Metrics Grid
-              const Text(
-                'SYSTEM METRICS',
-                style: TextStyle(
-                  color: AppColors.neonPurple,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.neonPurple,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'PLATFORM OVERVIEW & METRICS',
+                    style: TextStyle(
+                      color: AppColors.neonPurple,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.8,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _MetricsSection(
                 eventsAsync: eventsAsync,
                 artistsAsync: artistsAsync,
                 inquiriesAsync: inquiriesAsync,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 36),
 
               // 3. Recent Inquiries
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Recent Inquiries',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: AppColors.neonPink,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Recent Pass Inquiries',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
                   ),
                   TextButton.icon(
-                    icon: const Icon(Icons.arrow_forward, size: 16),
-                    label: const Text('View All Inquiries'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.neonPink,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                    label: const Text('View All Inquiries', style: TextStyle(fontWeight: FontWeight.w600)),
                     onPressed: () => context.push('/admin/inquiries'),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               inquiriesAsync.when(
                 loading: () => const Center(child: Padding(padding: EdgeInsets.all(24), child: LoadingView())),
                 error: (err, _) => ErrorView(message: err.toString()),
                 data: (inquiries) => _RecentInquiriesCard(inquiries: inquiries.take(6).toList()),
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -114,69 +141,116 @@ class _QuickActionsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.surfaceGlass,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'QUICK ACTIONS',
+            'QUICK SHORTCUTS',
             style: TextStyle(
               color: AppColors.neonPink,
               fontSize: 11,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
               letterSpacing: 1.5,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add_circle_outline, size: 18),
-                label: const Text('+ Create Event'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonPurple, foregroundColor: Colors.white),
-                onPressed: () => context.push('/admin/events/new'),
+              _ActionButton(
+                icon: Icons.add_circle_outline_rounded,
+                label: '+ Create Event',
+                isPrimary: true,
+                onTap: () => context.push('/admin/events/new'),
               ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
-                label: const Text('+ Add Artist'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceGlass, foregroundColor: Colors.white),
-                onPressed: () => context.push('/admin/artists/new'),
+              _ActionButton(
+                icon: Icons.person_add_alt_1_rounded,
+                label: '+ Add Artist',
+                onTap: () => context.push('/admin/artists/new'),
               ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.upload_file_outlined, size: 18),
-                label: const Text('Excel / CSV Events'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceGlass, foregroundColor: AppColors.neonBlue),
-                onPressed: () => context.push('/admin/events'),
+              _ActionButton(
+                icon: Icons.receipt_long_rounded,
+                label: 'Billing & Invoices',
+                color: AppColors.neonPink,
+                onTap: () => context.push('/admin/billing'),
               ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                label: const Text('Generate Bill / WhatsApp'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceGlass, foregroundColor: AppColors.neonPink),
-                onPressed: () => context.push('/admin/billing'),
+              _ActionButton(
+                icon: Icons.mark_email_unread_rounded,
+                label: 'Manage Inquiries',
+                color: AppColors.neonBlue,
+                onTap: () => context.push('/admin/inquiries'),
               ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.mail_outline, size: 18),
-                label: const Text('Manage Inquiries'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceGlass, foregroundColor: Colors.white),
-                onPressed: () => context.push('/admin/inquiries'),
-              ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.settings_outlined, size: 18),
-                label: const Text('Site Settings'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceGlass, foregroundColor: Colors.white),
-                onPressed: () => context.push('/admin/settings'),
+              _ActionButton(
+                icon: Icons.settings_rounded,
+                label: 'Site Settings',
+                onTap: () => context.push('/admin/settings'),
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isPrimary;
+  final Color? color;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isPrimary = false,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isPrimary) {
+      return ElevatedButton.icon(
+        icon: Icon(icon, size: 18),
+        label: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.neonPurple,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 4,
+          shadowColor: AppColors.neonPurple.withValues(alpha: 0.5),
+        ),
+        onPressed: onTap,
+      );
+    }
+
+    final accent = color ?? Colors.white;
+    return OutlinedButton.icon(
+      icon: Icon(icon, size: 17, color: accent),
+      label: Text(label, style: TextStyle(color: accent, fontWeight: FontWeight.w600, fontSize: 13)),
+      style: OutlinedButton.styleFrom(
+        backgroundColor: AppColors.surface,
+        side: BorderSide(color: (color ?? AppColors.neonPurple).withValues(alpha: 0.3)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      onPressed: onTap,
     );
   }
 }
@@ -213,7 +287,7 @@ class _MetricsSection extends StatelessWidget {
               child: _MetricCard(
                 label: 'Total Events',
                 value: eventsAsync.maybeWhen(data: (events) => '${events.length}', orElse: () => '0'),
-                icon: Icons.event,
+                icon: Icons.celebration_rounded,
                 iconColor: AppColors.neonPurple,
               ),
             ),
@@ -221,22 +295,22 @@ class _MetricsSection extends StatelessWidget {
             SizedBox(
               width: itemWidth,
               child: _MetricCard(
-                label: 'Published Events',
+                label: 'Live Published Events',
                 value: eventsAsync.maybeWhen(
                   data: (events) => '${events.where((e) => e.status == 'PUBLISHED').length}',
                   orElse: () => '0',
                 ),
-                icon: Icons.check_circle_outline,
-                iconColor: Colors.greenAccent,
+                icon: Icons.verified_rounded,
+                iconColor: const Color(0xFF34D399),
               ),
             ),
             // 3. Total Artists
             SizedBox(
               width: itemWidth,
               child: _MetricCard(
-                label: 'Total Artists',
+                label: 'Active Artists',
                 value: artistsAsync.maybeWhen(data: (artists) => '${artists.length}', orElse: () => '0'),
-                icon: Icons.mic_external_on,
+                icon: Icons.mic_external_on_rounded,
                 iconColor: AppColors.neonPink,
               ),
             ),
@@ -246,34 +320,34 @@ class _MetricsSection extends StatelessWidget {
               child: _MetricCard(
                 label: 'Total Inquiries',
                 value: inquiriesAsync.maybeWhen(data: (inquiries) => '${inquiries.length}', orElse: () => '0'),
-                icon: Icons.mail,
+                icon: Icons.mark_email_read_rounded,
                 iconColor: AppColors.neonBlue,
               ),
             ),
-            // 5. New Inquiries
+            // 5. New Pending Inquiries
             SizedBox(
               width: itemWidth,
               child: _MetricCard(
-                label: 'New Pending Inquiries',
+                label: 'New Pending Leads',
                 value: inquiriesAsync.maybeWhen(
                   data: (inquiries) => '${inquiries.where((i) => i.status == 'NEW').length}',
                   orElse: () => '0',
                 ),
-                icon: Icons.mark_email_unread_outlined,
-                iconColor: Colors.orangeAccent,
+                icon: Icons.pending_actions_rounded,
+                iconColor: const Color(0xFFFB923C),
               ),
             ),
-            // 6. Confirmed Inquiries
+            // 6. Confirmed Bookings
             SizedBox(
               width: itemWidth,
               child: _MetricCard(
                 label: 'Confirmed Bookings',
                 value: inquiriesAsync.maybeWhen(
-                  data: (inquiries) => '${inquiries.where((i) => i.status == 'CONFIRMED').length}',
+                  data: (inquiries) => '${inquiries.where((i) => i.status == 'CONFIRMED' || i.status == 'COMPLETED').length}',
                   orElse: () => '0',
                 ),
-                icon: Icons.verified_outlined,
-                iconColor: Colors.tealAccent,
+                icon: Icons.task_alt_rounded,
+                iconColor: const Color(0xFF2DD4BF),
               ),
             ),
             // 7. Passes Requested
@@ -291,15 +365,15 @@ class _MetricsSection extends StatelessWidget {
                   },
                   orElse: () => '0',
                 ),
-                icon: Icons.confirmation_num_outlined,
+                icon: Icons.confirmation_num_rounded,
                 iconColor: const Color(0xFFC084FC),
               ),
             ),
-            // 8. Pipeline Value
+            // 8. Pipeline Total
             SizedBox(
               width: itemWidth,
               child: _MetricCard(
-                label: 'Pipeline Value',
+                label: 'Pipeline Booking Value',
                 value: inquiriesAsync.maybeWhen(
                   data: (inquiries) {
                     double total = 0.0;
@@ -310,8 +384,8 @@ class _MetricsSection extends StatelessWidget {
                   },
                   orElse: () => '₹0',
                 ),
-                icon: Icons.currency_rupee,
-                iconColor: Colors.amber,
+                icon: Icons.currency_rupee_rounded,
+                iconColor: const Color(0xFFFBBF24),
               ),
             ),
           ],
@@ -341,7 +415,14 @@ class _MetricCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: iconColor.withValues(alpha: 0.25), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: iconColor.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -353,9 +434,10 @@ class _MetricCard extends StatelessWidget {
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -363,7 +445,11 @@ class _MetricCard extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -371,7 +457,7 @@ class _MetricCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.15),
+              color: iconColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: iconColor.withValues(alpha: 0.3)),
             ),
@@ -411,7 +497,7 @@ class _RecentInquiriesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.2)),
       ),
       child: ListView.separated(
         shrinkWrap: true,
@@ -421,34 +507,49 @@ class _RecentInquiriesCard extends StatelessWidget {
         itemBuilder: (context, index) {
           final inq = inquiries[index];
           return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             leading: CircleAvatar(
-              backgroundColor: AppColors.neonPurple.withValues(alpha: 0.2),
-              child: const Icon(Icons.person_outline, color: AppColors.neonPurple),
+              radius: 20,
+              backgroundColor: AppColors.neonPurple.withValues(alpha: 0.18),
+              child: const Icon(Icons.person_rounded, color: AppColors.neonPurple, size: 20),
             ),
             title: Row(
               children: [
-                Text(inq.customerName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(inq.customerName, style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 14)),
                 const SizedBox(width: 8),
-                Text('#${inq.inquiryNumber}', style: const TextStyle(color: AppColors.neonPurple, fontSize: 12)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGlass,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    '#${inq.inquiryNumber}',
+                    style: const TextStyle(color: AppColors.neonPurple, fontSize: 10.5, fontWeight: FontWeight.w700),
+                  ),
+                ),
               ],
             ),
-            subtitle: Text(
-              '${inq.eventName} · ${inq.ticketCategoryName} (Qty: ${inq.quantity})',
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '${inq.eventName} · ${inq.ticketCategoryName} (Qty: ${inq.quantity})',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   '₹${inq.estimatedTotal.toStringAsFixed(0)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                  style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 14),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 StatusBadge(status: inq.status),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                  icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 20),
                   onPressed: () => context.push('/admin/inquiries/${inq.id}'),
                 ),
               ],

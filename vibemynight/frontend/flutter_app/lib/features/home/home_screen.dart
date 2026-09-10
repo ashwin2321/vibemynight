@@ -7,21 +7,21 @@ import '../../core/providers/data_providers.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../core/widgets/loading_view.dart';
 import '../../models/artist.dart';
 import '../../models/event_summary.dart';
+import '../events/widgets/event_card.dart';
 
-/// Full Figma-faithful Home Page matching Figma HomePage.tsx:
+/// Full Showmates & Figma-faithful Home Page:
 /// - 100% DYNAMIC: All Featured Nights, Upcoming Events, and Featured Artists
 ///   are loaded directly from the live Spring Boot Backend APIs.
-/// - Hero with concert crowd background, "Events Now Live" pill, bold gradient typography, CTA buttons & scroll indicator.
-/// - Featured Nights: Responsive grid of rich dynamic event cards with badges, prices, and direct links.
-/// - Upcoming Events: Responsive grid of compact dynamic event cards.
+/// - Hero with concert crowd background, "Events Now Live" pill, bold gradient typography & CTA buttons.
+/// - Interactive Category Filter Chips Bar (Navratri 2026, DJ & EDM, Live Concerts, VIP Exclusives).
+/// - Featured Nights: Responsive 3:4 Poster Event Cards with floating date pills, price tags & neon glow.
+/// - Circular "Events by Artist & DJs" strip with smooth left/right chevron navigation.
 /// - Why VibeMyNight: 4 glass cards with neon icon badges.
-/// - Featured Artists: Live lineup cards loaded dynamically from backend.
-/// - Event Experiences: Interactive pill tags.
-/// - Final CTA: Nightclub banner with gradient headline.
-/// - AppFooter: Full multi-column footer with dynamic settings.
-class HomeScreen extends ConsumerWidget {
+/// - Shimmer Skeleton Loading: Zero blank screen lag.
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   static const _heroImg =
@@ -30,7 +30,14 @@ class HomeScreen extends ConsumerWidget {
       'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&h=700&fit=crop&auto=format';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  String _selectedCategory = 'All Events';
+
+  @override
+  Widget build(BuildContext context) {
     final eventsAsync = ref.watch(publishedEventsProvider);
     final artistsAsync = ref.watch(artistsProvider);
     final settingsAsync = ref.watch(appSettingsProvider);
@@ -53,25 +60,34 @@ class HomeScreen extends ConsumerWidget {
               // 1. HERO SECTION
               _HeroSection(whatsappNumber: whatsappNumber),
 
-              // 2. FEATURED NIGHTS SECTION (100% DYNAMIC)
-              _FeaturedNightsSection(eventsAsync: eventsAsync),
+              // 2. CATEGORY FILTER CHIPS BAR
+              _CategoryFilterBar(
+                selectedCategory: _selectedCategory,
+                onCategorySelected: (cat) => setState(() => _selectedCategory = cat),
+              ),
 
-              // 3. UPCOMING EVENTS SECTION (100% DYNAMIC)
-              _UpcomingEventsSection(eventsAsync: eventsAsync),
+              // 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS)
+              _FeaturedNightsSection(
+                eventsAsync: eventsAsync,
+                selectedCategory: _selectedCategory,
+              ),
 
-              // 4. WHY VIBEMYNIGHT SECTION
-              const _WhyVibeMyNightSection(),
-
-              // 5. FEATURED ARTISTS SECTION (100% DYNAMIC)
+              // 4. CIRCULAR FEATURED ARTISTS & DJS SLIDER (SHOWMATES STYLE)
               _FeaturedArtistsSection(artistsAsync: artistsAsync),
 
-              // 6. EVENT EXPERIENCES SECTION
+              // 5. UPCOMING EVENTS SECTION (DYNAMIC)
+              _UpcomingEventsSection(eventsAsync: eventsAsync),
+
+              // 6. WHY VIBEMYNIGHT SECTION
+              const _WhyVibeMyNightSection(),
+
+              // 7. EVENT EXPERIENCES SECTION
               const _EventExperiencesSection(),
 
-              // 7. FINAL CTA SECTION
+              // 8. FINAL CTA SECTION
               const _FinalCtaSection(),
 
-              // 8. FOOTER
+              // 9. FOOTER
               const AppFooter(),
             ],
           ),
@@ -333,23 +349,153 @@ class _HeroSection extends StatelessWidget {
 }
 
 // ==========================================
-// 2. FEATURED NIGHTS SECTION (DYNAMIC)
+// 2. CATEGORY FILTER CHIPS BAR (SHOWMATES STYLE)
+// ==========================================
+class _CategoryFilterBar extends StatefulWidget {
+  final ValueChanged<String>? onCategorySelected;
+  final String selectedCategory;
+
+  const _CategoryFilterBar({
+    this.onCategorySelected,
+    this.selectedCategory = 'All Events',
+  });
+
+  @override
+  State<_CategoryFilterBar> createState() => _CategoryFilterBarState();
+}
+
+class _CategoryFilterBarState extends State<_CategoryFilterBar> {
+  late String _selected;
+
+  static const _categories = [
+    {'label': 'All Events', 'icon': '🔥'},
+    {'label': 'Navratri 2026', 'icon': '💃'},
+    {'label': 'DJ & EDM', 'icon': '🎧'},
+    {'label': 'Live Concerts', 'icon': '🎤'},
+    {'label': 'Club Nights', 'icon': '🍸'},
+    {'label': 'VIP Exclusives', 'icon': '🎟️'},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.selectedCategory;
+  }
+
+  @override
+  void didUpdateWidget(covariant _CategoryFilterBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedCategory != widget.selectedCategory) {
+      _selected = widget.selectedCategory;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width >= 768;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isDesktop ? 48 : 20,
+        28,
+        isDesktop ? 48 : 20,
+        12,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: _categories.map((cat) {
+                final isSelected = _selected == cat['label'];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() => _selected = cat['label']!);
+                      widget.onCategorySelected?.call(cat['label']!);
+                    },
+                    borderRadius: BorderRadius.circular(30),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                              )
+                            : null,
+                        color: isSelected ? null : Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFA855F7)
+                              : Colors.white.withValues(alpha: 0.12),
+                          width: isSelected ? 1.5 : 1.0,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFFA855F7).withValues(alpha: 0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(cat['icon']!, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(width: 8),
+                          Text(
+                            cat['label']!,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.white70,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS)
 // ==========================================
 class _FeaturedNightsSection extends StatelessWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
+  final String selectedCategory;
 
-  const _FeaturedNightsSection({required this.eventsAsync});
+  const _FeaturedNightsSection({
+    required this.eventsAsync,
+    this.selectedCategory = 'All Events',
+  });
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
+    final cols = isDesktop ? 4 : (isTablet ? 2 : 1);
 
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 48 : 20,
-        vertical: 48,
+        vertical: 32,
       ),
       child: Center(
         child: ConstrainedBox(
@@ -362,44 +508,47 @@ class _FeaturedNightsSection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "DON'T MISS",
-                        style: TextStyle(
-                          color: Color(0xFFA855F7),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "DON'T MISS",
+                          style: TextStyle(
+                            color: Color(0xFFA855F7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Featured Nights',
-                        style: TextStyle(
-                          fontSize: isDesktop ? 32 : 24,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                        const SizedBox(height: 4),
+                        Text(
+                          'Featured Nights',
+                          style: TextStyle(
+                            fontSize: isDesktop ? 32 : 24,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Discover the most happening events right now.',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 14,
+                        const SizedBox(height: 4),
+                        Text(
+                          'Discover the most happening events and book official passes',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 16),
                   InkWell(
                     onTap: () => context.push('/events'),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'View All',
+                          'View All Events',
                           style: TextStyle(
                             color: Color(0xFFA855F7),
                             fontWeight: FontWeight.w600,
@@ -415,14 +564,9 @@ class _FeaturedNightsSection extends StatelessWidget {
               ),
               const SizedBox(height: 28),
 
-              // Dynamic Events Grid
+              // Dynamic Events Grid with 3:4 Poster EventCard
               eventsAsync.when(
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+                loading: () => ShimmerCardGrid(count: cols * 2, cardHeight: 380),
                 error: (err, _) => Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -478,20 +622,32 @@ class _FeaturedNightsSection extends StatelessWidget {
                     );
                   }
 
-                  final featuredList = events.where((e) => e.featured).toList();
-                  final displayList = featuredList.isNotEmpty ? featuredList : events;
-                  final count = isDesktop ? 4 : (isTablet ? 2 : 1);
+                  // Filter by category if selected
+                  var filtered = events;
+                  if (selectedCategory == 'Navratri 2026') {
+                    filtered = events.where((e) => e.name.toLowerCase().contains('garba') || e.name.toLowerCase().contains('navratri') || (e.location?.toLowerCase().contains('garba') ?? false)).toList();
+                  } else if (selectedCategory == 'DJ & EDM') {
+                    filtered = events.where((e) => e.name.toLowerCase().contains('dj') || e.name.toLowerCase().contains('edm') || (e.featuredArtistName?.toLowerCase().contains('dj') ?? false)).toList();
+                  } else if (selectedCategory == 'Live Concerts') {
+                    filtered = events.where((e) => e.name.toLowerCase().contains('concert') || e.name.toLowerCase().contains('live') || (e.featuredArtistName?.isNotEmpty ?? false)).toList();
+                  } else if (selectedCategory == 'VIP Exclusives') {
+                    filtered = events.where((e) => e.featured).toList();
+                  }
+                  if (filtered.isEmpty) filtered = events;
 
                   return LayoutBuilder(
                     builder: (context, constraints) {
-                      final itemWidth = (constraints.maxWidth - (count - 1) * 16) / count;
+                      final itemWidth = (constraints.maxWidth - (cols - 1) * 16) / cols;
                       return Wrap(
                         spacing: 16,
-                        runSpacing: 16,
-                        children: displayList.take(4).map((event) {
+                        runSpacing: 20,
+                        children: filtered.take(8).map((event) {
                           return SizedBox(
                             width: itemWidth,
-                            child: _DynamicEventCard(event: event),
+                            child: EventCard(
+                              event: event,
+                              imageHeight: isDesktop ? 220 : 190,
+                            ),
                           );
                         }).toList(),
                       );
@@ -501,190 +657,6 @@ class _FeaturedNightsSection extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DynamicEventCard extends StatelessWidget {
-  final EventSummary event;
-
-  const _DynamicEventCard({required this.event});
-
-  @override
-  Widget build(BuildContext context) {
-    final image = event.mainImage ??
-        event.thumbnail ??
-        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=400&fit=crop&auto=format';
-    final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
-
-    return InkWell(
-      onTap: () => context.push(targetRoute),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF12122A),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image with badge
-            Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF1E1E38),
-                      child: const Center(
-                        child: Icon(Icons.nightlife, color: Colors.white30, size: 40),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [Color(0xCC07070E), Colors.transparent],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: event.featured ? const Color(0xFFA855F7) : const Color(0xFFEC4899),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      event.featured ? 'FEATURED' : event.status,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            // Info
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '📍 ${event.location ?? ''}${event.location != null && event.city != null ? ', ' : ''}${event.city ?? ''}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '📅 ${event.startDate}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Text(
-                        '🎤 ${event.featuredArtistName ?? 'Live Artists'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(height: 1, color: Color(0x1AFFFFFF)),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'from',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          Text(
-                            event.startingPrice != null ? '₹${event.startingPrice!.toInt()}' : '₹499',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFFA855F7),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: const Text(
-                          'View Event',
-                          style: TextStyle(
-                            color: Color(0xFFC084FC),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -1031,12 +1003,34 @@ class _WhyVibeMyNightSection extends StatelessWidget {
 }
 
 // ==========================================
-// 5. FEATURED ARTISTS SECTION (DYNAMIC)
+// 4. CIRCULAR FEATURED ARTISTS & DJS SLIDER (SHOWMATES STYLE)
 // ==========================================
-class _FeaturedArtistsSection extends StatelessWidget {
+class _FeaturedArtistsSection extends StatefulWidget {
   final AsyncValue<List<Artist>> artistsAsync;
 
   const _FeaturedArtistsSection({required this.artistsAsync});
+
+  @override
+  State<_FeaturedArtistsSection> createState() => _FeaturedArtistsSectionState();
+}
+
+class _FeaturedArtistsSectionState extends State<_FeaturedArtistsSection> {
+  final ScrollController _scrollController = ScrollController();
+
+  void _scroll(double offset) {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      (_scrollController.offset + offset).clamp(0.0, _scrollController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1053,34 +1047,66 @@ class _FeaturedArtistsSection extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 1100),
           child: Column(
             children: [
-              const Text(
-                'LINEUP',
-                style: TextStyle(
-                  color: Color(0xFFA855F7),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Featured Artists',
-                style: TextStyle(
-                  fontSize: isDesktop ? 32 : 24,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+              // Header with Left/Right Scroll Chevron Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'FEATURED LINEUP',
+                          style: TextStyle(
+                            color: Color(0xFFA855F7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Events by Artists & DJs',
+                          style: TextStyle(
+                            fontSize: isDesktop ? 32 : 24,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Discover nights curated by your favourite performers',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Left / Right Scroll Buttons (Showmates style)
+                  Row(
+                    children: [
+                      _ScrollArrowButton(
+                        icon: Icons.chevron_left,
+                        onTap: () => _scroll(-260),
+                      ),
+                      const SizedBox(width: 8),
+                      _ScrollArrowButton(
+                        icon: Icons.chevron_right,
+                        onTap: () => _scroll(260),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 28),
 
-              // Dynamic Artist Strip
-              artistsAsync.when(
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+              // Dynamic Circular Artist Strip with Shimmer
+              widget.artistsAsync.when(
+                loading: () => const ShimmerArtistSlider(count: 6),
                 error: (_, __) => const SizedBox.shrink(),
                 data: (artists) {
                   if (artists.isEmpty) {
@@ -1100,71 +1126,150 @@ class _FeaturedArtistsSection extends StatelessWidget {
                   }
 
                   return SingleChildScrollView(
+                    controller: _scrollController,
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: artists.map((a) {
-                        final img = a.photoUrl ??
-                            'https://images.unsplash.com/photo-1496337589254-7e19d01cec44?w=300&h=300&fit=crop&auto=format';
-
-                        return Container(
-                          width: 190,
-                          margin: const EdgeInsets.only(right: 16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF12122A),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AspectRatio(
-                                aspectRatio: 1,
-                                child: Image.network(
-                                  img,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF1E1E38),
-                                    child: const Center(
-                                      child: Icon(Icons.person, color: Colors.white24, size: 48),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      a.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      a.type,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.white.withValues(alpha: 0.45),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 24),
+                          child: _CircularArtistCard(artist: a),
                         );
                       }).toList(),
                     ),
                   );
                 },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScrollArrowButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _ScrollArrowButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.06),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
+    );
+  }
+}
+
+class _CircularArtistCard extends StatefulWidget {
+  final Artist artist;
+
+  const _CircularArtistCard({required this.artist});
+
+  @override
+  State<_CircularArtistCard> createState() => _CircularArtistCardState();
+}
+
+class _CircularArtistCardState extends State<_CircularArtistCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = widget.artist;
+    final img = a.photoUrl ??
+        'https://images.unsplash.com/photo-1496337589254-7e19d01cec44?w=300&h=300&fit=crop&auto=format';
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: () => context.push('/artists'),
+        child: SizedBox(
+          width: 120,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Circular Avatar with Glowing Neon Ring
+              AnimatedScale(
+                scale: _isHovered ? 1.08 : 1.0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: Container(
+                  width: 104,
+                  height: 104,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: _isHovered
+                          ? const [Color(0xFFA855F7), Color(0xFFEC4899)]
+                          : [
+                              const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                              const Color(0xFFEC4899).withValues(alpha: 0.3),
+                            ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _isHovered
+                            ? const Color(0xFFA855F7).withValues(alpha: 0.45)
+                            : Colors.black.withValues(alpha: 0.3),
+                        blurRadius: _isHovered ? 20 : 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Image.network(
+                      img,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF1E1E38),
+                        child: const Icon(Icons.person, color: Colors.white24, size: 40),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Artist Name
+              Text(
+                a.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: _isHovered ? const Color(0xFFC084FC) : Colors.white,
+                ),
+              ),
+              const SizedBox(height: 3),
+
+              // Genre / Type
+              Text(
+                a.type.isNotEmpty ? a.type : 'Live Performer',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
               ),
             ],
           ),

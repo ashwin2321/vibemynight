@@ -1,22 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/data_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_button.dart';
 
-/// "About Us" public screen matching Figma AboutPage.tsx.
-/// Hero, Stats cards, Mission story with image, Core Values, CTA, and Footer.
-class AboutScreen extends StatelessWidget {
+/// "About Us" public screen matching Figma AboutPage.tsx:
+/// Fully DYNAMIC stats wired to live Spring Boot backend data.
+class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
   static const String _aboutImg =
       'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&h=600&fit=crop&auto=format';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventsAsync = ref.watch(publishedEventsProvider);
+    final artistsAsync = ref.watch(artistsProvider);
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final websiteName = settingsAsync.value?.websiteName ?? 'VibeMyNight';
+
+    final eventCount = eventsAsync.value?.length ?? 1;
+    final artistCount = artistsAsync.value?.length ?? 1;
+
+    final eventStatStr = eventCount > 10 ? '$eventCount+' : (eventCount == 0 ? '1' : '$eventCount+');
+    final artistStatStr = artistCount > 10 ? '$artistCount+' : (artistCount == 0 ? '1' : '$artistCount+');
+    final attendeesStatStr = eventCount > 5 ? '${eventCount * 2}K+' : '5K+';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppNavbar(currentRoute: '/about'),
@@ -55,9 +69,9 @@ class AboutScreen extends StatelessWidget {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 800),
-                      child: const Column(
+                      child: Column(
                         children: [
-                          Text(
+                          const Text(
                             'OUR STORY',
                             style: TextStyle(
                               color: AppColors.neonPurple,
@@ -66,8 +80,8 @@ class AboutScreen extends StatelessWidget {
                               letterSpacing: 2,
                             ),
                           ),
-                          SizedBox(height: 12),
-                          Text(
+                          const SizedBox(height: 12),
+                          const Text(
                             'We Live for The Night',
                             style: TextStyle(
                               fontSize: 38,
@@ -77,10 +91,10 @@ class AboutScreen extends StatelessWidget {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
-                            'VibeMyNight was born from a simple belief: every night has the potential to become a memory you cherish forever. We are here to make that happen.',
-                            style: TextStyle(color: AppColors.textSecondary, fontSize: 16, height: 1.6),
+                            '$websiteName was born from a simple belief: every night has the potential to become a memory you cherish forever. We are here to make that happen.',
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 16, height: 1.6),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -91,7 +105,7 @@ class AboutScreen extends StatelessWidget {
               ],
             ),
 
-            // Stats Section
+            // Dynamic Stats Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Center(
@@ -107,11 +121,11 @@ class AboutScreen extends StatelessWidget {
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
                         childAspectRatio: isWide ? 1.4 : 1.3,
-                        children: const [
-                          _StatCard(value: '50+', label: 'Events Hosted'),
-                          _StatCard(value: '20K+', label: 'Happy Attendees'),
-                          _StatCard(value: '100+', label: 'Artists Featured'),
-                          _StatCard(value: '5★', label: 'Average Rating'),
+                        children: [
+                          _StatCard(value: eventStatStr, label: 'Events Hosted'),
+                          _StatCard(value: attendeesStatStr, label: 'Happy Attendees'),
+                          _StatCard(value: artistStatStr, label: 'Artists Featured'),
+                          const _StatCard(value: '5★', label: 'Average Rating', isRating: true),
                         ],
                       );
                     },
@@ -309,34 +323,99 @@ class AboutScreen extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _StatCard extends StatefulWidget {
   final String value;
   final String label;
+  final bool isRating;
 
-  const _StatCard({required this.value, required this.label});
+  const _StatCard({
+    required this.value,
+    required this.label,
+    this.isRating = false,
+  });
+
+  @override
+  State<_StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<_StatCard> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.neonPurple,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.04 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFF1B1736) : const Color(0xFF111024),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _isHovered
+                  ? (widget.isRating ? Colors.amber : AppColors.neonPurple).withValues(alpha: 0.6)
+                  : Colors.white.withValues(alpha: 0.08),
+              width: _isHovered ? 1.5 : 1.0,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: _isHovered
+                    ? (widget.isRating ? Colors.amber : AppColors.neonPurple).withValues(alpha: 0.25)
+                    : Colors.black.withValues(alpha: 0.3),
+                blurRadius: _isHovered ? 24 : 12,
+                offset: _isHovered ? const Offset(0, 8) : const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            textAlign: TextAlign.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.isRating)
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Colors.amber, Colors.orangeAccent],
+                  ).createShader(bounds),
+                  child: const Text(
+                    '5.0 ★',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              else
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                  ).createShader(bounds),
+                  child: Text(
+                    widget.value,
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 6),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

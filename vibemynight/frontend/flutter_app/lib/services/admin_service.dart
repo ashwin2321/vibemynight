@@ -43,8 +43,10 @@ class AdminService {
 
   // ---------- Event days ----------
 
-  Future<void> createEventDay(int eventId, Map<String, dynamic> body) =>
-      _client.post(ApiConstants.adminEventDays(eventId), body: body);
+  Future<EventDayDetail> createEventDay(int eventId, Map<String, dynamic> body) async {
+    final data = await _client.post(ApiConstants.adminEventDays(eventId), body: body);
+    return EventDayDetail.fromJson(data as Map<String, dynamic>);
+  }
 
   Future<void> updateEventDay(int dayId, Map<String, dynamic> body) =>
       _client.put(ApiConstants.adminEventDayById(dayId), body: body);

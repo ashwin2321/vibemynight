@@ -26,6 +26,7 @@ class VmnLogo extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.contain,
+          isAntiAlias: true,
           filterQuality: FilterQuality.high,
           errorBuilder: (context, error, stackTrace) => Container(
             width: size,

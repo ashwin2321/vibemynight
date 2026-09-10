@@ -23,6 +23,7 @@ class AppColors {
 
   static const Color textPrimary = Color(0xFFF5F3FA);
   static const Color textSecondary = Color(0xFFAFA5C2);
+  static const Color textMuted = Color(0xFF7A7289);
   static const Color divider = Color(0x1FFFFFFF);
 
   static const Color success = Color(0xFF22C55E);

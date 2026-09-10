@@ -96,7 +96,7 @@ class _AdminInquiriesScreenState extends ConsumerState<AdminInquiriesScreen> {
     final msg = Uri.encodeComponent(
       'Hi ${inquiry.customerName}, regarding your inquiry ${inquiry.inquiryNumber} for ${inquiry.eventName} (${inquiry.ticketCategoryName} pass)...',
     );
-    final url = 'https://wa.me/$cleanPhone?text=$msg';
+    final url = 'https://api.whatsapp.com/send?phone=$cleanPhone&text=$msg';
     launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
@@ -298,6 +298,8 @@ class _AdminInquiriesScreenState extends ConsumerState<AdminInquiriesScreen> {
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<String>(
                                   initialValue: _selectedInquiry!.status,
+                                  isExpanded: true,
+                                  dropdownColor: AppColors.surface,
                                   decoration: const InputDecoration(isDense: true),
                                   items: ['NEW', 'CONTACTED', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
                                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))

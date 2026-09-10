@@ -15,6 +15,7 @@ import '../../features/admin/events/admin_passes_screen.dart';
 import '../../features/admin/facilities/admin_facilities_screen.dart';
 import '../../features/admin/inquiries/admin_inquiries_screen.dart';
 import '../../features/admin/inquiries/admin_inquiry_details_screen.dart';
+import '../../features/admin/passes/admin_pass_catalog_screen.dart';
 import '../../features/admin/settings/admin_settings_screen.dart';
 import '../../features/artists/artists_screen.dart';
 import '../../features/contact/contact_screen.dart';
@@ -138,12 +139,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/events/:id/days/new',
         builder: (context, state) =>
-            AdminCreateDayScreen(eventId: int.parse(state.pathParameters['id']!)),
+            AdminDayFormScreen(eventId: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(
         path: '/admin/event-days/:dayId/edit',
-        builder: (context, state) =>
-            AdminEditDayScreen(dayId: int.parse(state.pathParameters['dayId']!)),
+        builder: (context, state) {
+          final dayId = int.parse(state.pathParameters['dayId']!);
+          final eventId = state.extra as int? ?? 0;
+          return AdminDayFormScreen(eventId: eventId, dayId: dayId);
+        },
       ),
       GoRoute(
         path: '/admin/event-days/:dayId/passes',
@@ -169,6 +173,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             AdminEditArtistScreen(artistId: int.parse(state.pathParameters['id']!)),
       ),
+      GoRoute(path: '/admin/pass-templates', builder: (context, state) => const AdminPassCatalogScreen()),
       GoRoute(path: '/admin/facilities', builder: (context, state) => const AdminFacilitiesScreen()),
       GoRoute(path: '/admin/inquiries', builder: (context, state) => const AdminInquiriesScreen()),
       GoRoute(

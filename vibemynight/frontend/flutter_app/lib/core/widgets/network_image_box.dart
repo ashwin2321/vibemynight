@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Network image with rounded corners, a loading state, and a graceful
-/// fallback box (never a broken-image icon) when [url] is null/empty or
-/// fails to load - covers the "no fake functionality" spirit for
-/// still-empty admin-uploaded image fields during early data entry.
+/// Network image with rounded corners, progressive loading state,
+/// and graceful fallback (never broken-image icon).
 class NetworkImageBox extends StatelessWidget {
   final String? url;
   final double? height;
@@ -27,6 +25,7 @@ class NetworkImageBox extends StatelessWidget {
     if (url == null || url!.isEmpty) {
       return _fallback();
     }
+
     return ClipRRect(
       borderRadius: borderRadius,
       child: Image.network(
@@ -49,12 +48,15 @@ class NetworkImageBox extends StatelessWidget {
       child: Container(
         height: height,
         width: width,
-        color: AppColors.surface,
+        color: const Color(0xFF15102A),
         alignment: Alignment.center,
         child: loading
             ? const SizedBox(
-                width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.image_outlined, color: AppColors.textSecondary),
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.neonPurple),
+              )
+            : const Icon(Icons.image_outlined, color: AppColors.textSecondary, size: 24),
       ),
     );
   }
