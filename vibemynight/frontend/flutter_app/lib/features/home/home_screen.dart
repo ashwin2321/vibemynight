@@ -121,7 +121,7 @@ class _HeroSection extends StatelessWidget {
 
     return Container(
       constraints: BoxConstraints(
-        minHeight: isDesktop ? 620 : 460,
+        minHeight: isDesktop ? 620 : 340,
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -172,7 +172,7 @@ class _HeroSection extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: isDesktop ? 48 : (isSmallMobile ? 16 : 20),
-              vertical: isDesktop ? 80 : 36,
+              vertical: isDesktop ? 80 : 28,
             ),
             child: Center(
               child: ConstrainedBox(
@@ -183,7 +183,10 @@ class _HeroSection extends StatelessWidget {
                   children: [
                     // Events Now Live pill badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 14 : 10,
+                        vertical: isDesktop ? 6 : 4,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(30),
@@ -210,19 +213,19 @@ class _HeroSection extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Events Now Live',
                             style: TextStyle(
-                              color: Color(0xFFC084FC),
+                              color: const Color(0xFFC084FC),
                               fontWeight: FontWeight.w700,
-                              fontSize: 12,
+                              fontSize: isDesktop ? 12 : 11,
                               letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: isDesktop ? 20 : 12),
 
                     // Big Headline: Experience The Night. Create The Memory.
                     RichText(
@@ -231,11 +234,11 @@ class _HeroSection extends StatelessWidget {
                           TextSpan(
                             text: 'Experience The Night.\n',
                             style: TextStyle(
-                              fontSize: isDesktop ? 54 : (isSmallMobile ? 28 : 34),
+                              fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
                               height: 1.1,
-                              letterSpacing: -1,
+                              letterSpacing: -0.8,
                             ),
                           ),
                           WidgetSpan(
@@ -250,11 +253,11 @@ class _HeroSection extends StatelessWidget {
                               child: Text(
                                 'Create The Memory.',
                                 style: TextStyle(
-                                  fontSize: isDesktop ? 54 : (isSmallMobile ? 28 : 34),
+                                  fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                   height: 1.1,
-                                  letterSpacing: -1,
+                                  letterSpacing: -0.8,
                                 ),
                               ),
                             ),
@@ -262,7 +265,7 @@ class _HeroSection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    SizedBox(height: isDesktop ? 18 : 10),
 
                     // Subtitle
                     ConstrainedBox(
@@ -270,79 +273,128 @@ class _HeroSection extends StatelessWidget {
                       child: Text(
                         'Discover the best events, artists and unforgettable experiences with VibeMyNight.',
                         style: TextStyle(
-                          fontSize: isDesktop ? 18 : 15,
+                          fontSize: isDesktop ? 18 : 13,
                           color: Colors.white.withValues(alpha: 0.65),
-                          height: 1.5,
+                          height: 1.4,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: isDesktop ? 32 : 18),
 
                     // CTA Buttons
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 12,
-                      children: [
-                        GradientButton(
-                          label: 'Explore Events',
-                          height: 48,
-                          padding: const EdgeInsets.symmetric(horizontal: 28),
-                          onPressed: () => context.push('/events'),
-                        ),
-                        InkWell(
-                          onTap: _launchWhatsApp,
-                          borderRadius: BorderRadius.circular(24),
-                          child: Container(
-                            height: 48,
-                            padding: const EdgeInsets.symmetric(horizontal: 26),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.18),
-                              ),
+                    if (!isDesktop)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GradientButton(
+                              label: 'Explore Events',
+                              height: 42,
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              onPressed: () => context.push('/events'),
                             ),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'Get Your Pass',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: InkWell(
+                              onTap: _launchWhatsApp,
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                height: 42,
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF25D366).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: const Color(0xFF25D366).withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Get Passes',
+                                      style: TextStyle(
+                                        color: Color(0xFF25D366),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    else
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 12,
+                        children: [
+                          GradientButton(
+                            label: 'Explore Events',
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            onPressed: () => context.push('/events'),
+                          ),
+                          InkWell(
+                            onTap: _launchWhatsApp,
+                            borderRadius: BorderRadius.circular(24),
+                            child: Container(
+                              height: 48,
+                              padding: const EdgeInsets.symmetric(horizontal: 26),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.18),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Get Your Pass',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
             ),
           ),
-          // Scroll indicator
-          Positioned(
-            bottom: 16,
-            child: Column(
-              children: [
-                Text(
-                  'SCROLL',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2,
-                    color: Colors.white.withValues(alpha: 0.4),
+          // Scroll indicator (Desktop only)
+          if (isDesktop)
+            Positioned(
+              bottom: 16,
+              child: Column(
+                children: [
+                  Text(
+                    'SCROLL',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                      color: Colors.white.withValues(alpha: 0.4),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: Colors.white.withValues(alpha: 0.3),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: Colors.white.withValues(alpha: 0.3),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -398,10 +450,10 @@ class _CategoryFilterBarState extends State<_CategoryFilterBar> {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        isDesktop ? 48 : 20,
-        28,
-        isDesktop ? 48 : 20,
-        12,
+        isDesktop ? 48 : 16,
+        isDesktop ? 28 : 14,
+        isDesktop ? 48 : 16,
+        isDesktop ? 12 : 8,
       ),
       child: Center(
         child: ConstrainedBox(
@@ -495,8 +547,8 @@ class _FeaturedNightsSection extends ConsumerWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 48 : 20,
-        vertical: 32,
+        horizontal: isDesktop ? 48 : 16,
+        vertical: isDesktop ? 32 : 16,
       ),
       child: Center(
         child: ConstrainedBox(
@@ -507,7 +559,7 @@ class _FeaturedNightsSection extends ConsumerWidget {
               // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
@@ -517,53 +569,55 @@ class _FeaturedNightsSection extends ConsumerWidget {
                           "DON'T MISS",
                           style: TextStyle(
                             color: Color(0xFFA855F7),
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 2,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           'Featured Nights',
                           style: TextStyle(
-                            fontSize: isDesktop ? 32 : 24,
+                            fontSize: isDesktop ? 32 : 22,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Discover the most happening events and book official passes',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            fontSize: 14,
+                        if (isDesktop) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Discover the most happening events and book official passes',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () => context.push('/events'),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'View All Events',
+                          'View All',
                           style: TextStyle(
                             color: Color(0xFFA855F7),
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
                         SizedBox(width: 4),
-                        Icon(Icons.arrow_forward, color: Color(0xFFA855F7), size: 16),
+                        Icon(Icons.arrow_forward, color: Color(0xFFA855F7), size: 14),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
 
               // Dynamic Events Grid with 3:4 Poster EventCard
               eventsAsync.when(
