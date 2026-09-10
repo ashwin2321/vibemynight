@@ -32,6 +32,7 @@ class AppNavbar extends ConsumerWidget implements PreferredSizeWidget {
     final whatsappNumber = settingsAsync.value?.whatsappNumber ?? '917041615131';
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 820;
+    final isSmallMobile = screenWidth < 400;
 
     return Container(
       height: 68,
@@ -48,86 +49,88 @@ class AppNavbar extends ConsumerWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : (isSmallMobile ? 12 : 16)),
       child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Brand Logo
+          InkWell(
+            onTap: () => context.go('/'),
+            borderRadius: BorderRadius.circular(10),
+            child: VmnLogo(size: isDesktop ? 38 : (isSmallMobile ? 28 : 32)),
+          ),
+
+          // Desktop Nav links
+          if (isDesktop)
+            Row(
+              children: [
+                _NavLink(label: 'Home', route: '/', active: currentRoute == '/'),
+                const SizedBox(width: 8),
+                _NavLink(label: 'Events', route: '/events', active: currentRoute.startsWith('/events')),
+                const SizedBox(width: 8),
+                _NavLink(label: 'Artists', route: '/artists', active: currentRoute.startsWith('/artists')),
+                const SizedBox(width: 8),
+                _NavLink(label: 'About', route: '/about', active: currentRoute == '/about'),
+                const SizedBox(width: 8),
+                _NavLink(label: 'Contact', route: '/contact', active: currentRoute == '/contact'),
+              ],
+            ),
+
+          // Actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Brand Logo
-              InkWell(
-                onTap: () => context.go('/'),
-                borderRadius: BorderRadius.circular(10),
-                child: const VmnLogo(size: 38),
-              ),
-
-              // Desktop Nav links
-              if (isDesktop)
-                Row(
-                  children: [
-                    _NavLink(label: 'Home', route: '/', active: currentRoute == '/'),
-                    const SizedBox(width: 8),
-                    _NavLink(label: 'Events', route: '/events', active: currentRoute.startsWith('/events')),
-                    const SizedBox(width: 8),
-                    _NavLink(label: 'Artists', route: '/artists', active: currentRoute.startsWith('/artists')),
-                    const SizedBox(width: 8),
-                    _NavLink(label: 'About', route: '/about', active: currentRoute == '/about'),
-                    const SizedBox(width: 8),
-                    _NavLink(label: 'Contact', route: '/contact', active: currentRoute == '/contact'),
-                  ],
-                ),
-
-              // Actions
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isDesktop) ...[
-                    InkWell(
-                      onTap: () => _launchWhatsApp(whatsappNumber),
+              if (isDesktop) ...[
+                InkWell(
+                  onTap: () => _launchWhatsApp(whatsappNumber),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF25D366).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFF25D366).withValues(alpha: 0.35),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
-                            SizedBox(width: 6),
-                            Text(
-                              'WhatsApp',
-                              style: TextStyle(
-                                color: Color(0xFF25D366),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
+                      border: Border.all(
+                        color: const Color(0xFF25D366).withValues(alpha: 0.35),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                  ],
-                  GradientButton(
-                    label: 'Get Your Pass',
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    onPressed: () => context.push('/events'),
-                  ),
-                  if (!isDesktop) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.menu, color: Colors.white),
-                      onPressed: () => _showMobileDrawer(context, whatsappNumber),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
+                        SizedBox(width: 6),
+                        Text(
+                          'WhatsApp',
+                          style: TextStyle(
+                            color: Color(0xFF25D366),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              GradientButton(
+                label: isDesktop ? 'Get Your Pass' : (isSmallMobile ? 'Passes' : 'Get Pass'),
+                height: 38,
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 18 : (isSmallMobile ? 12 : 14)),
+                onPressed: () => context.push('/events'),
               ),
+              if (!isDesktop) ...[
+                SizedBox(width: isSmallMobile ? 4 : 8),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  icon: const Icon(Icons.menu, color: Colors.white, size: 24),
+                  onPressed: () => _showMobileDrawer(context, whatsappNumber),
+                ),
+              ],
             ],
           ),
+        ],
+      ),
     );
   }
 

@@ -117,10 +117,11 @@ class _HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 768;
+    final isSmallMobile = size.width < 400;
 
     return Container(
       constraints: BoxConstraints(
-        minHeight: isDesktop ? 620 : 500,
+        minHeight: isDesktop ? 620 : 460,
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -170,8 +171,8 @@ class _HeroSection extends StatelessWidget {
           // Content
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 48 : 20,
-              vertical: isDesktop ? 80 : 48,
+              horizontal: isDesktop ? 48 : (isSmallMobile ? 16 : 20),
+              vertical: isDesktop ? 80 : 36,
             ),
             child: Center(
               child: ConstrainedBox(
@@ -230,7 +231,7 @@ class _HeroSection extends StatelessWidget {
                           TextSpan(
                             text: 'Experience The Night.\n',
                             style: TextStyle(
-                              fontSize: isDesktop ? 54 : 32,
+                              fontSize: isDesktop ? 54 : (isSmallMobile ? 28 : 34),
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
                               height: 1.1,
@@ -249,7 +250,7 @@ class _HeroSection extends StatelessWidget {
                               child: Text(
                                 'Create The Memory.',
                                 style: TextStyle(
-                                  fontSize: isDesktop ? 54 : 32,
+                                  fontSize: isDesktop ? 54 : (isSmallMobile ? 28 : 34),
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                   height: 1.1,
