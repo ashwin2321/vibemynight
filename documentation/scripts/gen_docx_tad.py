@@ -1,0 +1,293 @@
+import os
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import OxmlElement, parse_xml
+from docx.oxml.ns import nsdecls, qn
+
+OUT_DIR = r"C:\Users\ADMIN\Downloads\vibemynight-phase1-10\documentation"
+os.makedirs(OUT_DIR, exist_ok=True)
+
+def set_cell_background(cell, fill_hex):
+    tcPr = cell._element.get_or_add_tcPr()
+    shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
+    tcPr.append(shd)
+
+def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+    tcPr = cell._element.get_or_add_tcPr()
+    tcMar = OxmlElement('w:tcMar')
+    for m, val in [('top', top), ('bottom', bottom), ('left', left), ('right', right)]:
+        node = OxmlElement(f'w:{m}')
+        node.set(qn('w:w'), str(val))
+        node.set(qn('w:type'), 'dxa')
+        tcMar.append(node)
+    tcPr.append(tcMar)
+
+def add_styled_heading(doc, text, level):
+    h = doc.add_heading(level=level)
+    run = h.add_run(text)
+    if level == 1:
+        run.font.name = 'Segoe UI'
+        run.font.size = Pt(16)
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(30, 58, 138)
+        h.paragraph_format.space_before = Pt(14)
+        h.paragraph_format.space_after = Pt(6)
+    elif level == 2:
+        run.font.name = 'Segoe UI'
+        run.font.size = Pt(13)
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(131, 24, 67)
+        h.paragraph_format.space_before = Pt(10)
+        h.paragraph_format.space_after = Pt(4)
+    elif level == 3:
+        run.font.name = 'Segoe UI'
+        run.font.size = Pt(11)
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(55, 65, 81)
+        h.paragraph_format.space_before = Pt(8)
+        h.paragraph_format.space_after = Pt(2)
+    return h
+
+def add_callout(doc, text, title="NOTE"):
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    cell = tbl.cell(0, 0)
+    set_cell_background(cell, "F3F4F6")
+    set_cell_margins(cell, top=140, bottom=140, left=200, right=200)
+    tcPr = cell._element.get_or_add_tcPr()
+    borders = parse_xml(f'''
+        <w:tcBorders {nsdecls("w")}>
+            <w:top w:val="none"/>
+            <w:left w:val="single" w:sz="24" w:space="0" w:color="3B82F6"/>
+            <w:bottom w:val="none"/>
+            <w:right w:val="none"/>
+        </w:tcBorders>
+    ''')
+    tcPr.append(borders)
+    p = cell.paragraphs[0]
+    p.paragraph_format.space_before = Pt(2)
+    p.paragraph_format.space_after = Pt(2)
+    r_title = p.add_run(f"[{title}] ")
+    r_title.bold = True
+    r_title.font.name = "Segoe UI"
+    r_title.font.size = Pt(9.5)
+    r_title.font.color.rgb = RGBColor(30, 58, 138)
+    r_text = p.add_run(text)
+    r_text.font.name = "Segoe UI"
+    r_text.font.size = Pt(9.5)
+    r_text.font.color.rgb = RGBColor(31, 41, 55)
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+
+def add_code_block(doc, text):
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    cell = tbl.cell(0, 0)
+    set_cell_background(cell, "0F172A") # Dark slate
+    set_cell_margins(cell, top=120, bottom=120, left=160, right=160)
+    p = cell.paragraphs[0]
+    p.paragraph_format.space_before = Pt(2)
+    p.paragraph_format.space_after = Pt(2)
+    r = p.add_run(text)
+    r.font.name = "Consolas"
+    r.font.size = Pt(8.5)
+    r.font.color.rgb = RGBColor(241, 245, 249)
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+
+def add_table_data(doc, headers, data, col_widths=None):
+    tbl = doc.add_table(rows=len(data) + 1, cols=len(headers))
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tbl.autofit = False
+    hdr_row = tbl.rows[0]
+    for idx, h in enumerate(headers):
+        cell = hdr_row.cells[idx]
+        set_cell_background(cell, "1E3A8A")
+        set_cell_margins(cell, top=100, bottom=100, left=120, right=120)
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(2)
+        p.paragraph_format.space_after = Pt(2)
+        r = p.add_run(h)
+        r.font.name = "Segoe UI"
+        r.font.size = Pt(9.5)
+        r.font.bold = True
+        r.font.color.rgb = RGBColor(255, 255, 255)
+        if col_widths and idx < len(col_widths):
+            cell.width = col_widths[idx]
+            
+    for r_idx, row_data in enumerate(data):
+        row = tbl.rows[r_idx + 1]
+        bg = "F9FAFB" if r_idx % 2 == 0 else "FFFFFF"
+        for c_idx, val in enumerate(row_data):
+            cell = row.cells[c_idx]
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, top=80, bottom=80, left=120, right=120)
+            p = cell.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER if c_idx == 0 else WD_ALIGN_PARAGRAPH.LEFT
+            p.paragraph_format.space_before = Pt(2)
+            p.paragraph_format.space_after = Pt(2)
+            r = p.add_run(str(val))
+            r.font.name = "Segoe UI"
+            r.font.size = Pt(9)
+            r.font.color.rgb = RGBColor(17, 24, 39)
+            if col_widths and c_idx < len(col_widths):
+                cell.width = col_widths[c_idx]
+    doc.add_paragraph().paragraph_format.space_after = Pt(6)
+
+# BUILD TAD DOCUMENT
+doc = Document()
+
+# Cover
+title_p = doc.add_paragraph()
+title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+title_p.paragraph_format.space_before = Pt(36)
+title_p.paragraph_format.space_after = Pt(6)
+r_title = title_p.add_run("TECHNICAL ARCHITECTURE DOCUMENT (TAD)")
+r_title.font.name = "Segoe UI"
+r_title.font.size = Pt(22)
+r_title.font.bold = True
+r_title.font.color.rgb = RGBColor(30, 58, 138)
+
+sub_p = doc.add_paragraph()
+sub_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+sub_p.paragraph_format.space_after = Pt(24)
+r_sub = sub_p.add_run("VibeMyNight — System Architecture, Entity Relationships & Clean Design")
+r_sub.font.name = "Segoe UI"
+r_sub.font.size = Pt(13)
+r_sub.font.color.rgb = RGBColor(131, 24, 67)
+
+meta_data = [
+    ["System Name", "VibeMyNight Event & Inquiry Platform"],
+    ["Document Type", "High-Level & Low-Level Technical Design"],
+    ["Backend Runtime", "Spring Boot 3.3.4 (Java 21 LTS)"],
+    ["Frontend Runtime", "Flutter 3.27+ Web (WASM/CanvasKit) & Mobile (Android/iOS)"],
+    ["Database", "MySQL 8.0 / Eclipse Temurin Docker Container"],
+    ["Authentication", "Stateless JWT (HMAC-SHA256, 24-hour TTL)"]
+]
+add_table_data(doc, ["System Attribute", "Technical Specification"], meta_data, [Inches(2.2), Inches(4.3)])
+
+doc.add_page_break()
+
+# 1. System Architecture Overview
+add_styled_heading(doc, "1. System Architecture & Component Model", 1)
+p = doc.add_paragraph()
+p.add_run("VibeMyNight employs a decoupled, cloud-ready client-server architecture. The frontend is a high-performance Flutter application deployed to Vercel Global Edge CDN, communicating via standard REST over HTTPS with a Spring Boot 3.3.4 microservice backed by MySQL 8.0.")
+
+sys_diag = """+-----------------------------------------------------------------------------------+
+|                              CLIENT TIER (Flutter Web / Mobile)                   |
+|  +---------------------+  +----------------------+  +---------------------------+ |
+|  | Customer Experience |  | GoRouter Navigation  |  | Riverpod State Providers  | |
+|  | (Figma Dark Neon UI)|  | (/events, /inquiry)  |  | (AsyncValue<T> Caching)   | |
+|  +---------------------+  +----------------------+  +---------------------------+ |
++------------------------------------------+----------------------------------------+
+                                           | HTTPS REST APIs (JSON / JWT)
+                                           v
++-----------------------------------------------------------------------------------+
+|                        APPLICATION SERVER TIER (Spring Boot 3.3.4)                |
+|  +-----------------------------------------------------------------------------+  |
+|  | Security Filter Chain: JwtAuthenticationFilter -> SecurityFilterChain (RBAC)|  |
+|  +-----------------------------------------------------------------------------+  |
+|  +------------------------------------+  +-------------------------------------+  |
+|  | Public Controllers                 |  | Admin Controllers (Protected)       |  |
+|  | (/api/v1/events, /inquiries)       |  | (/api/v1/admin/**, /auth/login)     |  |
+|  +------------------------------------+  +-------------------------------------+  |
+|  +-----------------------------------------------------------------------------+  |
+|  | Service Layer (EventService, InquiryService, AuthService, SettingsService)  |  |
+|  +-----------------------------------------------------------------------------+  |
+|  +-----------------------------------------------------------------------------+  |
+|  | Data Access Layer: Spring Data JPA Repositories (Hibernate ORM 6.x)         |  |
+|  +-----------------------------------------------------------------------------+  |
++------------------------------------------+----------------------------------------+
+                                           | JDBC Connection Pool (HikariCP)
+                                           v
++-----------------------------------------------------------------------------------+
+|                               DATABASE TIER (MySQL 8.0)                           |
+|   events | event_days | ticket_categories | artists | inquiries | app_settings   |
++-----------------------------------------------------------------------------------+"""
+add_code_block(doc, sys_diag)
+
+# 2. Backend Layered Architecture
+add_styled_heading(doc, "2. Backend Architecture (Spring Boot)", 1)
+add_styled_heading(doc, "2.1 Package & Layer Structure", 2)
+p_pkg = doc.add_paragraph()
+p_pkg.add_run("The Spring Boot codebase adheres to strict domain-driven separation of concerns:")
+
+pkg_data = [
+    ["Package Namespace", "Layer", "Responsibilities & Key Classes"],
+    ["com.vibemynight.controller", "Presentation", "PublicEventController, AdminEventController, PublicInquiryController, AuthController. Validates input DTOs and maps responses."],
+    ["com.vibemynight.service", "Business Logic", "EventService, InquiryService, AuthService, SettingsService. Computes dynamic prices, generates WhatsApp URLs, executes business validation."],
+    ["com.vibemynight.repository", "Persistence", "EventRepository, EventDayRepository, TicketCategoryRepository, InquiryRepository. JPA & JPQL query methods."],
+    ["com.vibemynight.entity", "Domain Model", "JPA Entity classes with @Table, @OneToMany, @ManyToOne, and cascade constraints."],
+    ["com.vibemynight.dto", "Data Transfer", "Immutable request/response records with Jakarta validation annotations (@NotBlank, @Min, @Email)."],
+    ["com.vibemynight.security", "Security / Auth", "JwtUtil, JwtAuthenticationFilter, SecurityConfig, CustomUserDetailsService. Stateless token verification."]
+]
+add_table_data(doc, pkg_data[0], pkg_data[1:], [Inches(2.0), Inches(1.5), Inches(3.0)])
+
+add_styled_heading(doc, "2.2 Authentication & JWT Token Flow", 2)
+p_auth = doc.add_paragraph()
+p_auth.add_run("1. Administrator submits credentials to POST /api/v1/auth/login.\n")
+p_auth.add_run("2. AuthService loads the user record from MySQL and verifies the password using BCrypt.checkpw().\n")
+p_auth.add_run("3. JwtUtil generates a signed HMAC-SHA256 token containing subject=username, role=ROLE_ADMIN, and expiration=currentTime + 24 hours.\n")
+p_auth.add_run("4. The Flutter client stores the token in secure storage (TokenStorage) and attaches `Authorization: Bearer <token>` on all administrative requests.\n")
+p_auth.add_run("5. JwtAuthenticationFilter intercepts incoming requests, validates the signature, extracts the user details, and sets SecurityContextHolder.")
+
+# 3. Database Entity Relationship Model
+add_styled_heading(doc, "3. Database Entity Relationship Model (ERD)", 1)
+erd_diag = """+-------------------+        +--------------------+        +-----------------------+
+|      events       | 1    N |     event_days     | 1    N |   ticket_categories   |
+|-------------------|------->|--------------------|------->|-----------------------|
+| PK id             |        | PK id              |        | PK id                 |
+|    name           |        | FK event_id        |        | FK event_day_id       |
+|    slug (UNIQUE)  |        |    day_number      |        |    name (VIP/General) |
+|    status         |        |    date            |        |    price (DECIMAL)    |
+|    city           |        |    program_name    |        |    total_capacity     |
++-------------------+        +--------------------+        +-----------------------+
+          |                            |                               |
+          | 1                          | 1                             | 1
+          |                            |                               |
+          v N                          v N                             v N
++-------------------+        +--------------------+        +-----------------------+
+| event_facilities  |        | event_day_artists  |        |       inquiries       |
+|-------------------|        |--------------------|        |-----------------------|
+| PK id             |        | PK id              |        | PK id                 |
+| FK event_id       |        | FK event_day_id    |        |    inquiry_number(UQ) |
+| FK facility_id    |        | FK artist_id       |        | FK event_id           |
++-------------------+        +--------------------+        | FK event_day_id       |
+          ^                            ^                   | FK ticket_category_id |
+          | N                          | N                 |    unit_price         |
++-------------------+        +--------------------+        |    quantity           |
+|    facilities     |        |      artists       |        |    estimated_total    |
+|-------------------|        |--------------------|        |    status (NEW/CONF)  |
+| PK id             |        | PK id              |        |    whatsapp_url       |
+|    name           |        |    name            |        +-----------------------+
+|    icon           |        |    genre           |
++-------------------+        +--------------------+"""
+add_code_block(doc, erd_diag)
+
+# 4. Frontend Clean Architecture
+add_styled_heading(doc, "4. Frontend Architecture (Flutter + Riverpod)", 1)
+p_front = doc.add_paragraph()
+p_front.add_run("The Flutter application implements Clean Architecture with unidirectional data flow powered by Flutter Riverpod:")
+
+front_data = [
+    ["Architectural Layer", "Implementation Components", "Purpose & Pattern"],
+    ["Presentation Layer", "lib/features/** (Screens, Widgets)", "Stateless & ConsumerStateful widgets consuming AsyncValue providers. Dark neon Figma design theme."],
+    ["Business Logic Layer", "lib/core/providers/** (Riverpod)", "StateNotifier & FutureProvider instances managing caching, loading states, error handling, and authentication tokens."],
+    ["Routing Layer", "lib/core/router/app_router.dart (GoRouter)", "Declarative path routing, query parameter parsing, and route guards redirecting unauthenticated users to /admin/login."],
+    ["Data / Network Layer", "lib/core/network/** & lib/services/**", "ApiClient handling HTTP requests, standard error handling, and TokenStorage token injection."]
+]
+add_table_data(doc, front_data[0], front_data[1:], [Inches(1.8), Inches(2.2), Inches(2.5)])
+
+add_styled_heading(doc, "4.1 Anti-Tampering Price Calculation Integrity", 2)
+p_anti = doc.add_paragraph()
+p_anti.add_run("To eliminate security vulnerabilities where malicious clients manipulate ticket pricing in JavaScript/Dart memory, VibeMyNight enforces a strict zero-trust pricing protocol:\n")
+p_anti.add_run("1. Client requests pass booking by transmitting ONLY: `{eventDayId, ticketCategoryId, quantity, customerName, customerMobile}`.\n")
+p_anti.add_run("2. The backend InquiryService executes a database query to obtain the authoritative `ticket_category.price`.\n")
+p_anti.add_run("3. The server multiplies price by quantity, persists the record, and constructs the cryptographic inquiry reference.\n")
+p_anti.add_run("4. Client-side price tampering is mathematically impossible.")
+
+# Output
+file_path = os.path.join(OUT_DIR, "2_Technical_Architecture_Document_VibeMyNight.docx")
+doc.save(file_path)
+print("SUCCESS: 2_Technical_Architecture_Document_VibeMyNight.docx generated at", file_path)
