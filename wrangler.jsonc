@@ -1,0 +1,8 @@
+﻿{
+  "name": "vibemynight",
+  "compatibility_date": "2024-09-23",
+  "assets": {
+    "directory": "./vibemynight/frontend/flutter_app/build/web",
+    "not_found_handling": "single-page-application"
+  }
+}
