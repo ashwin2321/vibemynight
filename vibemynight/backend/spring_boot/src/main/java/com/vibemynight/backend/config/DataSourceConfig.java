@@ -166,16 +166,15 @@ public class DataSourceConfig {
             config.setUsername(mysqlUser != null ? mysqlUser : "root");
             config.setPassword(mysqlPassword != null ? mysqlPassword : "");
         } else {
-            String isCloud = System.getenv("PORT");
-            if (isCloud != null && !isCloud.trim().isEmpty() && (fallbackUrl == null || fallbackUrl.contains("localhost"))) {
-                log.info("Cloud environment detected without remote DB credentials. Using embedded in-memory database.");
+            if (fallbackUrl == null || fallbackUrl.trim().isEmpty() || fallbackUrl.contains("localhost")) {
+                log.info("No remote database URL provided. Starting with embedded resilient in-memory database.");
                 config.setDriverClassName("org.h2.Driver");
                 config.setJdbcUrl("jdbc:h2:mem:vibemynight;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE");
                 config.setUsername("sa");
                 config.setPassword("");
             } else {
                 log.info("Connecting via standard configured DataSource URL: {}", fallbackUrl);
-                if (fallbackUrl != null && fallbackUrl.startsWith("jdbc:postgresql:")) {
+                if (fallbackUrl.startsWith("jdbc:postgresql:")) {
                     config.setDriverClassName("org.postgresql.Driver");
                 } else {
                     config.setDriverClassName("com.mysql.cj.jdbc.Driver");
