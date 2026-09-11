@@ -52,86 +52,103 @@ public class DataSourceConfig {
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
 
-        String rawUrl = mysqlUrl != null && !mysqlUrl.trim().isEmpty() ? mysqlUrl : databaseUrl;
+        String rawUrl = databaseUrl;
+        if (rawUrl == null || rawUrl.trim().isEmpty()) {
+            rawUrl = System.getenv("DATABASE_URL");
+        }
         if (rawUrl == null || rawUrl.trim().isEmpty()) {
             rawUrl = System.getenv("SPRING_DATASOURCE_URL");
         }
         if (rawUrl == null || rawUrl.trim().isEmpty()) {
-            rawUrl = System.getenv("DATABASE_URL");
+            rawUrl = System.getenv("POSTGRES_URL");
+        }
+        if (rawUrl == null || rawUrl.trim().isEmpty()) {
+            rawUrl = System.getenv("POSTGRESQL_URL");
+        }
+        if (rawUrl == null || rawUrl.trim().isEmpty()) {
+            rawUrl = mysqlUrl;
         }
 
-        if (rawUrl != null && !rawUrl.trim().isEmpty() && (rawUrl.startsWith("postgres://") || rawUrl.startsWith("postgresql://"))) {
+        log.info("DataSource configuration rawUrl resolved: {}", (rawUrl != null ? rawUrl.replaceAll(":[^:@]+@", ":****@") : "null"));
+
+        if (rawUrl != null && !rawUrl.trim().isEmpty() && (rawUrl.startsWith("postgres://") || rawUrl.startsWith("postgresql://") || rawUrl.startsWith("jdbc:postgresql:"))) {
             try {
-                URI uri = new URI(rawUrl.replace("postgresql://", "postgres://"));
-                String host = uri.getHost();
-                int port = uri.getPort() > 0 ? uri.getPort() : 5432;
-                String path = uri.getPath() != null && uri.getPath().length() > 1 ? uri.getPath().substring(1) : "neondb";
-                
-                String username = null;
-                String password = null;
-                if (uri.getUserInfo() != null) {
-                    String[] userInfo = uri.getUserInfo().split(":", 2);
-                    username = userInfo[0];
-                    if (userInfo.length > 1) {
-                        password = userInfo[1];
-                    }
-                }
-
-                String query = uri.getQuery();
-                String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, path);
-                if (query != null && !query.isEmpty()) {
-                    jdbcUrl += "?" + query;
+                if (rawUrl.startsWith("jdbc:postgresql:")) {
+                    config.setDriverClassName("org.postgresql.Driver");
+                    config.setJdbcUrl(rawUrl);
+                    if (fallbackUsername != null && !fallbackUsername.isEmpty()) config.setUsername(fallbackUsername);
+                    if (fallbackPassword != null && !fallbackPassword.isEmpty()) config.setPassword(fallbackPassword);
+                    log.info("Connecting via direct JDBC PostgreSQL URL");
                 } else {
-                    jdbcUrl += "?sslmode=require";
+                    URI uri = new URI(rawUrl.replace("postgresql://", "postgres://"));
+                    String host = uri.getHost();
+                    int port = uri.getPort() > 0 ? uri.getPort() : 5432;
+                    String path = uri.getPath() != null && uri.getPath().length() > 1 ? uri.getPath().substring(1) : "neondb";
+                    
+                    String username = null;
+                    String password = null;
+                    if (uri.getUserInfo() != null) {
+                        String[] userInfo = uri.getUserInfo().split(":", 2);
+                        username = userInfo[0];
+                        if (userInfo.length > 1) {
+                            password = userInfo[1];
+                        }
+                    }
+
+                    String query = uri.getQuery();
+                    String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, path);
+                    if (query != null && !query.isEmpty()) {
+                        jdbcUrl += "?" + query;
+                    } else {
+                        jdbcUrl += "?sslmode=require";
+                    }
+
+                    log.info("Connecting via Cloud PostgreSQL (Neon) Host: {}:{}", host, port);
+                    config.setDriverClassName("org.postgresql.Driver");
+                    config.setJdbcUrl(jdbcUrl);
+                    if (username != null) config.setUsername(username);
+                    if (password != null) config.setPassword(password);
                 }
-
-                log.info("Connecting via Cloud PostgreSQL (Neon) URI: {}:{}", host, port);
-                config.setDriverClassName("org.postgresql.Driver");
-                config.setJdbcUrl(jdbcUrl);
-                if (username != null) config.setUsername(username);
-                if (password != null) config.setPassword(password);
-
             } catch (Exception e) {
-                log.warn("Failed to parse Cloud PostgreSQL URI, trying direct JDBC conversion: {}", e.getMessage());
+                log.warn("Failed to parse Cloud PostgreSQL URI, trying fallback: {}", e.getMessage());
                 String jdbcUrl = rawUrl.startsWith("jdbc:") ? rawUrl : "jdbc:" + rawUrl;
                 config.setDriverClassName("org.postgresql.Driver");
                 config.setJdbcUrl(jdbcUrl);
-                if (mysqlUser != null) config.setUsername(mysqlUser);
-                if (mysqlPassword != null) config.setPassword(mysqlPassword);
             }
-        } else if (rawUrl != null && !rawUrl.trim().isEmpty() && (rawUrl.startsWith("mysql://") || rawUrl.startsWith("mysql2://"))) {
+        } else if (rawUrl != null && !rawUrl.trim().isEmpty() && (rawUrl.startsWith("mysql://") || rawUrl.startsWith("mysql2://") || rawUrl.startsWith("jdbc:mysql:"))) {
             config.setDriverClassName("com.mysql.cj.jdbc.Driver");
             try {
-                URI uri = new URI(rawUrl.replace("mysql2://", "mysql://"));
-                String host = uri.getHost();
-                int port = uri.getPort() > 0 ? uri.getPort() : 3306;
-                String path = uri.getPath() != null && uri.getPath().length() > 1 ? uri.getPath().substring(1) : "railway";
-                
-                String username = null;
-                String password = null;
-                if (uri.getUserInfo() != null) {
-                    String[] userInfo = uri.getUserInfo().split(":", 2);
-                    username = userInfo[0];
-                    if (userInfo.length > 1) {
-                        password = userInfo[1];
+                if (rawUrl.startsWith("jdbc:mysql:")) {
+                    config.setJdbcUrl(rawUrl);
+                } else {
+                    URI uri = new URI(rawUrl.replace("mysql2://", "mysql://"));
+                    String host = uri.getHost();
+                    int port = uri.getPort() > 0 ? uri.getPort() : 3306;
+                    String path = uri.getPath() != null && uri.getPath().length() > 1 ? uri.getPath().substring(1) : "railway";
+                    
+                    String username = null;
+                    String password = null;
+                    if (uri.getUserInfo() != null) {
+                        String[] userInfo = uri.getUserInfo().split(":", 2);
+                        username = userInfo[0];
+                        if (userInfo.length > 1) {
+                            password = userInfo[1];
+                        }
                     }
+
+                    String jdbcUrl = String.format(
+                            "jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true",
+                            host, port, path
+                    );
+
+                    log.info("Connecting via parsed Cloud MySQL URI: {}:{}", host, port);
+                    config.setJdbcUrl(jdbcUrl);
+                    if (username != null) config.setUsername(username);
+                    if (password != null) config.setPassword(password);
                 }
-
-                String jdbcUrl = String.format(
-                        "jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true",
-                        host, port, path
-                );
-
-                log.info("Connecting via parsed Cloud MySQL URI: {}:{}", host, port);
-                config.setJdbcUrl(jdbcUrl);
-                if (username != null) config.setUsername(username);
-                if (password != null) config.setPassword(password);
-
             } catch (Exception e) {
                 log.warn("Failed to parse Cloud MySQL URI, falling back to standard JDBC URL: {}", e.getMessage());
                 config.setJdbcUrl(rawUrl.startsWith("jdbc:") ? rawUrl : "jdbc:" + rawUrl);
-                if (mysqlUser != null) config.setUsername(mysqlUser);
-                if (mysqlPassword != null) config.setPassword(mysqlPassword);
             }
         } else if (mysqlHost != null && !mysqlHost.trim().isEmpty()) {
             config.setDriverClassName("com.mysql.cj.jdbc.Driver");
@@ -150,19 +167,19 @@ public class DataSourceConfig {
             config.setPassword(mysqlPassword != null ? mysqlPassword : "");
         } else {
             String isCloud = System.getenv("PORT");
-            if (fallbackUrl != null && fallbackUrl.startsWith("jdbc:postgresql:")) {
-                config.setDriverClassName("org.postgresql.Driver");
-                config.setJdbcUrl(fallbackUrl);
-                config.setUsername(fallbackUsername);
-                config.setPassword(fallbackPassword);
-            } else if (isCloud != null && !isCloud.trim().isEmpty() && fallbackUrl.contains("localhost")) {
-                log.info("No cloud database host provided. Using resilient embedded in-memory database to prevent startup crash.");
+            if (isCloud != null && !isCloud.trim().isEmpty() && (fallbackUrl == null || fallbackUrl.contains("localhost"))) {
+                log.info("Cloud environment detected without remote DB credentials. Using embedded in-memory database.");
                 config.setDriverClassName("org.h2.Driver");
-                config.setJdbcUrl("jdbc:h2:mem:vibemynight;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE");
+                config.setJdbcUrl("jdbc:h2:mem:vibemynight;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE");
                 config.setUsername("sa");
                 config.setPassword("");
             } else {
                 log.info("Connecting via standard configured DataSource URL: {}", fallbackUrl);
+                if (fallbackUrl != null && fallbackUrl.startsWith("jdbc:postgresql:")) {
+                    config.setDriverClassName("org.postgresql.Driver");
+                } else {
+                    config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+                }
                 config.setJdbcUrl(fallbackUrl);
                 config.setUsername(fallbackUsername);
                 config.setPassword(fallbackPassword);
