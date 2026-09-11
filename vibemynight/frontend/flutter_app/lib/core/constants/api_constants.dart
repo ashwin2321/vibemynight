@@ -9,7 +9,7 @@ class ApiConstants {
   static String get baseUrl {
     const raw = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'https://vibemynight-production.up.railway.app/api/v1',
+      defaultValue: 'https://vibemynight.onrender.com/api/v1',
     );
     if (raw.endsWith('/api/v1')) {
       return raw;
