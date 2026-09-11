@@ -11,10 +11,11 @@ WORKDIR /app
 
 RUN mkdir -p /app/uploads
 
-COPY --from=build /app/target/vibemynight-backend-0.1.0.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 ENV PORT=8080
 ENV IMAGE_STORAGE_LOCAL_PATH=/app/uploads
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xmx350m -Xms128m"
 
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]
