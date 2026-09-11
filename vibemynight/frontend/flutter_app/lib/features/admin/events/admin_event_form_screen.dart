@@ -134,12 +134,16 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
       _submitting = true;
       _error = null;
     });
+    final mainImg = _mainImage.text.trim();
+    final bannerImg = _banner.text.trim().isNotEmpty ? _banner.text.trim() : mainImg;
+    final thumbImg = _thumbnail.text.trim().isNotEmpty ? _thumbnail.text.trim() : mainImg;
+
     final body = {
       'name': _name.text.trim(),
       'slug': _slug.text.trim(),
-      if (_mainImage.text.trim().isNotEmpty) 'mainImage': _mainImage.text.trim(),
-      if (_banner.text.trim().isNotEmpty) 'banner': _banner.text.trim(),
-      if (_thumbnail.text.trim().isNotEmpty) 'thumbnail': _thumbnail.text.trim(),
+      if (mainImg.isNotEmpty) 'mainImage': mainImg,
+      if (bannerImg.isNotEmpty) 'banner': bannerImg,
+      if (thumbImg.isNotEmpty) 'thumbnail': thumbImg,
       if (_description.text.trim().isNotEmpty) 'description': _description.text.trim(),
       'startDate': _startDate.text.trim(),
       'endDate': _endDate.text.trim(),

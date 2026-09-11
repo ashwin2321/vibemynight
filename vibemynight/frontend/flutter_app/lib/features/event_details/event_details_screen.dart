@@ -300,30 +300,55 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 16:9 Clean Banner without intrusive overlays on top of face/text
+        // Adaptive Banner supporting both wide 16:9 banners and vertical/square 3:4 posters seamlessly
         Stack(
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Image.network(
-                  event.banner ?? event.mainImage ?? '',
-                  fit: BoxFit.cover,
-                  alignment: Alignment.topCenter,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFF15102A),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.celebration, color: AppColors.neonPurple, size: 48),
-                  ),
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return Container(
-                      color: const Color(0xFF15102A),
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.width >= 992 ? 460 : 280,
+                  minHeight: 180,
+                ),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF15102A),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Blurred ambient backdrop for vertical/square posters
+                    Positioned.fill(
+                      child: Image.network(
+                        event.banner ?? event.mainImage ?? '',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.65),
+                      ),
+                    ),
+                    // Centered crisp image without cropping faces/logos/dates
+                    Image.network(
+                      event.banner ?? event.mainImage ?? '',
+                      fit: BoxFit.contain,
                       alignment: Alignment.center,
-                      child: const CircularProgressIndicator(color: AppColors.neonPurple),
-                    );
-                  },
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF15102A),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.celebration, color: AppColors.neonPurple, size: 48),
+                      ),
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(color: AppColors.neonPurple),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1655,7 +1680,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   // ==========================================
-  // MOBILE FLOATING BOTTOM BOOKING BAR (District UX)
+  // MOBILE FLOATING BOTTOM BOOKING BAR (District / Showmates UX)
   // ==========================================
   Widget _buildMobileBottomBar(BuildContext context, EventDetail event, int dayId, String? whatsappNumber) {
     final dayAsync = ref.watch(eventDayDetailProvider(dayId));
@@ -1676,17 +1701,17 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         }
 
         final priceStr = currentPass != null
-            ? '₹${(currentPass.price * _quantity).toStringAsFixed(0)}'
-            : (day.passes.isNotEmpty ? '₹${day.passes.first.price.toStringAsFixed(0)} onwards' : 'Tickets TBA');
+            ? '₹${(currentPass.price * _quantity).toInt()}'
+            : (day.passes.isNotEmpty ? '₹${day.passes.first.price.toInt()}' : 'Tickets TBA');
 
         return Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF140E28),
-            border: const Border(top: BorderSide(color: AppColors.divider, width: 1.5)),
+            color: const Color(0xFF0F0B1E),
+            border: const Border(top: BorderSide(color: Color(0xFF261D45), width: 1.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
+                color: Colors.black.withValues(alpha: 0.7),
                 blurRadius: 16,
                 offset: const Offset(0, -4),
               ),
@@ -1704,16 +1729,18 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       Text(
                         priceStr,
                         style: const TextStyle(
-                          color: AppColors.neonPink,
-                          fontSize: 20,
+                          color: Color(0xFFF43F5E),
+                          fontSize: 22,
                           fontWeight: FontWeight.w900,
+                          height: 1.1,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         currentPass != null ? '${currentPass.name} (×$_quantity)' : 'Day ${day.dayNumber} · ${day.date}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
@@ -1722,7 +1749,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 ElevatedButton(
                   onPressed: () {
                     if (currentPass != null) {
@@ -1732,15 +1759,16 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.neonPink,
+                    backgroundColor: const Color(0xFFE11D48),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 4,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 6,
+                    shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.5),
                   ),
                   child: const Text(
                     'BOOK TICKETS',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, letterSpacing: 0.5),
                   ),
                 ),
               ],
