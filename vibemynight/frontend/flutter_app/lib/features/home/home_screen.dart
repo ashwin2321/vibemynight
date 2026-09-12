@@ -245,11 +245,29 @@ class _HeroSection extends StatelessWidget {
                     SizedBox(height: isDesktop ? 20 : 12),
 
                     // Big Headline: Experience The Night. Create The Memory.
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Experience The Night.\n',
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Experience The Night.',
+                          style: TextStyle(
+                            fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1.1,
+                            letterSpacing: -0.8,
+                          ),
+                        ),
+                        ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [
+                              Color(0xFFA855F7),
+                              Color(0xFFEC4899),
+                              Color(0xFF60A5FA),
+                            ],
+                          ).createShader(bounds),
+                          child: Text(
+                            'Create The Memory.',
                             style: TextStyle(
                               fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
                               fontWeight: FontWeight.w900,
@@ -258,29 +276,8 @@ class _HeroSection extends StatelessWidget {
                               letterSpacing: -0.8,
                             ),
                           ),
-                          WidgetSpan(
-                            child: ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [
-                                  Color(0xFFA855F7),
-                                  Color(0xFFEC4899),
-                                  Color(0xFF60A5FA),
-                                ],
-                              ).createShader(bounds),
-                              child: Text(
-                                'Create The Memory.',
-                                style: TextStyle(
-                                  fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                  letterSpacing: -0.8,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: isDesktop ? 18 : 10),
 
