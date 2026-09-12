@@ -5,6 +5,8 @@ import com.vibemynight.backend.repository.SettingsRepository;
 import com.vibemynight.backend.service.SettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     @Transactional
+    @Cacheable(value = "settings", key = "'public'")
     public Settings getSettings() {
         return settingsRepository.findAll().stream()
                 .findFirst()
@@ -32,6 +35,7 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "settings", allEntries = true)
     public Settings updateSettings(Settings updated) {
         Settings existing = getSettings();
         existing.setWebsiteName(updated.getWebsiteName());

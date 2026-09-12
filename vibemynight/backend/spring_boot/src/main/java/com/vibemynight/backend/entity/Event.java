@@ -9,6 +9,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
+import org.hibernate.annotations.BatchSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -29,7 +31,15 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @ToString(exclude = {"eventDays", "galleryImages", "highlights", "rules"})
 @Entity
-@Table(name = "events")
+@Table(
+    name = "events",
+    indexes = {
+        @Index(name = "idx_events_slug", columnList = "slug"),
+        @Index(name = "idx_events_status", columnList = "status"),
+        @Index(name = "idx_events_featured", columnList = "featured"),
+        @Index(name = "idx_events_start_date", columnList = "start_date")
+    }
+)
 public class Event extends BaseEntity {
 
     @Column(nullable = false)
@@ -81,20 +91,24 @@ public class Event extends BaseEntity {
     private EventStatus status = EventStatus.DRAFT;
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("dayNumber ASC")
     private List<EventDay> eventDays = new ArrayList<>();
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("sortOrder ASC")
     private List<EventGallery> galleryImages = new ArrayList<>();
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<EventHighlight> highlights = new ArrayList<>();
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<EventRule> rules = new ArrayList<>();
 }

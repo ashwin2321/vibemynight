@@ -2,6 +2,8 @@ package com.vibemynight.backend.repository;
 
 import com.vibemynight.backend.entity.Event;
 import com.vibemynight.backend.entity.EventStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -12,5 +14,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
     Optional<Event> findBySlug(String slug);
     boolean existsBySlug(String slug);
     List<Event> findByStatus(EventStatus status);
+    Page<Event> findByStatus(EventStatus status, Pageable pageable);
     List<Event> findByFeaturedTrueAndStatus(EventStatus status);
 }

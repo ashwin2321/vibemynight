@@ -38,6 +38,16 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _selectedCategory = 'All Events';
+  bool _precached = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_precached) {
+      _precached = true;
+      precacheImage(const NetworkImage(HomeScreen._heroImg), context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -11,7 +11,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import jakarta.persistence.UniqueConstraint;
+import org.hibernate.annotations.BatchSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -37,7 +39,15 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @ToString(exclude = {"event", "eventDayArtists", "ticketCategories"})
 @Entity
-@Table(name = "event_days", uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "day_number"}))
+@Table(
+    name = "event_days",
+    indexes = {
+        @Index(name = "idx_event_days_event", columnList = "event_id"),
+        @Index(name = "idx_event_days_date", columnList = "date"),
+        @Index(name = "idx_event_days_status", columnList = "status")
+    },
+    uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "day_number"})
+)
 public class EventDay extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -80,11 +90,13 @@ public class EventDay extends BaseEntity {
     private ActiveStatus status = ActiveStatus.ACTIVE;
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "eventDay", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("performanceOrder ASC")
     private List<EventDayArtist> eventDayArtists = new ArrayList<>();
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "eventDay", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TicketCategory> ticketCategories = new ArrayList<>();
 }

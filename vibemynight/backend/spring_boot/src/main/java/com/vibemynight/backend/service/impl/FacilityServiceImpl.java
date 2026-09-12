@@ -7,6 +7,8 @@ import com.vibemynight.backend.exception.ResourceNotFoundException;
 import com.vibemynight.backend.repository.FacilityRepository;
 import com.vibemynight.backend.service.FacilityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +22,14 @@ public class FacilityServiceImpl implements FacilityService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "facilities", key = "'all'")
     public List<Facility> findAll() {
         return facilityRepository.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "facilities", key = "#status.name()")
     public List<Facility> findByStatus(ActiveStatus status) {
         return facilityRepository.findByStatus(status);
     }
@@ -39,6 +43,7 @@ public class FacilityServiceImpl implements FacilityService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public Facility create(Facility facility) {
         if (facilityRepository.existsByName(facility.getName())) {
             throw new ConflictException("A facility with this name already exists");
@@ -48,6 +53,7 @@ public class FacilityServiceImpl implements FacilityService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public Facility update(Long id, Facility updated) {
         Facility existing = getById(id);
         existing.setName(updated.getName());
@@ -58,12 +64,14 @@ public class FacilityServiceImpl implements FacilityService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public void delete(Long id) {
         facilityRepository.delete(getById(id));
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public Facility changeStatus(Long id, ActiveStatus status) {
         Facility facility = getById(id);
         facility.setStatus(status);

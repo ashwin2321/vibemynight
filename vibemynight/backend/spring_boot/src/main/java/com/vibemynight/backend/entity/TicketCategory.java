@@ -10,6 +10,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -33,7 +34,14 @@ import java.util.List;
 @Builder
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "ticket_categories")
+@Table(
+    name = "ticket_categories",
+    indexes = {
+        @Index(name = "idx_ticket_categories_day", columnList = "event_day_id"),
+        @Index(name = "idx_ticket_categories_status", columnList = "status"),
+        @Index(name = "idx_ticket_categories_type", columnList = "type")
+    }
+)
 public class TicketCategory extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

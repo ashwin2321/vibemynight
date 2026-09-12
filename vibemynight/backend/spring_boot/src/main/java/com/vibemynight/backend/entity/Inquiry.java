@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -28,7 +29,15 @@ import java.math.BigDecimal;
 @Builder
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "inquiries")
+@Table(
+    name = "inquiries",
+    indexes = {
+        @Index(name = "idx_inquiries_number", columnList = "inquiry_number"),
+        @Index(name = "idx_inquiries_mobile", columnList = "customer_mobile"),
+        @Index(name = "idx_inquiries_status", columnList = "status"),
+        @Index(name = "idx_inquiries_created_at", columnList = "created_at")
+    }
+)
 public class Inquiry extends BaseEntity {
 
     @Column(name = "inquiry_number", nullable = false, unique = true)

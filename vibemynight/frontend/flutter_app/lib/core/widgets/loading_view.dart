@@ -71,45 +71,99 @@ class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateM
 }
 
 /// Shared loading indicator used while events/artists/passes/admin tables load.
-class LoadingView extends StatelessWidget {
-  const LoadingView({super.key});
+class LoadingView extends StatefulWidget {
+  final String message;
+  const LoadingView({super.key, this.message = 'Loading vibes...'});
+
+  @override
+  State<LoadingView> createState() => _LoadingViewState();
+}
+
+class _LoadingViewState extends State<LoadingView> {
+  int _secondsElapsed = 0;
+  bool _isDisposed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() async {
+    while (!_isDisposed && mounted) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _secondsElapsed++;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    String displayMsg = widget.message;
+    if (_secondsElapsed >= 6) {
+      displayMsg = 'Waking up cloud server & database...';
+    } else if (_secondsElapsed >= 3) {
+      displayMsg = 'Connecting to secure server...';
+    }
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.neonPurple.withValues(alpha: 0.35),
-                  blurRadius: 18,
-                  spreadRadius: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.neonPurple.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const CircularProgressIndicator(
+                color: AppColors.neonPink,
+                strokeWidth: 3,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              displayMsg,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+            if (_secondsElapsed >= 6) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Free server spin-up in progress. Thanks for your patience!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 11,
                 ),
-              ],
-            ),
-            child: const CircularProgressIndicator(
-              color: AppColors.neonPink,
-              strokeWidth: 3,
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'Loading vibes...',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

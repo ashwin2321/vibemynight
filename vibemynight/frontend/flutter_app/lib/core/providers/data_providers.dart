@@ -19,11 +19,13 @@ final publishedEventsProvider = FutureProvider<List<EventSummary>>((ref) {
 
 final eventDetailProvider =
     FutureProvider.family<EventDetail, String>((ref, slug) {
+  ref.keepAlive();
   return ref.watch(eventServiceProvider).getEventBySlug(slug);
 });
 
 final eventDayDetailProvider =
     FutureProvider.family<EventDayDetail, int>((ref, dayId) {
+  ref.keepAlive();
   return ref.watch(eventServiceProvider).getDayDetail(dayId);
 });
 
@@ -32,6 +34,7 @@ final artistsProvider = FutureProvider<List<Artist>>((ref) {
 });
 
 final artistByIdProvider = FutureProvider.family<Artist, int>((ref, id) {
+  ref.keepAlive();
   return ref.watch(artistServiceProvider).getArtistById(id);
 });
 
@@ -43,3 +46,4 @@ final facilitiesProvider = FutureProvider<List<Facility>>((ref) {
 final appSettingsProvider = FutureProvider<AppSettings>((ref) {
   return ref.watch(settingsServiceProvider).getPublicSettings();
 });
+

@@ -7,6 +7,8 @@ import com.vibemynight.backend.exception.ResourceNotFoundException;
 import com.vibemynight.backend.repository.ArtistRepository;
 import com.vibemynight.backend.service.ArtistService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +22,14 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "artists", key = "'all'")
     public List<Artist> findAll() {
         return artistRepository.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "artists", key = "#status.name()")
     public List<Artist> findByStatus(ActiveStatus status) {
         return artistRepository.findByStatus(status);
     }
@@ -46,6 +50,7 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "artists", allEntries = true)
     public Artist create(Artist artist) {
         if (artistRepository.existsBySlug(artist.getSlug())) {
             throw new ConflictException("An artist with this slug already exists");
@@ -55,6 +60,7 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "artists", allEntries = true)
     public Artist update(Long id, Artist updated) {
         Artist existing = getById(id);
         existing.setName(updated.getName());
@@ -72,12 +78,14 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "artists", allEntries = true)
     public void delete(Long id) {
         artistRepository.delete(getById(id));
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "artists", allEntries = true)
     public Artist changeStatus(Long id, ActiveStatus status) {
         Artist artist = getById(id);
         artist.setStatus(status);
