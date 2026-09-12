@@ -1,4 +1,4 @@
-﻿package com.vibemynight.backend.config;
+package com.vibemynight.backend.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
