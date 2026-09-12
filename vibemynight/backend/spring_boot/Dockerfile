@@ -1,8 +1,10 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 COPY pom.xml .
+# Pre-fetch all dependencies into docker layer cache for 10x faster builds
+RUN mvn dependency:go-offline -B || true
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
