@@ -37,14 +37,38 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
-                        // Cloud and container health check endpoints
-                        .requestMatchers("/", "/health", "/api/v1/health", "/error", "/favicon.ico", "/actuator/health", "/actuator/info").permitAll()
+                        // Cloud and container health check endpoints & static frontend web assets
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/flutter_bootstrap.js",
+                                "/flutter.js",
+                                "/main.dart.js",
+                                "/favicon.png",
+                                "/health",
+                                "/api/v1/health",
+                                "/error",
+                                "/favicon.ico",
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/assets/**",
+                                "/icons/**",
+                                "/canvaskit/**",
+                                "/*.js",
+                                "/*.json",
+                                "/*.wasm",
+                                "/*.png",
+                                "/*.jpg",
+                                "/*.ico"
+                        ).permitAll()
+
+                        // Actuator administrative endpoints
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                         // Auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
-                        // Public read-only customer-facing endpoints
+                        // Public read-only customer-facing API endpoints
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/events/**",
                                 "/api/v1/artists/**",
@@ -53,17 +77,20 @@ public class SecurityConfig {
                                 "/api/v1/settings/public"
                         ).permitAll()
 
-                        // Inquiry submission and status lookup are public; admin inquiry management is not
+                        // Inquiry submission and status lookup are public
                         .requestMatchers(HttpMethod.POST, "/api/v1/inquiries").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/inquiries/**").permitAll()
 
                         // Static uploads (local image storage, Phase 5+)
                         .requestMatchers("/uploads/**").permitAll()
 
-                        // Everything else under /api/v1/admin/** requires an authenticated ADMIN
+                        // Admin APIs require authenticated ADMIN
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                        // Any other endpoint defaults to requiring authentication
+                        // All frontend SPA routes (e.g. /events, /about, /contact, /inquiry, /admin/login)
+                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
+
+                        // Any other API mutating endpoint defaults to requiring authentication
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -71,3 +98,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+
