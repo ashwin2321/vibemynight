@@ -21,7 +21,7 @@ public class CacheConfig {
                 .maximumSize(500)
                 .expireAfterWrite(60, TimeUnit.SECONDS)
                 .recordStats());
-        cacheManager.setCacheNames(Arrays.asList("events", "event_details", "artists", "facilities", "settings_public"));
+        cacheManager.setCacheNames(Arrays.asList("events", "event_details", "artists", "facilities", "settings", "settings_public"));
         return cacheManager;
     }
 }

@@ -74,9 +74,9 @@ L(){return"_ArtistViewMode."+this.b}}
 C.qY.prototype={
 W(){return new C.a0S(D.mb)}}
 C.a0S.prototype={
-x4(d){return this.azx(d)},
-azx(d){var w=0,v=A.G(x.H),u=1,t=[],s=this,r,q,p,o,n,m,l,k
-var $async$x4=A.H(function(e,f){if(e===1){t.push(f)
+x4(d){return this.azA(d)},
+azA(d){var w=0,v=A.F(x.H),u=1,t=[],s=this,r,q,p,o,n,m,l,k
+var $async$x4=A.G(function(e,f){if(e===1){t.push(f)
 w=u}for(;;)switch(w){case 0:l=d.Q==="ACTIVE"?"INACTIVE":"ACTIVE"
 u=3
 q=s.gbl()
@@ -102,12 +102,12 @@ w=5
 break
 case 2:w=1
 break
-case 5:return A.E(null,v)
-case 1:return A.D(t.at(-1),v)}})
-return A.F($async$x4,v)},
-tq(d,e){return this.akS(0,e)},
-akS(d,e){var w=0,v=A.G(x.H),u,t=2,s=[],r=this,q,p,o,n,m,l
-var $async$tq=A.H(function(f,g){if(f===1){s.push(g)
+case 5:return A.D(null,v)
+case 1:return A.C(t.at(-1),v)}})
+return A.E($async$x4,v)},
+tq(d,e){return this.akV(0,e)},
+akV(d,e){var w=0,v=A.F(x.H),u,t=2,s=[],r=this,q,p,o,n,m,l
+var $async$tq=A.G(function(f,g){if(f===1){s.push(g)
 w=t}for(;;)switch(w){case 0:m=r.c
 m.toString
 w=3
@@ -135,17 +135,17 @@ w=7
 break
 case 4:w=2
 break
-case 7:case 1:return A.E(u,v)
-case 2:return A.D(s.at(-1),v)}})
-return A.F($async$tq,v)},
-E(d){var w=this,v=null,u=w.gbl().bc($.m3(),x.n),t=x.p,s=A.b([new A.a5(B.eZ,A.fD(O.iA,D.ajq,new C.aEG(d),A.ex(v,v,B.q,v,v,v,v,v,v,B.h,v,v,v,v,v,v,v,v,v,v)),v)],t),r=A.a_(16),q=A.b2(B.aF,1),p=A.ax(A.fp(v,B.aH,!1,v,!0,B.v,v,A.fQ(),v,v,v,v,v,v,2,A.hm(v,new A.eb(4,A.a_(10),B.c1),v,H.nH,v,v,v,v,!0,v,v,v,v,v,v,B.ao,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,"Search artists by name or genre\u2026",v,v,v,v,v,!0,v,v,v,!0,!0,!1,v,P.kN,v,v,v,v,v,v,v,v,v,v,v,v),B.A,!0,v,!0,v,!1,v,B.aS,v,v,v,v,v,v,v,v,1,v,v,!1,"\u2022",v,new C.aEH(w),v,v,v,!1,v,v,!1,v,!0,v,B.ai,v,v,v,v,v,v,v,v,v,v,v,v,!0,B.u,v,B.bz,v,v,v,v),1),o=A.a_(10),n=w.x,m=n===D.mb?B.q:B.a1
-m=A.c7(m,v,v,D.Tt,v,v,new C.aEI(w),v,v,v,"Grid view",v)
+case 7:case 1:return A.D(u,v)
+case 2:return A.C(s.at(-1),v)}})
+return A.E($async$tq,v)},
+E(d){var w=this,v=null,u=w.gbl().bc($.m3(),x.n),t=x.p,s=A.b([new A.a5(B.eZ,A.fD(O.iA,D.ajr,new C.aEG(d),A.ex(v,v,B.q,v,v,v,v,v,v,B.h,v,v,v,v,v,v,v,v,v,v)),v)],t),r=A.a_(16),q=A.b2(B.aF,1),p=A.ax(A.fp(v,B.aH,!1,v,!0,B.v,v,A.fQ(),v,v,v,v,v,v,2,A.hm(v,new A.eb(4,A.a_(10),B.c1),v,H.nH,v,v,v,v,!0,v,v,v,v,v,v,B.ao,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,"Search artists by name or genre\u2026",v,v,v,v,v,!0,v,v,v,!0,!0,!1,v,P.kN,v,v,v,v,v,v,v,v,v,v,v,v),B.A,!0,v,!0,v,!1,v,B.aS,v,v,v,v,v,v,v,v,1,v,v,!1,"\u2022",v,new C.aEH(w),v,v,v,!1,v,v,!1,v,!0,v,B.ai,v,v,v,v,v,v,v,v,v,v,v,v,!0,B.u,v,B.bz,v,v,v,v),1),o=A.a_(10),n=w.x,m=n===D.mb?B.q:B.a1
+m=A.c7(m,v,v,D.Tu,v,v,new C.aEI(w),v,v,v,"Grid view",v)
 n=n===D.Is?B.q:B.a1
-return T.hV(s,A.a9(A.b([new A.a5(B.aA,A.ac(v,A.a3(A.b([p,B.aX,A.ac(v,A.a3(A.b([m,A.c7(n,v,v,D.UC,v,v,new C.aEJ(w),v,v,v,"Table view",v)],t),B.j,B.e,B.G,0,v,v),B.k,v,v,new A.a8(B.ao,v,v,o,v,v,B.o),v,v,v,v,v,v,v,v)],t),B.j,B.e,B.f,0,v,v),B.k,v,v,new A.a8(B.ah,v,q,r,v,v,B.o),v,v,v,v,B.bT,v,v,v),v),A.ax(A.eh(u,new C.aEK(w,d),new C.aEL(w),new C.aEM(),!1,!0,!1,x.Y,x.l),1)],t),B.j,B.e,B.f,0,B.l),"/admin/artists","Artists")}}
-var z=a.updateTypes(["fT(K)","j2(ce)"])
+return T.hV(s,A.a9(A.b([new A.a5(B.aA,A.ac(v,A.a3(A.b([p,B.aX,A.ac(v,A.a3(A.b([m,A.c7(n,v,v,D.UD,v,v,new C.aEJ(w),v,v,v,"Table view",v)],t),B.j,B.e,B.G,0,v,v),B.k,v,v,new A.a8(B.ao,v,v,o,v,v,B.o),v,v,v,v,v,v,v,v)],t),B.j,B.e,B.f,0,v,v),B.k,v,v,new A.a8(B.ah,v,q,r,v,v,B.o),v,v,v,v,B.bT,v,v,v),v),A.ax(A.eh(u,new C.aEK(w,d),new C.aEL(w),new C.aEM(),!1,!0,!1,x.Y,x.l),1)],t),B.j,B.e,B.f,0,B.l),"/admin/artists","Artists")}}
+var z=a.updateTypes(["fT(K)","j2(cc)"])
 C.aEr.prototype={
 $1(d){var w=null,v=A.v("Delete "+this.a.b+"?",w,w,w,w,w,w,w,w)
-return M.jH(A.b([A.dY(G.cm,new C.aEp(d),w),A.dY(G.e7,new C.aEq(d),A.jt(w,w,w,w,w,w,w,w,w,B.aM,w,w,w,w,w,w,w,w,w,w))],x.p),w,D.ahi,w,v)},
+return M.jH(A.b([A.dY(G.cm,new C.aEp(d),w),A.dY(G.e7,new C.aEq(d),A.jt(w,w,w,w,w,w,w,w,w,B.aM,w,w,w,w,w,w,w,w,w,w))],x.p),w,D.ahj,w,v)},
 $S:z+0}
 C.aEp.prototype={
 $0(){A.bR(this.a,!1).by(!1)
@@ -196,13 +196,13 @@ $1(d){var w,v,u,t,s=null,r=this.a
 if(r.w.length===0)w=d
 else{v=J.m6(d,new C.aEz(r))
 w=A.W(v,v.$ti.h("u.E"))}v=J.aA(w)
-if(v.gad(w))return A.c_(A.a9(A.b([D.UN,B.x,D.ai9,B.ak,A.fD(U.h2,D.agX,new C.aEA(this.b),s)],x.p),B.j,B.e,B.G,0,B.l),s,s)
-if(r.x===D.mb)return A.ao2(s,B.A,D.LU,new C.aEB(r,w),v.gB(w),B.kn,s,!1)
+if(v.gad(w))return A.c_(A.a9(A.b([D.UO,B.x,D.aia,B.ak,A.fD(U.h2,D.agY,new C.aEA(this.b),s)],x.p),B.j,B.e,B.G,0,B.l),s,s)
+if(r.x===D.mb)return A.ao2(s,B.A,D.LV,new C.aEB(r,w),v.gB(w),B.kn,s,!1)
 u=A.a_(16)
 t=A.b2(B.aF,1)
 r=v.e2(w,new C.aEC(r,this.b),x.m)
 r=A.W(r,r.$ti.h("ai.E"))
-return A.dE(A.ac(s,A.dE(E.b4K(s,D.a_N,s,s,new A.bj(B.ao,x.x),s,r,!0),s,B.A,s,s,s,B.U),B.aL,s,s,new A.a8(B.ah,s,t,u,s,s,B.o),s,s,s,s,s,s,s,s),s,B.A,B.kn,s,s,B.a6)},
+return A.dE(A.ac(s,A.dE(E.b4K(s,D.a_O,s,s,new A.bj(B.ao,x.x),s,r,!0),s,B.A,s,s,s,B.U),B.aL,s,s,new A.a8(B.ah,s,t,u,s,s,B.o),s,s,s,s,s,s,s,s),s,B.A,B.kn,s,s,B.a6)},
 $S:274}
 C.aEz.prototype={
 $1(d){var w=this.a.w
@@ -213,11 +213,11 @@ $0(){return A.bI(this.a).cm("/admin/artists/new",null,x.X)},
 $S:0}
 C.aEB.prototype={
 $2(d,e){var w,v,u,t,s,r=null,q=J.bd(this.b,e),p=A.a_(16),o=A.b2(B.aF,1),n=q.Q,m=x.p,l=A.b([new A.h_(q.d,140,1/0,B.aU,B.b_,r),A.k6(r,new K.o5(n,r),r,r,8,r,8,r)],m)
-if(q.z)l.push(A.k6(r,A.ac(r,D.TZ,B.k,r,r,D.Kh,r,r,r,r,B.dR,r,r,r),r,r,r,8,8,r))
+if(q.z)l.push(A.k6(r,A.ac(r,D.U_,B.k,r,r,D.Ki,r,r,r,r,B.dR,r,r,r),r,r,r,8,8,r))
 l=A.f7(B.bA,l,B.v,B.bg,r)
 w=A.v(q.b,1,B.a5,r,r,S.fu,r,r,r)
-v=A.v(q.e,1,B.a5,r,r,D.acJ,r,r,r)
-u=A.ax(A.bcg(D.agq,new C.aEv(d,q),A.xc(r,r,r,r,r,r,r,r,r,r,r,D.a8k,B.uD,r,r,r,r,r,r,r)),1)
+v=A.v(q.e,1,B.a5,r,r,D.acK,r,r,r)
+u=A.ax(A.bcg(D.agr,new C.aEv(d,q),A.xc(r,r,r,r,r,r,r,r,r,r,r,D.a8l,B.uD,r,r,r,r,r,r,r)),1)
 n=n==="ACTIVE"
 t=A.dT(n?F.kL:F.kK,B.a1,r,18)
 n=n?"Deactivate":"Activate"
@@ -234,7 +234,7 @@ C.aEx.prototype={
 $0(){return this.a.tq(0,this.b)},
 $S:0}
 C.aEC.prototype={
-$1(d){var w,v,u=null,t=x.p,s=E.hZ(A.a3(A.b([new A.h_(d.d,38,38,A.a_(19),B.b_,u),B.cM,A.v(d.b,u,u,u,u,B.du,u,u,u)],t),B.j,B.e,B.G,0,u,u)),r=E.hZ(A.v(d.e,u,u,u,u,u,u,u,u)),q=E.hZ(d.z?D.a6h:D.agF),p=d.Q,o=E.hZ(new K.o5(p,u)),n=A.c7(u,u,u,R.oN,u,u,new C.aEs(this.b,d),u,u,u,"Edit",u)
+$1(d){var w,v,u=null,t=x.p,s=E.hZ(A.a3(A.b([new A.h_(d.d,38,38,A.a_(19),B.b_,u),B.cM,A.v(d.b,u,u,u,u,B.du,u,u,u)],t),B.j,B.e,B.G,0,u,u)),r=E.hZ(A.v(d.e,u,u,u,u,u,u,u,u)),q=E.hZ(d.z?D.a6i:D.agG),p=d.Q,o=E.hZ(new K.o5(p,u)),n=A.c7(u,u,u,R.oN,u,u,new C.aEs(this.b,d),u,u,u,"Edit",u)
 p=p==="ACTIVE"
 w=p?F.kL:F.kK
 w=A.dT(w,p?B.bR:B.a1,u,20)
@@ -261,36 +261,36 @@ v(A.fe,[C.aEL,C.aEB])})()
 A.dO(b.typeUniverse,JSON.parse('{"qY":{"R":[],"c":[]},"a0S":{"X":["qY"]}}'))
 var y={b:'Cannot use "ref" after the widget was disposed.'}
 var x=(function rtii(){var w=A.Z
-return{b:w("eO"),n:w("cg<r<ce>>"),m:w("j2"),F:w("t<Ab>"),p:w("t<c>"),Y:w("r<ce>"),N:w("h"),l:w("c"),x:w("bj<o?>"),q:w("jC"),y:w("J"),z:w("@"),X:w("q?"),H:w("~")}})();(function constants(){var w=a.makeConstList
-D.Kh=new A.a8(B.dW,null,null,null,null,null,B.bv)
-D.LU=new C.aAP()
-D.Sl=new A.av(58090,"MaterialIcons",null,!1)
-D.Tt=new A.ao(D.Sl,20,null,null,null)
+return{b:w("eO"),n:w("cg<r<cc>>"),m:w("j2"),F:w("t<Ab>"),p:w("t<c>"),Y:w("r<cc>"),N:w("h"),l:w("c"),x:w("bj<o?>"),q:w("jC"),y:w("J"),z:w("@"),X:w("q?"),H:w("~")}})();(function constants(){var w=a.makeConstList
+D.Ki=new A.a8(B.dW,null,null,null,null,null,B.bv)
+D.LV=new C.aAP()
+D.Sm=new A.av(58090,"MaterialIcons",null,!1)
+D.Tu=new A.ao(D.Sm,20,null,null,null)
 D.vl=new A.av(58873,"MaterialIcons",null,!1)
-D.TZ=new A.ao(D.vl,14,B.w,null,null)
-D.Sx=new A.av(58939,"MaterialIcons",null,!1)
-D.UC=new A.ao(D.Sx,20,null,null,null)
-D.Sq=new A.av(58341,"MaterialIcons",null,!1)
-D.UN=new A.ao(D.Sq,48,B.a1,null,null)
-D.agB=new A.L("Artist",null,B.b9,null,null,null,null,null,null,null,null)
-D.PF=new E.hh(D.agB)
-D.ajP=new A.L("Type",null,B.b9,null,null,null,null,null,null,null,null)
-D.Py=new E.hh(D.ajP)
-D.agz=new A.L("Featured",null,B.b9,null,null,null,null,null,null,null,null)
-D.PI=new E.hh(D.agz)
-D.a_N=w([D.PF,D.Py,D.PI,H.nr,Q.u4],A.Z("t<hh>"))
-D.Uk=new A.ao(D.vl,16,B.dW,null,null)
-D.ah0=new A.L("Featured",null,N.qB,null,null,null,null,null,null,null,null)
-D.a_X=w([D.Uk,B.cl,D.ah0],x.p)
-D.a6h=new A.dL(B.U,B.e,B.G,B.j,null,B.l,null,0,D.a_X,null)
-D.a8k=new A.y(0,30)
-D.acJ=new A.l(!0,B.Y,null,null,null,null,11,B.aP,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-D.agq=new A.L("Edit",null,I.qC,null,null,null,null,null,null,null,null)
-D.agF=new A.L("-",null,B.cw,null,null,null,null,null,null,null,null)
-D.agX=new A.L("Add New Artist",null,null,null,null,null,null,null,null,null,null)
-D.ahi=new A.L("This will remove the artist from the system.",null,null,null,null,null,null,null,null,null,null)
-D.ai9=new A.L("No artists found.",null,B.cw,null,null,null,null,null,null,null,null)
-D.ajq=new A.L("Add Artist",null,null,null,null,null,null,null,null,null,null)
+D.U_=new A.ao(D.vl,14,B.w,null,null)
+D.Sy=new A.av(58939,"MaterialIcons",null,!1)
+D.UD=new A.ao(D.Sy,20,null,null,null)
+D.Sr=new A.av(58341,"MaterialIcons",null,!1)
+D.UO=new A.ao(D.Sr,48,B.a1,null,null)
+D.agC=new A.L("Artist",null,B.b9,null,null,null,null,null,null,null,null)
+D.PG=new E.hh(D.agC)
+D.ajQ=new A.L("Type",null,B.b9,null,null,null,null,null,null,null,null)
+D.Pz=new E.hh(D.ajQ)
+D.agA=new A.L("Featured",null,B.b9,null,null,null,null,null,null,null,null)
+D.PJ=new E.hh(D.agA)
+D.a_O=w([D.PG,D.Pz,D.PJ,H.nr,Q.u4],A.Z("t<hh>"))
+D.Ul=new A.ao(D.vl,16,B.dW,null,null)
+D.ah1=new A.L("Featured",null,N.qB,null,null,null,null,null,null,null,null)
+D.a_Y=w([D.Ul,B.cl,D.ah1],x.p)
+D.a6i=new A.dL(B.U,B.e,B.G,B.j,null,B.l,null,0,D.a_Y,null)
+D.a8l=new A.y(0,30)
+D.acK=new A.l(!0,B.Y,null,null,null,null,11,B.aP,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
+D.agr=new A.L("Edit",null,I.qC,null,null,null,null,null,null,null,null)
+D.agG=new A.L("-",null,B.cw,null,null,null,null,null,null,null,null)
+D.agY=new A.L("Add New Artist",null,null,null,null,null,null,null,null,null,null)
+D.ahj=new A.L("This will remove the artist from the system.",null,null,null,null,null,null,null,null,null,null)
+D.aia=new A.L("No artists found.",null,B.cw,null,null,null,null,null,null,null,null)
+D.ajr=new A.L("Add Artist",null,null,null,null,null,null,null,null,null,null)
 D.mb=new C.a1l(0,"grid")
 D.Is=new C.a1l(1,"table")})()};
-(a=>{a["6QljE3sLyFJbqEAvQTr/wA11ZMw="]=a.current})($__dart_deferred_initializers__);
+(a=>{a["x9ATIUPm8Wi8keafeZbdqXdX2Qs="]=a.current})($__dart_deferred_initializers__);

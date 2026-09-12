@@ -42,8 +42,8 @@ return new C.M9(new A.aX(null,y.o),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.
 C.M9.prototype={
 al(){this.az()
 this.xS()},
-xS(){var x=0,w=A.G(y.v),v=1,u=[],t=[],s=this,r,q,p,o,n
-var $async$xS=A.H(function(d,e){if(d===1){u.push(e)
+xS(){var x=0,w=A.F(y.v),v=1,u=[],t=[],s=this,r,q,p,o,n
+var $async$xS=A.G(function(d,e){if(d===1){u.push(e)
 x=v}for(;;)switch(x){case 0:s.G(new C.aIA(s))
 v=3
 x=6
@@ -85,15 +85,15 @@ case 4:v=1
 if(s.c!=null)s.G(new C.aIB(s))
 x=t.pop()
 break
-case 5:return A.E(null,w)
-case 1:return A.D(u.at(-1),w)}})
-return A.F($async$xS,w)},
+case 5:return A.D(null,w)
+case 1:return A.C(u.at(-1),w)}})
+return A.E($async$xS,w)},
 l(){var x,w,v,u=this
 for(x=[u.x,u.y,u.z,u.Q,u.as,u.at,u.ax,u.ay,u.ch],w=0;w<9;++w){v=x[w]
 v.O$=$.ae()
 v.N$=0}u.ao()},
-Ef(){var x=0,w=A.G(y.v),v,u=2,t=[],s=[],r=this,q,p,o,n,m,l
-var $async$Ef=A.H(function(d,e){if(d===1){t.push(e)
+Ef(){var x=0,w=A.F(y.v),v,u=2,t=[],s=[],r=this,q,p,o,n,m,l
+var $async$Ef=A.G(function(d,e){if(d===1){t.push(e)
 x=u}for(;;)switch(x){case 0:if(!r.w.gU().iV()){x=1
 break}r.G(new C.aIC(r))
 o=y.w
@@ -121,7 +121,7 @@ n===$&&A.a()
 x=7
 return A.w(o.cg(n.rI(0,"/admin/settings",q,y.b)),$async$Ef)
 case 7:o=r.c
-if(o!=null)o.X(y.q).f.cZ(D.a9a)
+if(o!=null)o.X(y.q).f.cZ(D.a9b)
 s.push(6)
 x=5
 break
@@ -137,20 +137,20 @@ case 5:u=2
 if(r.c!=null)r.G(new C.aIE(r))
 x=s.pop()
 break
-case 6:case 1:return A.E(v,w)
-case 2:return A.D(t.at(-1),w)}})
-return A.F($async$Ef,w)},
+case 6:case 1:return A.D(v,w)
+case 2:return A.C(t.at(-1),w)}})
+return A.E($async$Ef,w)},
 E(d){var x,w,v,u=this,t=null
 if(u.CW)x=B.bp
 else{x=u.cx
-if(x!=null)x=new A.dF(x,u.gate(),t)
-else{x=A.b([A.bD(!1,u.x,D.VX,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIF()),B.x,A.bD(!1,u.y,D.Wn,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.z,D.VL,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIG()),B.x,A.bD(!1,u.Q,D.VF,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.as,F.vP,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.at,E.vN,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ax,E.vQ,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ay,D.Wj,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIH()),B.x,A.bD(!1,u.ch,D.Wy,!1,t,t,t,2,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.aZ],y.u)
+if(x!=null)x=new A.dF(x,u.gath(),t)
+else{x=A.b([A.bD(!1,u.x,D.VY,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIF()),B.x,A.bD(!1,u.y,D.Wo,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.z,D.VM,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIG()),B.x,A.bD(!1,u.Q,D.VG,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.as,F.vP,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.at,E.vN,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ax,E.vQ,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ay,D.Wk,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIH()),B.x,A.bD(!1,u.ch,D.Wz,!1,t,t,t,2,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.aZ],y.u)
 w=u.db
 if(w!=null)x.push(new A.dF(w,t,t))
 w=u.cy
 v=w?"SAVING...":"SAVE SETTINGS"
-x.push(A.fX(t,t,!1,v,w?t:u.gayV(),t))
-x=A.mp(t,A.jZ(x,B.aA,t,!1),u.w)}}return G.hV(t,x,"/admin/settings","Settings")}}
+x.push(A.fX(t,t,!1,v,w?t:u.gayY(),t))
+x=A.mq(t,A.jZ(x,B.aA,t,!1),u.w)}}return G.hV(t,x,"/admin/settings","Settings")}}
 var z=a.updateTypes(["ab<~>()"])
 C.aIA.prototype={
 $0(){var x=this.a
@@ -181,19 +181,19 @@ C.aIH.prototype={
 $1(d){return d==null||B.c.ag(d).length===0?"Required":null},
 $S:9};(function installTearOffs(){var x=a._instance_0u
 var w
-x(w=C.M9.prototype,"gate","xS",0)
-x(w,"gayV","Ef",0)})();(function inheritance(){var x=a.inherit,w=a.inheritMany
+x(w=C.M9.prototype,"gath","xS",0)
+x(w,"gayY","Ef",0)})();(function inheritance(){var x=a.inherit,w=a.inheritMany
 x(C.r5,A.ff)
 x(C.M9,A.hg)
 w(A.ev,[C.aIA,C.aIB,C.aIC,C.aID,C.aIE])
 w(A.dc,[C.aIF,C.aIG,C.aIH])})()
 A.dO(b.typeUniverse,JSON.parse('{"r5":{"R":[],"c":[]},"M9":{"X":["r5"]}}'))
-var y={g:A.Z("eO"),u:A.Z("t<c>"),o:A.Z("aX<jT>"),w:A.Z("h"),q:A.Z("jC"),b:A.Z("@"),v:A.Z("~")};(function constants(){D.VF=new A.bi(null,null,null,"Phone",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.VL=new A.bi(null,null,null,"WhatsApp Number *",null,null,null,"International format, no + sign, e.g. 917041615131",null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.VX=new A.bi(null,null,null,"Website Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wj=new A.bi(null,null,null,"Currency *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wn=new A.bi(null,null,null,"Logo URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wy=new A.bi(null,null,null,"Footer Text",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.ak5=new A.L("Settings saved",null,null,null,null,null,null,null,null,null,null)
-D.a9a=new A.kc(D.ak5,null,null,null,null,null,null,null,null,null,null,null,null,B.aw,!1,null,null,null,B.v,null)})()};
-(a=>{a["2E/Oq3S+sX5HSHq40F3Hj5uFRSY="]=a.current})($__dart_deferred_initializers__);
+var y={g:A.Z("eO"),u:A.Z("t<c>"),o:A.Z("aX<jT>"),w:A.Z("h"),q:A.Z("jC"),b:A.Z("@"),v:A.Z("~")};(function constants(){D.VG=new A.bi(null,null,null,"Phone",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.VM=new A.bi(null,null,null,"WhatsApp Number *",null,null,null,"International format, no + sign, e.g. 917041615131",null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.VY=new A.bi(null,null,null,"Website Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wk=new A.bi(null,null,null,"Currency *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wo=new A.bi(null,null,null,"Logo URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wz=new A.bi(null,null,null,"Footer Text",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.ak6=new A.L("Settings saved",null,null,null,null,null,null,null,null,null,null)
+D.a9b=new A.kc(D.ak6,null,null,null,null,null,null,null,null,null,null,null,null,B.aw,!1,null,null,null,B.v,null)})()};
+(a=>{a["UyfAwLu2fBvUCtUtl2wd1gXedW0="]=a.current})($__dart_deferred_initializers__);

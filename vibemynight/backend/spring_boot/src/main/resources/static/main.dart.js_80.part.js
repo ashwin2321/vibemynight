@@ -45,7 +45,7 @@ B=a.updateHolder(c[10],B)
 D=c[42]
 G=c[44]
 B.v5.prototype={
-E(d){return D.amv}}
+E(d){return D.amw}}
 B.v9.prototype={
 fe(d,e){return A.eh(e.bc($.m3(),x.n),new B.adG(this),new B.adH(e),new B.adI(),!1,!0,!1,x.Y,x.l)}}
 B.Da.prototype={
@@ -113,8 +113,8 @@ p=0
 for(;p<8;++p){o=q[p]
 o.O$=$.ae()
 o.N$=0}n.ao()},
-x3(){var w=0,v=A.G(x.H),u,t=2,s=[],r=[],q=this,p,o,n,m,l,k,j,i,h,g
-var $async$x3=A.H(function(d,e){if(d===1){s.push(e)
+x3(){var w=0,v=A.F(x.H),u,t=2,s=[],r=[],q=this,p,o,n,m,l,k,j,i,h,g
+var $async$x3=A.G(function(d,e){if(d===1){s.push(e)
 w=t}for(;;)switch(w){case 0:if(!q.w.gU().iV()){w=1
 break}q.G(new B.aEf(q))
 m=A.B(x.N,x.K)
@@ -191,27 +191,27 @@ case 5:t=2
 if(q.c!=null)q.G(new B.aEh(q))
 w=r.pop()
 break
-case 6:case 1:return A.E(u,v)
-case 2:return A.D(s.at(-1),v)}})
-return A.F($async$x3,v)},
+case 6:case 1:return A.D(u,v)
+case 2:return A.C(s.at(-1),v)}})
+return A.E($async$x3,v)},
 E(d){var w,v,u,t,s,r,q,p,o=this,n=null,m=o.a.d!=null,l=m?"Edit Artist":"Create Artist",k=o.x
 k===$&&A.a()
-k=A.bD(!1,k,D.Wx,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEk())
+k=A.bD(!1,k,D.Wy,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEk())
 w=o.y
 w===$&&A.a()
 w=A.bD(!1,w,I.vO,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEl())
 v=o.ch
 u=x.v
-u=A.W(new A.Y(D.YZ,new B.aEm(),u),u.h("ai.E"))
-v=F.p2(D.Wd,C.ah,n,v,!0,u,new B.aEn(o),x.N)
+u=A.W(new A.Y(D.Z_,new B.aEm(),u),u.h("ai.E"))
+v=F.p2(D.We,C.ah,n,v,!0,u,new B.aEn(o),x.N)
 u=o.z
 u===$&&A.a()
 t=o.Q
 t===$&&A.a()
-t=A.bD(!1,t,D.WB,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
+t=A.bD(!1,t,D.WC,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
 s=o.as
 s===$&&A.a()
-s=A.bD(!1,s,D.W8,!1,n,n,n,4,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
+s=A.bD(!1,s,D.W9,!1,n,n,n,4,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
 r=o.at
 r===$&&A.a()
 r=A.bD(!1,r,G.vN,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
@@ -220,14 +220,14 @@ q===$&&A.a()
 q=A.bD(!1,q,G.vQ,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
 p=o.ay
 p===$&&A.a()
-p=A.b([k,C.x,w,C.x,v,C.x,new H.pk(u,"Photo URL","artists",n),C.x,t,C.x,s,C.x,r,C.x,q,C.x,A.bD(!1,p,D.Wi,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n),C.x,K.aBy(n,C.a0,new B.aEo(o),n,D.ahl,o.CW),C.aZ],x.p)
+p=A.b([k,C.x,w,C.x,v,C.x,new H.pk(u,"Photo URL","artists",n),C.x,t,C.x,s,C.x,r,C.x,q,C.x,A.bD(!1,p,D.Wj,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n),C.x,K.aBy(n,C.a0,new B.aEo(o),n,D.ahm,o.CW),C.aZ],x.p)
 k=o.cy
 if(k!=null)p.push(new A.dF(k,n,n))
 k=o.cx
 if(k)w="SAVING..."
 else w=m?"SAVE CHANGES":"CREATE ARTIST"
-p.push(A.fX(n,n,!1,w,k?n:o.gahR(),n))
-return E.hV(n,A.mp(n,A.jZ(p,C.aA,n,!1),o.w),"/admin/artists",l)}}
+p.push(A.fX(n,n,!1,w,k?n:o.gahU(),n))
+return E.hV(n,A.mq(n,A.jZ(p,C.aA,n,!1),o.w),"/admin/artists",l)}}
 var z=a.updateTypes(["fA()","fA(q,bH)","ab<~>()","dA<h>(h)"])
 B.adI.prototype={
 $0(){return D.J0},
@@ -283,7 +283,7 @@ $S:7}
 B.aEi.prototype={
 $0(){return this.a.CW=this.b},
 $S:0};(function installTearOffs(){var w=a._instance_0u
-w(B.M0.prototype,"gahR","x3",2)})();(function inheritance(){var w=a.inherit,v=a.inheritMany
+w(B.M0.prototype,"gahU","x3",2)})();(function inheritance(){var w=a.inherit,v=a.inheritMany
 w(B.v5,A.ad)
 w(B.v9,A.lf)
 v(A.ev,[B.adI,B.adF,B.aEf,B.aEg,B.aEh,B.aEj,B.aEi])
@@ -294,17 +294,17 @@ w(B.M0,A.hg)})()
 A.dO(b.typeUniverse,JSON.parse('{"Da":{"R":[],"c":[]},"v5":{"ad":[],"c":[]},"v9":{"R":[],"c":[]},"M0":{"X":["Da"]}}'))
 var y={b:'Cannot use "ref" after the widget was disposed.'}
 var x=(function rtii(){var w=A.Z
-return{b:w("eO"),n:w("cg<r<ce>>"),p:w("t<c>"),w:w("aX<jT>"),Y:w("r<ce>"),v:w("Y<h,dA<h>>"),K:w("q"),N:w("h"),l:w("c"),z:w("@"),H:w("~")}})();(function constants(){var w=a.makeConstList
+return{b:w("eO"),n:w("cg<r<cc>>"),p:w("t<c>"),w:w("aX<jT>"),Y:w("r<cc>"),v:w("Y<h,dA<h>>"),K:w("q"),N:w("h"),l:w("c"),z:w("@"),H:w("~")}})();(function constants(){var w=a.makeConstList
 D.J0=new E.fA("Edit Artist","/admin/artists",C.bp,null,null)
-D.ahz=new A.L("Artist not found.",null,null,null,null,null,null,null,null,null,null)
-D.Ml=new A.dR(C.J,null,null,D.ahz,null)
-D.J3=new E.fA("Edit Artist","/admin/artists",D.Ml,null,null)
-D.W8=new A.bi(null,null,null,"Full Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wd=new A.bi(null,null,null,"Type *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wi=new A.bi(null,null,null,"YouTube URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wx=new A.bi(null,null,null,"Artist Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.WB=new A.bi(null,null,null,"Short Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.YZ=w(["SINGER","DJ","BAND","CELEBRITY","PERFORMER","LIVE_ARTIST","OTHER"],A.Z("t<h>"))
-D.ahl=new A.L("Featured",null,null,null,null,null,null,null,null,null,null)
-D.amv=new B.Da(null,null,null)})()};
-(a=>{a["/0wL5jHdRD9rZd7CPikvqfsQJP8="]=a.current})($__dart_deferred_initializers__);
+D.ahA=new A.L("Artist not found.",null,null,null,null,null,null,null,null,null,null)
+D.Mm=new A.dR(C.J,null,null,D.ahA,null)
+D.J3=new E.fA("Edit Artist","/admin/artists",D.Mm,null,null)
+D.W9=new A.bi(null,null,null,"Full Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.We=new A.bi(null,null,null,"Type *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wj=new A.bi(null,null,null,"YouTube URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wy=new A.bi(null,null,null,"Artist Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.WC=new A.bi(null,null,null,"Short Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Z_=w(["SINGER","DJ","BAND","CELEBRITY","PERFORMER","LIVE_ARTIST","OTHER"],A.Z("t<h>"))
+D.ahm=new A.L("Featured",null,null,null,null,null,null,null,null,null,null)
+D.amw=new B.Da(null,null,null)})()};
+(a=>{a["QWYC6OSuyEZN/EuDscJumA3WATU="]=a.current})($__dart_deferred_initializers__);
