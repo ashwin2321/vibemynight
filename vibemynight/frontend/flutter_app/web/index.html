@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -77,7 +64,8 @@
       justify-content: center;
       background: radial-gradient(circle at 50% 45%, #15102A 0%, #07070E 70%);
       z-index: 9999999;
-      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
     .vmn-loader-content {
       display: flex;
@@ -183,7 +171,6 @@
         width: 30%;
       }
     }
-    /* Suppress old default Flutter progress bar only */
     .flutter-loader {
       display: none !important;
     }
@@ -204,6 +191,13 @@
   </div>
 
   <script>
+    // Clean old service workers that might cache stale mobile builds
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var r of regs) { r.unregister(); }
+      });
+    }
+
     window.dismissVmnLoader = function() {
       var loader = document.getElementById('vmn-apple-loader');
       if (loader && !loader.classList.contains('dismissed')) {
@@ -219,15 +213,16 @@
       }
     };
 
-    window.addEventListener('flutter-first-frame', function() {
-      requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-          window.dismissVmnLoader();
-        });
-      });
+    // Watch for Flutter mounting to the DOM
+    var observer = new MutationObserver(function(mutations, obs) {
+      if (document.querySelector('flutter-view') || document.querySelector('flt-glass-pane') || document.querySelector('flt-scene-host') || document.querySelector('canvas')) {
+        setTimeout(window.dismissVmnLoader, 250);
+        obs.disconnect();
+      }
     });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-    // Fallback dismiss
+    // Safety fallback dismiss
     setTimeout(window.dismissVmnLoader, 3500);
   </script>
 
