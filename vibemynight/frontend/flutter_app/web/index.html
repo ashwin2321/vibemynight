@@ -183,19 +183,9 @@
         width: 30%;
       }
     }
-    /* PERMANENTLY SUPPRESS ALL DEFAULT FLUTTER ENGINE LOADERS / BLUE BARS */
-    .flutter-loader,
-    .loading,
-    #loading,
-    flt-glass-pane > .flutter-loader,
-    div[style*="background-color: rgb(33, 150, 243)"],
-    div[style*="background-color: #2196F3"],
-    div[style*="position: absolute"][style*="top: 0"][style*="height:"],
-    div[style*="position: fixed"][style*="top: 0"][style*="height:"] {
+    /* Suppress old default Flutter progress bar only */
+    .flutter-loader {
       display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
     }
   </style>
 </head>
@@ -214,15 +204,6 @@
   </div>
 
   <script>
-    // Remove any default Flutter progress bar injected into the DOM
-    var observer = new MutationObserver(function(mutations) {
-      var defaultLoaders = document.querySelectorAll('.flutter-loader, div[style*="rgb(33, 150, 243)"], div[style*="#2196F3"]');
-      defaultLoaders.forEach(function(el) {
-        el.remove();
-      });
-    });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-
     window.dismissVmnLoader = function() {
       var loader = document.getElementById('vmn-apple-loader');
       if (loader && !loader.classList.contains('dismissed')) {
@@ -231,18 +212,14 @@
         loader.style.transform = 'scale(1.02)';
         loader.style.pointerEvents = 'none';
         setTimeout(function() {
-          if (loader.parentNode) {
+          if (loader && loader.parentNode) {
             loader.parentNode.removeChild(loader);
-          }
-          if (typeof observer !== 'undefined') {
-            observer.disconnect();
           }
         }, 400);
       }
     };
 
     window.addEventListener('flutter-first-frame', function() {
-      // Ensure canvas has actually drawn the first frame before fading out
       requestAnimationFrame(function() {
         requestAnimationFrame(function() {
           window.dismissVmnLoader();
@@ -250,8 +227,8 @@
       });
     });
 
-    // Safety fallback only if engine takes long
-    setTimeout(window.dismissVmnLoader, 1500);
+    // Fallback dismiss
+    setTimeout(window.dismissVmnLoader, 3500);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
