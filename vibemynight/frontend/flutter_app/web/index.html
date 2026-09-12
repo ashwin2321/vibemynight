@@ -191,7 +191,14 @@
   </div>
 
   <script>
-    // Clean old service workers that might cache stale mobile builds
+    // 1. Completely purge all stale CacheStorage & ServiceWorkers on mobile
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var name of names) {
+          caches.delete(name);
+        }
+      });
+    }
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(regs) {
         for (var r of regs) { r.unregister(); }
