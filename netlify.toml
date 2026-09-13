@@ -1,0 +1,16 @@
+[build]
+  command = bash build_netlify.sh
+  publish = vibemynight/frontend/flutter_app/build/web
+
+[[redirects]]
+  from = /*
+  to = /index.html
+  status = 200
+
+[[headers]]
+  for = /*
+  [headers.values]
+    Access-Control-Allow-Origin = *
+    X-Frame-Options = DENY
+    X-Content-Type-Options = nosniff
+    Referrer-Policy = strict-origin-when-cross-origin
