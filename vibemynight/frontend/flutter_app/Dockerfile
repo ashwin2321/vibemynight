@@ -10,5 +10,6 @@ RUN flutter build web --release --no-tree-shake-icons --dart-define=API_BASE_URL
 FROM nginx:alpine
 COPY --from=build /app/build/web /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV PORT=80
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/bin/sh", "-c", "sed -i \"s/80/${PORT}/g\" /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
