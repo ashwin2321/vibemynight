@@ -9,6 +9,7 @@ import com.vibemynight.backend.exception.BadRequestException;
 import com.vibemynight.backend.repository.ArtistRepository;
 import com.vibemynight.backend.repository.EventRepository;
 import com.vibemynight.backend.repository.FacilityRepository;
+import com.vibemynight.backend.security.UrlSecurityValidator;
 import com.vibemynight.backend.service.EventScraperService;
 import com.vibemynight.backend.util.SafeWebFetcher;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import java.util.regex.Pattern;
 public class EventScraperServiceImpl implements EventScraperService {
 
     private final SafeWebFetcher safeWebFetcher;
+    private final UrlSecurityValidator urlSecurityValidator;
     private final EventRepository eventRepository;
     private final ArtistRepository artistRepository;
     private final FacilityRepository facilityRepository;
