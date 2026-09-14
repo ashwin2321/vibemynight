@@ -28,7 +28,6 @@ import '../../features/inquiry/inquiry_screen.dart';
 import '../../features/inquiry/inquiry_success_screen.dart';
 import '../../models/inquiry.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/loading_view.dart';
 
 /// Every screen/route named in the spec is wired here now (Phase 7).
 /// Admin routes redirect to /admin/login when there's no JWT in storage.

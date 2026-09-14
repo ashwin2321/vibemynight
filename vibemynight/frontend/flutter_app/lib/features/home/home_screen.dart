@@ -10,6 +10,7 @@ import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/loading_view.dart';
+import '../../core/widgets/network_image_box.dart';
 import '../../models/artist.dart';
 import '../../models/event_summary.dart';
 import '../events/widgets/event_card.dart';
@@ -276,17 +277,17 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
           // 2. Luxury Dark Gradient Overlay & Vignette
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    const Color(0xF207070E),
-                    const Color(0xDC07070E),
-                    const Color(0x8A07070E),
-                    const Color(0xF207070E),
+                    Color(0xF207070E),
+                    Color(0xDC07070E),
+                    Color(0x8A07070E),
+                    Color(0xF207070E),
                   ],
-                  stops: const [0.0, 0.35, 0.75, 1.0],
+                  stops: [0.0, 0.35, 0.75, 1.0],
                 ),
               ),
             ),
@@ -564,194 +565,204 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
 
         const SizedBox(width: 36),
 
-        // RIGHT COLUMN: Horizontal PageView with Peeking Banner Card
+        // RIGHT COLUMN: Horizontal PageView with Peeking Banner Card (True 16:9 Ratio)
         Expanded(
-          child: SizedBox(
-            height: 380,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: events.length,
-              onPageChanged: (idx) => setState(() => _activeIndex = idx),
-              itemBuilder: (context, index) {
-                final ev = events[index];
-                final isCurrent = index == activeIdx;
-                final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final itemWidth = availableWidth * 0.76;
+              final bannerHeight = itemWidth / (16 / 9);
 
-                return AnimatedScale(
-                  scale: isCurrent ? 1.0 : 0.92,
-                  duration: const Duration(milliseconds: 320),
-                  curve: Curves.easeOutCubic,
-                  child: AnimatedOpacity(
-                    opacity: isCurrent ? 1.0 : 0.72,
-                    duration: const Duration(milliseconds: 320),
-                    child: GestureDetector(
-                      onTap: () {
-                        if (isCurrent) {
-                          context.push(targetRoute);
-                        } else {
-                          _pageController.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 350),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(
-                            color: isCurrent
-                                ? const Color(0xFF8B5CF6)
-                                : Colors.white.withValues(alpha: 0.12),
-                            width: isCurrent ? 2.0 : 1.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isCurrent
-                                  ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
-                                  : Colors.black.withValues(alpha: 0.6),
-                              blurRadius: isCurrent ? 24 : 10,
-                              offset: const Offset(0, 8),
-                              spreadRadius: isCurrent ? 2 : 0,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              // Banner Image
-                              Image.network(
-                                ev.mainImage ?? ev.thumbnail ?? HomeScreen._heroImg,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: const Color(0xFF16102A),
-                                  child: const Center(
-                                    child: Icon(Icons.nightlife, color: Colors.white24, size: 56),
-                                  ),
-                                ),
-                              ),
+              return SizedBox(
+                height: bannerHeight.clamp(240.0, 360.0) + 16,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: events.length,
+                  onPageChanged: (idx) => setState(() => _activeIndex = idx),
+                  itemBuilder: (context, index) {
+                    final ev = events[index];
+                    final isCurrent = index == activeIdx;
+                    final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
 
-                              // Bottom gradient shadow
-                              Container(
+                    return Center(
+                      child: AnimatedScale(
+                        scale: isCurrent ? 1.0 : 0.93,
+                        duration: const Duration(milliseconds: 320),
+                        curve: Curves.easeOutCubic,
+                        child: AnimatedOpacity(
+                          opacity: isCurrent ? 1.0 : 0.72,
+                          duration: const Duration(milliseconds: 320),
+                          child: GestureDetector(
+                            onTap: () {
+                              if (isCurrent) {
+                                context.push(targetRoute);
+                              } else {
+                                _pageController.animateToPage(
+                                  index,
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withValues(alpha: 0.3),
-                                      const Color(0xFF07070E).withValues(alpha: 0.85),
-                                    ],
-                                    stops: const [0.5, 0.75, 1.0],
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: isCurrent
+                                        ? const Color(0xFF8B5CF6)
+                                        : Colors.white.withValues(alpha: 0.12),
+                                    width: isCurrent ? 2.0 : 1.0,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isCurrent
+                                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
+                                          : Colors.black.withValues(alpha: 0.6),
+                                      blurRadius: isCurrent ? 24 : 10,
+                                      offset: const Offset(0, 8),
+                                      spreadRadius: isCurrent ? 2 : 0,
+                                    ),
+                                  ],
                                 ),
-                              ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      // 16:9 Banner Image with Safe Fallback
+                                      NetworkImageBox(
+                                        url: ev.mainImage ?? ev.thumbnail,
+                                        fallbackUrl: HomeScreen._heroImg,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
 
-                              // Floating Top Date Pill & Price Pill
-                              Positioned(
-                                top: 16,
-                                left: 16,
-                                right: 16,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    if (ev.startDate.isNotEmpty)
+                                      // Bottom subtle gradient shadow for text contrast
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.75),
-                                          borderRadius: BorderRadius.circular(16),
-                                          border: Border.all(
-                                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withValues(alpha: 0.25),
+                                              const Color(0xFF07070E).withValues(alpha: 0.85),
+                                            ],
+                                            stops: const [0.55, 0.8, 1.0],
                                           ),
                                         ),
+                                      ),
+
+                                      // Floating Top Date Pill & Price Pill
+                                      Positioned(
+                                        top: 14,
+                                        left: 14,
+                                        right: 14,
                                         child: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
-                                            const SizedBox(width: 5),
-                                            Text(
-                                              ev.startDate,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700,
+                                            if (ev.startDate.isNotEmpty)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black.withValues(alpha: 0.75),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  border: Border.all(
+                                                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
+                                                    const SizedBox(width: 5),
+                                                    Text(
+                                                      ev.startDate,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 11.5,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
+                                            if (ev.startingPrice != null)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                                decoration: BoxDecoration(
+                                                  gradient: const LinearGradient(
+                                                    colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                ),
+                                                child: Text(
+                                                  'FROM ₹${ev.startingPrice!.toInt()}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       ),
-                                    if (ev.startingPrice != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          gradient: const LinearGradient(
-                                            colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
-                                          ),
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        child: Text(
-                                          'FROM ₹${ev.startingPrice!.toInt()}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
 
-                              // Bottom mini action pill on hover/focus
-                              Positioned(
-                                bottom: 16,
-                                right: 16,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: isCurrent
-                                        ? const Color(0xFFA855F7)
-                                        : Colors.black.withValues(alpha: 0.7),
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      if (isCurrent)
-                                        BoxShadow(
-                                          color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-                                          blurRadius: 10,
-                                        ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        isCurrent ? 'BOOK PASS' : 'VIEW',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w800,
+                                      // Bottom mini action pill on hover/focus
+                                      Positioned(
+                                        bottom: 14,
+                                        right: 14,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: isCurrent
+                                                ? const Color(0xFFA855F7)
+                                                : Colors.black.withValues(alpha: 0.7),
+                                            borderRadius: BorderRadius.circular(20),
+                                            boxShadow: [
+                                              if (isCurrent)
+                                                BoxShadow(
+                                                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                                                  blurRadius: 10,
+                                                ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                isCurrent ? 'BOOK PASS' : 'VIEW',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      const SizedBox(width: 4),
-                                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
                                     ],
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -759,7 +770,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // MOBILE & TABLET RESPONSIVE HERO LAYOUT
+  // MOBILE & TABLET RESPONSIVE HERO LAYOUT (16:9 BANNER)
   // ==========================================
   Widget _buildMobileLayout(
     List<EventSummary> events,
@@ -825,108 +836,124 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
         ),
         const SizedBox(height: 12),
 
-        // Horizontal Banner Carousel with Peeking Card
-        SizedBox(
-          height: isTablet ? 270 : 210,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: events.length,
-            onPageChanged: (idx) => setState(() => _activeIndex = idx),
-            itemBuilder: (context, index) {
-              final ev = events[index];
-              final isCurrent = index == activeIdx;
-              final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+        // Horizontal Banner Carousel with Peeking Card (Strict 16:9 Aspect Ratio)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth;
+            final itemWidth = availableWidth * 0.86;
+            final bannerHeight = itemWidth / (16 / 9);
 
-              return AnimatedScale(
-                scale: isCurrent ? 1.0 : 0.93,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutCubic,
-                child: GestureDetector(
-                  onTap: () {
-                    if (isCurrent) {
-                      context.push(targetRoute);
-                    } else {
-                      _pageController.animateToPage(
-                        index,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    }
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: isCurrent
-                            ? const Color(0xFF8B5CF6)
-                            : Colors.white.withValues(alpha: 0.12),
-                        width: isCurrent ? 1.8 : 1.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isCurrent
-                              ? const Color(0xFF8B5CF6).withValues(alpha: 0.4)
-                              : Colors.black.withValues(alpha: 0.5),
-                          blurRadius: isCurrent ? 16 : 8,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.network(
-                            ev.mainImage ?? ev.thumbnail ?? HomeScreen._heroImg,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF16102A)),
-                          ),
-                          Container(
+            return SizedBox(
+              height: bannerHeight.clamp(180.0, 290.0) + 12,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: events.length,
+                onPageChanged: (idx) => setState(() => _activeIndex = idx),
+                itemBuilder: (context, index) {
+                  final ev = events[index];
+                  final isCurrent = index == activeIdx;
+                  final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+
+                  return Center(
+                    child: AnimatedScale(
+                      scale: isCurrent ? 1.0 : 0.93,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (isCurrent) {
+                            context.push(targetRoute);
+                          } else {
+                            _pageController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.4),
-                                  const Color(0xFF07070E).withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isCurrent
+                                    ? const Color(0xFF8B5CF6)
+                                    : Colors.white.withValues(alpha: 0.12),
+                                width: isCurrent ? 1.8 : 1.0,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isCurrent
+                                      ? const Color(0xFF8B5CF6).withValues(alpha: 0.4)
+                                      : Colors.black.withValues(alpha: 0.5),
+                                  blurRadius: isCurrent ? 16 : 8,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  // 16:9 Banner Image with Safe Fallback
+                                  NetworkImageBox(
+                                    url: ev.mainImage ?? ev.thumbnail,
+                                    fallbackUrl: HomeScreen._heroImg,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withValues(alpha: 0.3),
+                                          const Color(0xFF07070E).withValues(alpha: 0.8),
+                                        ],
+                                        stops: const [0.5, 0.75, 1.0],
+                                      ),
+                                    ),
+                                  ),
+                                  if (ev.startingPrice != null)
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          '₹${ev.startingPrice!.toInt()}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                 ],
-                                stops: const [0.4, 0.75, 1.0],
                               ),
                             ),
                           ),
-                          if (ev.startingPrice != null)
-                            Positioned(
-                              top: 10,
-                              right: 10,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '₹${ev.startingPrice!.toInt()}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ),
+                  );
+                },
+              ),
+            );
+          },
         ),
         const SizedBox(height: 14),
 
@@ -1272,8 +1299,8 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
 
-    final cardWidth = isDesktop ? 260.0 : (isTablet ? 220.0 : 190.0);
-    final imageHeight = isDesktop ? 290.0 : (isTablet ? 250.0 : 215.0);
+    final cardWidth = isDesktop ? 340.0 : (isTablet ? 290.0 : 280.0);
+    final imageHeight = isDesktop ? 191.0 : (isTablet ? 163.0 : 157.0);
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -1378,7 +1405,7 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
               // Horizontal Side-Scrolling Events Slider
               widget.eventsAsync.when(
                 loading: () => SizedBox(
-                  height: isDesktop ? 440 : 360,
+                  height: isDesktop ? 340 : 300,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
@@ -1401,17 +1428,17 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Column(
                       children: [
-                        const Icon(Icons.refresh_rounded, size: 36, color: Color(0xFFA855F7)),
-                        const SizedBox(height: 10),
-                        const Text(
+                        Icon(Icons.refresh_rounded, size: 36, color: Color(0xFFA855F7)),
+                        SizedBox(height: 10),
+                        Text(
                           'Updating latest schedule...',
                           style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
+                        SizedBox(height: 6),
+                        Text(
                           'Tap below to refresh upcoming events or reach out on WhatsApp.',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.white60, fontSize: 13),

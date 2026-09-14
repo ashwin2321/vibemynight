@@ -45,17 +45,21 @@ class EventCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 1. POSTER IMAGE WITH OVERLAYS (3:4 Ratio)
+          // 1. POSTER IMAGE WITH OVERLAYS (True 16:9 Landscape Ratio)
           Stack(
             children: [
               Hero(
                 tag: 'event-image-${event.id}',
-                child: NetworkImageBox(
-                  url: event.thumbnail ?? event.mainImage,
-                  fallbackUrl: fallbackUrl,
-                  height: isCompact ? 220 : imageHeight,
-                  width: double.infinity,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 16 : 20)),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: NetworkImageBox(
+                    url: event.thumbnail ?? event.mainImage,
+                    fallbackUrl: fallbackUrl,
+                    width: double.infinity,
+                    height: double.infinity,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 16 : 20)),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               // Gradient bottom shadow on image for readability

@@ -316,7 +316,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                         Tab(text: '📅 Days (${_preview!.totalDays})'),
                         Tab(text: '🎟️ Passes (${_preview!.totalPasses})'),
                         Tab(text: '🎤 Artists (${_preview!.totalArtists})'),
-                        Tab(text: '🛡️ Facilities & Rules'),
+                        const Tab(text: '🛡️ Facilities & Rules'),
                       ],
                     ),
                     SizedBox(
