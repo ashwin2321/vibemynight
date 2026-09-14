@@ -72,11 +72,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. HERO SECTION
-              _HeroSection(whatsappNumber: whatsappNumber),
-
-              // 1.5 SPOTLIGHT 3D CAROUSEL (MOBILE & TABLET SPOTLIGHT)
-              _MobileSpotlightCarousel(eventsAsync: eventsAsync),
+              // 1. SHOWMATES HERO BANNER CAROUSEL (AS SEEN IN SROLL.MP4)
+              _ShowmatesHeroCarousel(
+                eventsAsync: eventsAsync,
+                whatsappNumber: whatsappNumber,
+              ),
 
               // 2. CATEGORY FILTER CHIPS BAR
               _CategoryFilterBar(
@@ -116,15 +116,115 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 // ==========================================
-// 1. HERO SECTION
+// 1. SHOWMATES HERO BANNER CAROUSEL (AS SEEN IN SROLL.MP4)
 // ==========================================
-class _HeroSection extends StatelessWidget {
+class _ShowmatesHeroCarousel extends StatefulWidget {
+  final AsyncValue<List<EventSummary>> eventsAsync;
   final String whatsappNumber;
 
-  const _HeroSection({required this.whatsappNumber});
+  const _ShowmatesHeroCarousel({
+    required this.eventsAsync,
+    required this.whatsappNumber,
+  });
+
+  @override
+  State<_ShowmatesHeroCarousel> createState() => _ShowmatesHeroCarouselState();
+}
+
+class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
+  int _activeIndex = 0;
+  late final PageController _pageController;
+
+  static const _defaultEvents = [
+    EventSummary(
+      id: 1,
+      name: 'SANKALP NAGRI GARBA & MANDLI',
+      slug: 'sankalp-nagri-garba-mandli-2026',
+      startDate: 'Sun 11 Oct',
+      endDate: 'Tue 20 Oct',
+      location: 'Sankalp Nagri Ground',
+      city: 'Ahmedabad',
+      dayCount: 9,
+      startingPrice: 499,
+      featured: true,
+      status: 'PUBLISHED',
+      mainImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&fit=crop&auto=format',
+      thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&fit=crop&auto=format',
+    ),
+    EventSummary(
+      id: 2,
+      name: 'AFTER 11:59 GARBA NIGHT',
+      slug: 'after-11-59-garba-night-2026',
+      startDate: 'Fri 16 Oct',
+      endDate: 'Sun 25 Oct',
+      location: 'The Grand Bhagwati Lawn',
+      city: 'Ahmedabad',
+      dayCount: 10,
+      startingPrice: 799,
+      featured: true,
+      status: 'PUBLISHED',
+      mainImage: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&fit=crop&auto=format',
+      thumbnail: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&fit=crop&auto=format',
+    ),
+    EventSummary(
+      id: 3,
+      name: 'SWARNIM NAGARI AC DOME GARBA 2026',
+      slug: 'swarnim-nagari-ac-dome-garba-2026',
+      startDate: 'Wed 14 Oct',
+      endDate: 'Fri 23 Oct',
+      location: 'Swarnim AC Dome Complex',
+      city: 'Gandhinagar',
+      dayCount: 9,
+      startingPrice: 599,
+      featured: true,
+      status: 'PUBLISHED',
+      mainImage: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&fit=crop&auto=format',
+      thumbnail: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&fit=crop&auto=format',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.74);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  List<EventSummary> _getDisplayEvents() {
+    final liveEvents = widget.eventsAsync.value;
+    if (liveEvents != null && liveEvents.isNotEmpty) {
+      return liveEvents.take(8).toList();
+    }
+    return _defaultEvents;
+  }
+
+  void _nextPage(int total) {
+    if (!_pageController.hasClients || total <= 1) return;
+    final next = (_activeIndex + 1) % total;
+    _pageController.animateToPage(
+      next,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _prevPage(int total) {
+    if (!_pageController.hasClients || total <= 1) return;
+    final prev = (_activeIndex - 1 + total) % total;
+    _pageController.animateToPage(
+      prev,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   Future<void> _launchWhatsApp() async {
-    final clean = whatsappNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    final clean = widget.whatsappNumber.replaceAll(RegExp(r'[^0-9]'), '');
     final uri = Uri.parse('https://wa.me/$clean');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -134,283 +234,864 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isDesktop = size.width >= 768;
-    final isSmallMobile = size.width < 400;
+    final isDesktop = size.width >= 960;
+    final isTablet = size.width >= 650 && size.width < 960;
+
+    final events = _getDisplayEvents();
+    final safeIndex = _activeIndex.clamp(0, events.length - 1);
+    final activeEvent = events[safeIndex];
+
+    final activeImage = activeEvent.mainImage ??
+        activeEvent.thumbnail ??
+        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&fit=crop&auto=format';
 
     return Container(
+      width: double.infinity,
       constraints: BoxConstraints(
-        minHeight: isDesktop ? 620 : 340,
+        minHeight: isDesktop ? 560 : (isTablet ? 480 : 440),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Background photo
+          // 1. Ambient Blurred Backdrop Image (Smooth Cross-fade effect)
           Positioned.fill(
-            child: Image.network(
-              HomeScreen._heroImg,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0F0B1E)),
-            ),
-          ),
-          // Dark gradient overlay
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Color(0xEB07070E),
-                    Color(0xB307070E),
-                    Color(0x6607070E),
-                  ],
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              child: SizedBox(
+                key: ValueKey<String>(activeImage),
+                width: double.infinity,
+                height: double.infinity,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 45),
+                  child: Image.network(
+                    activeImage,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0F0B1E)),
+                  ),
                 ),
               ),
             ),
           ),
-          // Top glow blob
+
+          // 2. Luxury Dark Gradient Overlay & Vignette
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    const Color(0xF207070E),
+                    const Color(0xDC07070E),
+                    const Color(0x8A07070E),
+                    const Color(0xF207070E),
+                  ],
+                  stops: const [0.0, 0.35, 0.75, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Top-left Neon Glow Blob
           Positioned(
             top: -40,
-            left: isDesktop ? size.width * 0.3 : 20,
+            left: isDesktop ? 60 : 10,
             child: Container(
-              width: 320,
-              height: 320,
+              width: 350,
+              height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                    const Color(0xFF8B5CF6).withValues(alpha: 0.22),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-          // Content
+
+          // 4. Hero Content: Split Layout on Desktop, Vertical Stack on Mobile
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 48 : (isSmallMobile ? 16 : 20),
-              vertical: isDesktop ? 80 : 28,
+              horizontal: isDesktop ? 48 : (isTablet ? 24 : 16),
+              vertical: isDesktop ? 42 : 24,
             ),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1100),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                constraints: const BoxConstraints(maxWidth: 1320),
+                child: isDesktop
+                    ? _buildDesktopSplitLayout(events, activeEvent, safeIndex)
+                    : _buildMobileLayout(events, activeEvent, safeIndex, isTablet),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // DESKTOP SPLIT LAYOUT (MATCHING SROLL.MP4)
+  // ==========================================
+  Widget _buildDesktopSplitLayout(
+    List<EventSummary> events,
+    EventSummary activeEvent,
+    int activeIdx,
+  ) {
+    final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
+
+    final locParts = [
+      if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
+      if (activeEvent.city != null && activeEvent.city!.isNotEmpty) activeEvent.city!,
+    ].where((s) => s.isNotEmpty).join(', ');
+    final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
+
+    final dateText = [
+      if (activeEvent.startDate.isNotEmpty) activeEvent.startDate,
+      if (activeEvent.endDate.isNotEmpty && activeEvent.endDate != activeEvent.startDate)
+        '- ${activeEvent.endDate}',
+    ].join(' ');
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // LEFT COLUMN: Title, Dates, Venue, CTA & Arrow Controls
+        SizedBox(
+          width: 440,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Badge Pill
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Events Now Live pill badge
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isDesktop ? 14 : 10,
-                        vertical: isDesktop ? 6 : 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFC084FC),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0xFFC084FC),
-                                  blurRadius: 6,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Events Now Live',
-                            style: TextStyle(
-                              color: const Color(0xFFC084FC),
-                              fontWeight: FontWeight.w700,
-                              fontSize: isDesktop ? 12 : 11,
-                              letterSpacing: 0.5,
-                            ),
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFC084FC),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFFC084FC),
+                            blurRadius: 6,
+                            spreadRadius: 1,
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: isDesktop ? 20 : 12),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'FEATURED NIGHT',
+                      style: TextStyle(
+                        color: Color(0xFFC084FC),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
 
-                    // Big Headline: Experience The Night. Create The Memory.
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Experience The Night.',
-                          style: TextStyle(
-                            fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            height: 1.1,
-                            letterSpacing: -0.8,
-                          ),
-                        ),
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [
-                              Color(0xFFA855F7),
-                              Color(0xFFEC4899),
-                              Color(0xFF60A5FA),
-                            ],
-                          ).createShader(bounds),
-                          child: Text(
-                            'Create The Memory.',
-                            style: TextStyle(
-                              fontSize: isDesktop ? 54 : (isSmallMobile ? 26 : 30),
-                              fontWeight: FontWeight.w900,
+              // Large Bold Event Title (with smooth crossfade)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.0, 0.08),
+                      end: Offset.zero,
+                    ).animate(anim),
+                    child: child,
+                  ),
+                ),
+                child: Text(
+                  activeEvent.name.toUpperCase(),
+                  key: ValueKey<int>(activeEvent.id),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    height: 1.15,
+                    letterSpacing: -0.6,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Date & Venue Subtitle
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Column(
+                  key: ValueKey<int>(activeEvent.id + 1000),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (dateText.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today_rounded, color: Color(0xFFC084FC), size: 15),
+                          const SizedBox(width: 8),
+                          Text(
+                            dateText,
+                            style: const TextStyle(
                               color: Colors.white,
-                              height: 1.1,
-                              letterSpacing: -0.8,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: Color(0xFF60A5FA), size: 16),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            displayLoc,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.78),
+                              fontSize: 14,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: isDesktop ? 18 : 10),
-
-                    // Subtitle
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 580),
-                      child: Text(
-                        'Discover the best events, artists and unforgettable experiences with VibeMyNight.',
-                        style: TextStyle(
-                          fontSize: isDesktop ? 18 : 13,
-                          color: Colors.white.withValues(alpha: 0.65),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: isDesktop ? 32 : 18),
-
-                    // CTA Buttons
-                    if (!isDesktop)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GradientButton(
-                              label: 'Explore Events',
-                              height: 42,
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                              onPressed: () => context.push('/events'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: InkWell(
-                              onTap: _launchWhatsApp,
-                              borderRadius: BorderRadius.circular(14),
-                              child: Container(
-                                height: 42,
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF25D366).withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: const Color(0xFF25D366).withValues(alpha: 0.5),
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Get Passes',
-                                      style: TextStyle(
-                                        color: Color(0xFF25D366),
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 12,
-                        children: [
-                          GradientButton(
-                            label: 'Explore Events',
-                            height: 48,
-                            padding: const EdgeInsets.symmetric(horizontal: 28),
-                            onPressed: () => context.push('/events'),
-                          ),
-                          InkWell(
-                            onTap: _launchWhatsApp,
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              height: 48,
-                              padding: const EdgeInsets.symmetric(horizontal: 26),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.06),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.18),
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Get Your Pass',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                   ],
                 ),
               ),
-            ),
-          ),
-          // Scroll indicator (Desktop only)
-          if (isDesktop)
-            Positioned(
-              bottom: 16,
-              child: Column(
+              const SizedBox(height: 24),
+
+              // Primary CTA Button + WhatsApp
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
                 children: [
-                  Text(
-                    'SCROLL',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                      color: Colors.white.withValues(alpha: 0.4),
+                  GradientButton(
+                    label: 'GET TICKETS',
+                    icon: Icons.confirmation_number_outlined,
+                    height: 48,
+                    padding: const EdgeInsets.symmetric(horizontal: 26),
+                    onPressed: () => context.push(eventRoute),
+                  ),
+                  InkWell(
+                    onTap: _launchWhatsApp,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 16),
+                          SizedBox(width: 8),
+                          Text(
+                            'VIP Inquiries',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: Colors.white.withValues(alpha: 0.3),
+                ],
+              ),
+              const SizedBox(height: 28),
+
+              // Bottom-Left Navigation Arrows (As shown in sroll.mp4)
+              Row(
+                children: [
+                  _CarouselArrowButton(
+                    icon: Icons.arrow_back_rounded,
+                    onTap: () => _prevPage(events.length),
+                  ),
+                  const SizedBox(width: 12),
+                  _CarouselArrowButton(
+                    icon: Icons.arrow_forward_rounded,
+                    onTap: () => _nextPage(events.length),
+                  ),
+                  const SizedBox(width: 18),
+                  // Current slide counter (e.g. 01 / 05)
+                  Text(
+                    '${(activeIdx + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(width: 36),
+
+        // RIGHT COLUMN: Horizontal PageView with Peeking Banner Card
+        Expanded(
+          child: SizedBox(
+            height: 380,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: events.length,
+              onPageChanged: (idx) => setState(() => _activeIndex = idx),
+              itemBuilder: (context, index) {
+                final ev = events[index];
+                final isCurrent = index == activeIdx;
+                final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+
+                return AnimatedScale(
+                  scale: isCurrent ? 1.0 : 0.92,
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedOpacity(
+                    opacity: isCurrent ? 1.0 : 0.72,
+                    duration: const Duration(milliseconds: 320),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (isCurrent) {
+                          context.push(targetRoute);
+                        } else {
+                          _pageController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                            color: isCurrent
+                                ? const Color(0xFF8B5CF6)
+                                : Colors.white.withValues(alpha: 0.12),
+                            width: isCurrent ? 2.0 : 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isCurrent
+                                  ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
+                                  : Colors.black.withValues(alpha: 0.6),
+                              blurRadius: isCurrent ? 24 : 10,
+                              offset: const Offset(0, 8),
+                              spreadRadius: isCurrent ? 2 : 0,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Banner Image
+                              Image.network(
+                                ev.mainImage ?? ev.thumbnail ?? HomeScreen._heroImg,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: const Color(0xFF16102A),
+                                  child: const Center(
+                                    child: Icon(Icons.nightlife, color: Colors.white24, size: 56),
+                                  ),
+                                ),
+                              ),
+
+                              // Bottom gradient shadow
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withValues(alpha: 0.3),
+                                      const Color(0xFF07070E).withValues(alpha: 0.85),
+                                    ],
+                                    stops: const [0.5, 0.75, 1.0],
+                                  ),
+                                ),
+                              ),
+
+                              // Floating Top Date Pill & Price Pill
+                              Positioned(
+                                top: 16,
+                                left: 16,
+                                right: 16,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    if (ev.startDate.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.75),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              ev.startDate,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if (ev.startingPrice != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Text(
+                                          'FROM ₹${ev.startingPrice!.toInt()}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+
+                              // Bottom mini action pill on hover/focus
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isCurrent
+                                        ? const Color(0xFFA855F7)
+                                        : Colors.black.withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      if (isCurrent)
+                                        BoxShadow(
+                                          color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                                          blurRadius: 10,
+                                        ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        isCurrent ? 'BOOK PASS' : 'VIEW',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // MOBILE & TABLET RESPONSIVE HERO LAYOUT
+  // ==========================================
+  Widget _buildMobileLayout(
+    List<EventSummary> events,
+    EventSummary activeEvent,
+    int activeIdx,
+    bool isTablet,
+  ) {
+    final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
+
+    final locParts = [
+      if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
+      if (activeEvent.city != null && activeEvent.city!.isNotEmpty) activeEvent.city!,
+    ].where((s) => s.isNotEmpty).join(', ');
+    final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
+
+    final dateText = [
+      if (activeEvent.startDate.isNotEmpty) activeEvent.startDate,
+      if (activeEvent.endDate.isNotEmpty && activeEvent.endDate != activeEvent.startDate)
+        '- ${activeEvent.endDate}',
+    ].join(' ');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Top Pill Badge
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.4)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.local_fire_department, color: Color(0xFFC084FC), size: 13),
+                  SizedBox(width: 4),
+                  Text(
+                    'FEATURED NIGHTS',
+                    style: TextStyle(
+                      color: Color(0xFFC084FC),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ],
               ),
             ),
-        ],
+            // Slide counter (01/05)
+            Text(
+              '${(activeIdx + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Horizontal Banner Carousel with Peeking Card
+        SizedBox(
+          height: isTablet ? 270 : 210,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: events.length,
+            onPageChanged: (idx) => setState(() => _activeIndex = idx),
+            itemBuilder: (context, index) {
+              final ev = events[index];
+              final isCurrent = index == activeIdx;
+              final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+
+              return AnimatedScale(
+                scale: isCurrent ? 1.0 : 0.93,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                child: GestureDetector(
+                  onTap: () {
+                    if (isCurrent) {
+                      context.push(targetRoute);
+                    } else {
+                      _pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isCurrent
+                            ? const Color(0xFF8B5CF6)
+                            : Colors.white.withValues(alpha: 0.12),
+                        width: isCurrent ? 1.8 : 1.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isCurrent
+                              ? const Color(0xFF8B5CF6).withValues(alpha: 0.4)
+                              : Colors.black.withValues(alpha: 0.5),
+                          blurRadius: isCurrent ? 16 : 8,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            ev.mainImage ?? ev.thumbnail ?? HomeScreen._heroImg,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF16102A)),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.4),
+                                  const Color(0xFF07070E).withValues(alpha: 0.8),
+                                ],
+                                stops: const [0.4, 0.75, 1.0],
+                              ),
+                            ),
+                          ),
+                          if (ev.startingPrice != null)
+                            Positioned(
+                              top: 10,
+                              right: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '₹${ev.startingPrice!.toInt()}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Active Event Title & Location
+        Text(
+          activeEvent.name.toUpperCase(),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        Row(
+          children: [
+            if (dateText.isNotEmpty) ...[
+              const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
+              const SizedBox(width: 4),
+              Text(
+                dateText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.5,
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            const Icon(Icons.location_on, color: Color(0xFF60A5FA), size: 14),
+            const SizedBox(width: 3),
+            Expanded(
+              child: Text(
+                displayLoc,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // CTA Button + Prev/Next Controls Row
+        Row(
+          children: [
+            Expanded(
+              child: GradientButton(
+                label: 'GET TICKETS',
+                icon: Icons.confirmation_number_outlined,
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                onPressed: () => context.push(eventRoute),
+              ),
+            ),
+            const SizedBox(width: 10),
+            _CarouselArrowButton(
+              icon: Icons.arrow_back_rounded,
+              size: 44,
+              iconSize: 18,
+              onTap: () => _prevPage(events.length),
+            ),
+            const SizedBox(width: 8),
+            _CarouselArrowButton(
+              icon: Icons.arrow_forward_rounded,
+              size: 44,
+              iconSize: 18,
+              onTap: () => _nextPage(events.length),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Dots Pagination Indicator
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(events.length, (idx) {
+              final isCur = idx == activeIdx;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: isCur ? 18 : 6,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isCur ? const Color(0xFFA855F7) : Colors.white24,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ==========================================
+// CAROUSEL ARROW BUTTON (FROSTED GLASS WITH PURPLE HOVER)
+// ==========================================
+class _CarouselArrowButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final double size;
+  final double iconSize;
+
+  const _CarouselArrowButton({
+    required this.icon,
+    required this.onTap,
+    this.size = 46,
+    this.iconSize = 20,
+  });
+
+  @override
+  State<_CarouselArrowButton> createState() => _CarouselArrowButtonState();
+}
+
+class _CarouselArrowButtonState extends State<_CarouselArrowButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _isHovered
+                ? const Color(0xFFA855F7).withValues(alpha: 0.35)
+                : Colors.white.withValues(alpha: 0.08),
+            border: Border.all(
+              color: _isHovered
+                  ? const Color(0xFFA855F7)
+                  : Colors.white.withValues(alpha: 0.2),
+              width: 1.2,
+            ),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                      blurRadius: 12,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Icon(
+              widget.icon,
+              color: _isHovered ? Colors.white : Colors.white70,
+              size: widget.iconSize,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -472,7 +1153,7 @@ class _CategoryFilterBarState extends State<_CategoryFilterBar> {
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: const BoxConstraints(maxWidth: 1320),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -537,341 +1218,6 @@ class _CategoryFilterBarState extends State<_CategoryFilterBar> {
           ),
         ),
       ),
-    );
-  }
-}
-
-// ==========================================
-// 1.5 MOBILE SPOTLIGHT 3D CAROUSEL (SHOWMATES STYLE)
-// ==========================================
-class _MobileSpotlightCarousel extends StatefulWidget {
-  final AsyncValue<List<EventSummary>> eventsAsync;
-
-  const _MobileSpotlightCarousel({required this.eventsAsync});
-
-  @override
-  State<_MobileSpotlightCarousel> createState() => _MobileSpotlightCarouselState();
-}
-
-class _MobileSpotlightCarouselState extends State<_MobileSpotlightCarousel> {
-  int _activePage = 0;
-  late final PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 0.84);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
-    if (!isMobile) return const SizedBox.shrink();
-
-    return widget.eventsAsync.maybeWhen(
-      data: (events) {
-        if (events.isEmpty) return const SizedBox.shrink();
-        final displayList = events.take(5).toList();
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [Color(0xFFA855F7), Color(0xFFEC4899)]),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'SPOTLIGHT EVENTS',
-                      style: TextStyle(
-                        color: Color(0xFFC084FC),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 290,
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: displayList.length,
-                  onPageChanged: (index) => setState(() => _activePage = index),
-                  itemBuilder: (context, index) {
-                    final event = displayList[index];
-                    final isCurrent = index == _activePage;
-                    final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
-
-                    return AnimatedScale(
-                      scale: isCurrent ? 1.0 : 0.93,
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeOutCubic,
-                      child: GestureDetector(
-                        onTap: () => context.push(targetRoute),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: isCurrent
-                                    ? const Color(0xFF8B5CF6).withValues(alpha: 0.35)
-                                    : Colors.black.withValues(alpha: 0.5),
-                                blurRadius: isCurrent ? 16 : 8,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                // Poster image
-                                Image.network(
-                                  event.thumbnail ?? event.mainImage ?? HomeScreen._heroImg,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF16102A),
-                                    child: const Center(
-                                      child: Icon(Icons.nightlife, color: Colors.white24, size: 48),
-                                    ),
-                                  ),
-                                ),
-                                // Gradient Overlay
-                                Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.black.withValues(alpha: 0.1),
-                                        Colors.black.withValues(alpha: 0.4),
-                                        const Color(0xFF07070E).withValues(alpha: 0.95),
-                                      ],
-                                      stops: const [0.0, 0.45, 1.0],
-                                    ),
-                                  ),
-                                ),
-                                // Top Badges
-                                Positioned(
-                                  top: 12,
-                                  left: 12,
-                                  right: 12,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      if (event.startDate.isNotEmpty)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.75),
-                                            borderRadius: BorderRadius.circular(16),
-                                            border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.5)),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 12),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                event.startDate,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (event.featured)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(colors: [Color(0xFFA855F7), Color(0xFFEC4899)]),
-                                            borderRadius: BorderRadius.circular(14),
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.local_fire_department, color: Colors.white, size: 12),
-                                              SizedBox(width: 3),
-                                              Text(
-                                                'FEATURED',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 9.5,
-                                                  fontWeight: FontWeight.w900,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                // Bottom Details
-                                Positioned(
-                                  bottom: 14,
-                                  left: 14,
-                                  right: 14,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        event.name,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          height: 1.2,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.location_on, color: Color(0xFF60A5FA), size: 13),
-                                          const SizedBox(width: 3),
-                                          Expanded(
-                                            child: Builder(
-                                              builder: (_) {
-                                                final locParts = [
-                                                  if (event.location != null && event.location!.isNotEmpty) event.location!,
-                                                  if (event.city != null && event.city!.isNotEmpty) event.city!,
-                                                ].where((s) => s.isNotEmpty).join(', ');
-                                                final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
-
-                                                return Text(
-                                                  displayLoc,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    color: Colors.white.withValues(alpha: 0.75),
-                                                    fontSize: 11.5,
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Starts from',
-                                                style: TextStyle(
-                                                  fontSize: 9.5,
-                                                  color: Colors.white.withValues(alpha: 0.5),
-                                                ),
-                                              ),
-                                              Text(
-                                                event.startingPrice != null
-                                                    ? '₹${event.startingPrice!.toInt()}'
-                                                    : '₹499',
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w900,
-                                                  color: Color(0xFFA855F7),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                colors: [Color(0xFFA855F7), Color(0xFF6366F1)],
-                                              ),
-                                              borderRadius: BorderRadius.circular(16),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  'Get Pass',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 11.5,
-                                                    fontWeight: FontWeight.w800,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 4),
-                                                Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 13),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Dots indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(displayList.length, (idx) {
-                  final isCurrent = idx == _activePage;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: isCurrent ? 20 : 6,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: isCurrent ? const Color(0xFFA855F7) : Colors.white24,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
-              ),
-            ],
-          ),
-        );
-      },
-      orElse: () => const SizedBox.shrink(),
     );
   }
 }
