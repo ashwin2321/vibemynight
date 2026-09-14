@@ -66,9 +66,53 @@ public class LocalFileStorageService implements FileStorageService {
         return base + "/" + safeSubfolder + "/" + filename;
     }
 
+    @Override
+    public String storeBytes(byte[] data, String originalFilename, String subfolder) {
+        if (data == null || data.length == 0) {
+            throw new BadRequestException("Image data is empty");
+        }
+        if (data.length > 10 * 1024 * 1024) { // 10MB limit
+            throw new BadRequestException("Remote image exceeds 10MB limit");
+        }
+
+        String extension = detectImageExtension(data, originalFilename);
+        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+            throw new BadRequestException("Unsupported image format: " + extension);
+        }
+
+        String safeSubfolder = (subfolder == null || subfolder.isBlank()) ? "misc" : subfolder.replaceAll("[^a-zA-Z0-9_-]", "");
+        String filename = UUID.randomUUID() + "." + extension;
+
+        try {
+            Path dir = Paths.get(localPath, safeSubfolder);
+            Files.createDirectories(dir);
+            Path target = dir.resolve(filename);
+            Files.write(target, data);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store downloaded image", e);
+        }
+
+        String base = publicBaseUrl.endsWith("/") ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
+        return base + "/" + safeSubfolder + "/" + filename;
+    }
+
     private String getExtension(String filename) {
         List<String> parts = List.of(filename.split("\\."));
         return parts.size() > 1 ? parts.get(parts.size() - 1) : "";
+    }
+
+    private String detectImageExtension(byte[] data, String originalFilename) {
+        if (data.length >= 4) {
+            if (data[0] == (byte) 0xFF && data[1] == (byte) 0xD8 && data[2] == (byte) 0xFF) return "jpg";
+            if (data[0] == (byte) 0x89 && data[1] == (byte) 0x50 && data[2] == (byte) 0x4E && data[3] == (byte) 0x47) return "png";
+            if (data[0] == 0x47 && data[1] == 0x49 && data[2] == 0x46 && data[3] == 0x38) return "gif";
+            if (data.length >= 12 && data[0] == 0x52 && data[1] == 0x49 && data[2] == 0x46 && data[3] == 0x46
+                    && data[8] == 0x57 && data[9] == 0x45 && data[10] == 0x42 && data[11] == 0x50) return "webp";
+        }
+        if (originalFilename != null && originalFilename.contains(".")) {
+            return getExtension(originalFilename);
+        }
+        return "jpg";
     }
 
     private void validateImageMagicBytes(MultipartFile file) {

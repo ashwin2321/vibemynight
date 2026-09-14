@@ -133,4 +133,88 @@ public class SafeWebFetcher {
 
         throw new BadRequestException("Too many redirects encountered while fetching event page.");
     }
+
+    public static class ImageFetchResult {
+        public final byte[] data;
+        public final String contentType;
+
+        public ImageFetchResult(byte[] data, String contentType) {
+            this.data = data;
+            this.contentType = contentType;
+        }
+    }
+
+    /**
+     * Safely downloads remote image binary data with SSRF protection,
+     * browser header emulation, redirect validation, and 10MB limit.
+     */
+    public ImageFetchResult fetchImageBytes(String rawUrl) {
+        URI currentUri = urlSecurityValidator.validateAndSanitizeUrl(rawUrl);
+
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(CONNECT_TIMEOUT)
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
+
+        int redirectCount = 0;
+
+        while (redirectCount <= MAX_REDIRECTS) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(currentUri)
+                    .timeout(READ_TIMEOUT)
+                    .header("User-Agent", USER_AGENT)
+                    .header("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
+                    .header("Sec-Fetch-Dest", "image")
+                    .header("Sec-Fetch-Mode", "no-cors")
+                    .header("Sec-Fetch-Site", "cross-site")
+                    .GET()
+                    .build();
+
+            try {
+                HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                int statusCode = response.statusCode();
+
+                if (statusCode >= 300 && statusCode < 400) {
+                    Optional<String> locationOpt = response.headers().firstValue("Location");
+                    if (locationOpt.isEmpty() || locationOpt.get().isBlank()) {
+                        throw new BadRequestException("Redirect response missing Location header.");
+                    }
+                    String redirectLocation = locationOpt.get();
+                    URI targetUri = currentUri.resolve(redirectLocation);
+                    currentUri = urlSecurityValidator.validateAndSanitizeUrl(targetUri.toString());
+                    redirectCount++;
+                    continue;
+                }
+
+                if (statusCode >= 400) {
+                    throw new BadRequestException("Remote image server returned status " + statusCode);
+                }
+
+                String contentType = response.headers().firstValue("Content-Type").orElse("image/jpeg");
+
+                try (InputStream in = response.body(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    int totalRead = 0;
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        totalRead += bytesRead;
+                        if (totalRead > 10 * 1024 * 1024) { // 10MB max image
+                            break;
+                        }
+                        out.write(buffer, 0, bytesRead);
+                    }
+
+                    return new ImageFetchResult(out.toByteArray(), contentType);
+                }
+            } catch (BadRequestException e) {
+                throw e;
+            } catch (Exception e) {
+                log.warn("Error downloading remote image {}: {}", currentUri, e.getMessage());
+                throw new BadRequestException("Unable to load remote image: " + e.getMessage());
+            }
+        }
+
+        throw new BadRequestException("Too many redirects downloading remote image.");
+    }
 }

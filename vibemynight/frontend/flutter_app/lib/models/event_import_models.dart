@@ -342,6 +342,46 @@ class EventDayImportItem extends Equatable {
   List<Object?> get props => [dayNumber, date, programName, passes, artists];
 }
 
+class ScrapedImageCandidate extends Equatable {
+  final String url;
+  final String? localUrl;
+  final String suggestedRole; // "POSTER_3_4", "BANNER_16_9", "THUMBNAIL_1_1", "GALLERY"
+  final String? label;
+  final String? source;
+
+  const ScrapedImageCandidate({
+    required this.url,
+    this.localUrl,
+    this.suggestedRole = 'GALLERY',
+    this.label,
+    this.source,
+  });
+
+  /// The effective URL to display (prefers local downloaded URL if available)
+  String get effectiveUrl => (localUrl != null && localUrl!.isNotEmpty) ? localUrl! : url;
+
+  factory ScrapedImageCandidate.fromJson(Map<String, dynamic> json) {
+    return ScrapedImageCandidate(
+      url: json['url'] as String? ?? '',
+      localUrl: json['localUrl'] as String?,
+      suggestedRole: json['suggestedRole'] as String? ?? 'GALLERY',
+      label: json['label'] as String?,
+      source: json['source'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'localUrl': localUrl,
+        'suggestedRole': suggestedRole,
+        'label': label,
+        'source': source,
+      };
+
+  @override
+  List<Object?> get props => [url, localUrl, suggestedRole, label, source];
+}
+
 class EventImportPreview extends Equatable {
   final EventHeaderImport? event;
   final List<EventDayImportItem> days;
@@ -349,6 +389,7 @@ class EventImportPreview extends Equatable {
   final List<String> highlights;
   final List<String> rules;
   final List<String> galleryImageUrls;
+  final List<ScrapedImageCandidate> artworkCandidates;
   final List<ValidationMessage> validationMessages;
   final bool hasBlockingErrors;
   final int totalDays;
@@ -362,6 +403,7 @@ class EventImportPreview extends Equatable {
     this.highlights = const [],
     this.rules = const [],
     this.galleryImageUrls = const [],
+    this.artworkCandidates = const [],
     this.validationMessages = const [],
     this.hasBlockingErrors = false,
     this.totalDays = 0,
@@ -377,6 +419,7 @@ class EventImportPreview extends Equatable {
       highlights: (json['highlights'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       rules: (json['rules'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       galleryImageUrls: (json['galleryImageUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      artworkCandidates: (json['artworkCandidates'] as List<dynamic>?)?.map((a) => ScrapedImageCandidate.fromJson(a as Map<String, dynamic>)).toList() ?? const [],
       validationMessages: (json['validationMessages'] as List<dynamic>?)?.map((v) => ValidationMessage.fromJson(v as Map<String, dynamic>)).toList() ?? const [],
       hasBlockingErrors: json['hasBlockingErrors'] as bool? ?? false,
       totalDays: json['totalDays'] as int? ?? 0,
@@ -392,6 +435,7 @@ class EventImportPreview extends Equatable {
         'highlights': highlights,
         'rules': rules,
         'galleryImageUrls': galleryImageUrls,
+        'artworkCandidates': artworkCandidates.map((a) => a.toJson()).toList(),
         'validationMessages': validationMessages.map((v) => v.toJson()).toList(),
         'hasBlockingErrors': hasBlockingErrors,
         'totalDays': totalDays,
@@ -400,5 +444,6 @@ class EventImportPreview extends Equatable {
       };
 
   @override
-  List<Object?> get props => [event, days, validationMessages, hasBlockingErrors];
+  List<Object?> get props => [event, days, artworkCandidates, validationMessages, hasBlockingErrors];
 }
+

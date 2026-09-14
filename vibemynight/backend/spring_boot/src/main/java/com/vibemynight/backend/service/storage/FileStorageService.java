@@ -16,4 +16,10 @@ public interface FileStorageService {
      * @param subfolder logical grouping, e.g. "events", "artists" - keeps uploads organized.
      */
     String store(MultipartFile file, String subfolder);
+
+    /**
+     * Stores raw bytes (e.g. from downloaded remote artwork) safely with MIME validation,
+     * size bounds, and returns a publicly reachable local URL.
+     */
+    String storeBytes(byte[] data, String originalFilename, String subfolder);
 }

@@ -10,6 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/loading_view.dart';
+import '../../../core/widgets/network_image_box.dart';
 import '../../../models/event_import_models.dart';
 import '../widgets/admin_shell.dart';
 
@@ -635,8 +636,105 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
     );
   }
 
+  void _setArtwork(String url, String role) {
+    if (_preview == null || _preview!.event == null) return;
+    final current = _preview!.event!;
+    EventHeaderImport updatedHeader;
+    if (role == 'POSTER') {
+      updatedHeader = EventHeaderImport(
+        name: current.name,
+        slug: current.slug,
+        startDate: current.startDate,
+        endDate: current.endDate,
+        venue: current.venue,
+        address: current.address,
+        city: current.city,
+        location: current.location,
+        googleMapsUrl: current.googleMapsUrl,
+        organizer: current.organizer,
+        contactNumber: current.contactNumber,
+        email: current.email,
+        description: current.description,
+        featured: current.featured,
+        status: current.status,
+        mainImage: url,
+        banner: current.banner,
+        thumbnail: current.thumbnail,
+      );
+    } else if (role == 'BANNER') {
+      updatedHeader = EventHeaderImport(
+        name: current.name,
+        slug: current.slug,
+        startDate: current.startDate,
+        endDate: current.endDate,
+        venue: current.venue,
+        address: current.address,
+        city: current.city,
+        location: current.location,
+        googleMapsUrl: current.googleMapsUrl,
+        organizer: current.organizer,
+        contactNumber: current.contactNumber,
+        email: current.email,
+        description: current.description,
+        featured: current.featured,
+        status: current.status,
+        mainImage: current.mainImage,
+        banner: url,
+        thumbnail: current.thumbnail,
+      );
+    } else {
+      updatedHeader = EventHeaderImport(
+        name: current.name,
+        slug: current.slug,
+        startDate: current.startDate,
+        endDate: current.endDate,
+        venue: current.venue,
+        address: current.address,
+        city: current.city,
+        location: current.location,
+        googleMapsUrl: current.googleMapsUrl,
+        organizer: current.organizer,
+        contactNumber: current.contactNumber,
+        email: current.email,
+        description: current.description,
+        featured: current.featured,
+        status: current.status,
+        mainImage: current.mainImage,
+        banner: current.banner,
+        thumbnail: url,
+      );
+    }
+
+    setState(() {
+      _preview = EventImportPreview(
+        event: updatedHeader,
+        days: _preview!.days,
+        eventFacilities: _preview!.eventFacilities,
+        highlights: _preview!.highlights,
+        rules: _preview!.rules,
+        galleryImageUrls: _preview!.galleryImageUrls,
+        artworkCandidates: _preview!.artworkCandidates,
+        validationMessages: _preview!.validationMessages,
+        hasBlockingErrors: _preview!.hasBlockingErrors,
+        totalDays: _preview!.totalDays,
+        totalPasses: _preview!.totalPasses,
+        totalArtists: _preview!.totalArtists,
+      );
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Updated $role image!'),
+        duration: const Duration(seconds: 1),
+        backgroundColor: AppColors.neonPurple,
+      ),
+    );
+  }
+
   Widget _buildEventTab(EventHeaderImport? event) {
     if (event == null) return const Center(child: Text('No event header data found.'));
+    final candidates = _preview?.artworkCandidates ?? [];
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -648,25 +746,174 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         _buildInfoRow('Organizer', '${event.organizer ?? "VibeMyNight"} (${event.contactNumber ?? "N/A"})'),
         _buildInfoRow('Status', event.status),
         _buildInfoRow('Description', event.description ?? 'N/A'),
-        const SizedBox(height: 12),
-        const Text('Media & Banners:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white70)),
+        const SizedBox(height: 16),
+
+        // Active Assigned Media Cards
+        const Text(
+          '🖼️ Active Assigned Artwork:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            if (event.mainImage != null) _buildThumbCard('3:4 Poster', event.mainImage!),
-            if (event.banner != null) _buildThumbCard('16:9 Banner', event.banner!),
-            if (event.thumbnail != null) _buildThumbCard('Thumbnail', event.thumbnail!),
+            _buildThumbCard('3:4 Poster', event.mainImage, width: 130, height: 160),
+            _buildThumbCard('16:9 Banner', event.banner, width: 220, height: 124),
+            _buildThumbCard('1:1 Thumbnail', event.thumbnail, width: 110, height: 110),
           ],
         ),
+
+        // Scraped Artwork Candidates Gallery
+        if (candidates.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceGlass,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.photo_library_outlined, color: AppColors.neonPurple, size: 18),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '🎨 Scraped Artwork Candidates (1-Click Selector)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.neonPurple.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${candidates.length} images found',
+                        style: const TextStyle(color: AppColors.neonPurple, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Auto-downloaded & cached to local storage. Click any button below an image to assign it as the 3:4 Poster, 16:9 Banner, or Thumbnail.',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 230,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: candidates.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, idx) {
+                      final c = candidates[idx];
+                      final effective = c.effectiveUrl;
+                      final isCurrentPoster = event.mainImage == effective;
+                      final isCurrentBanner = event.banner == effective;
+                      final isCurrentThumb = event.thumbnail == effective;
+
+                      return Container(
+                        width: 170,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: (isCurrentPoster || isCurrentBanner || isCurrentThumb)
+                                ? AppColors.neonPink
+                                : AppColors.divider,
+                            width: (isCurrentPoster || isCurrentBanner || isCurrentThumb) ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: NetworkImageBox(
+                                        url: effective,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  if (c.source != null)
+                                    Positioned(
+                                      top: 4,
+                                      left: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.7),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          c.source!,
+                                          style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w600),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Quick Action Buttons
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _ArtworkAssignButton(
+                                    label: '3:4 Poster',
+                                    isActive: isCurrentPoster,
+                                    onTap: () => _setArtwork(effective, 'POSTER'),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: _ArtworkAssignButton(
+                                    label: '16:9 Banner',
+                                    isActive: isCurrentBanner,
+                                    onTap: () => _setArtwork(effective, 'BANNER'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              width: double.infinity,
+                              child: _ArtworkAssignButton(
+                                label: '1:1 Thumbnail',
+                                isActive: isCurrentThumb,
+                                onTap: () => _setArtwork(effective, 'THUMBNAIL'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildThumbCard(String label, String url) {
+  Widget _buildThumbCard(String label, String? url, {double width = 140, double height = 80}) {
     return Container(
-      width: 140,
+      width: width,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: AppColors.surfaceGlass,
@@ -678,14 +925,15 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         children: [
           Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.neonPurple)),
           const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.network(
-              url,
-              height: 70,
+          SizedBox(
+            height: height,
+            width: double.infinity,
+            child: NetworkImageBox(
+              url: url,
               width: double.infinity,
+              height: height,
+              borderRadius: BorderRadius.circular(4),
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -1016,3 +1264,46 @@ class _PlatformBadge extends StatelessWidget {
     );
   }
 }
+
+class _ArtworkAssignButton extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ArtworkAssignButton({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.neonPurple : AppColors.surfaceGlass,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isActive ? AppColors.neonPurple : AppColors.divider,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            isActive ? '✓ $label' : label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: isActive ? Colors.white : AppColors.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/api_constants.dart';
 import '../theme/app_colors.dart';
 
 /// Network image with rounded corners, progressive loading state,
@@ -29,11 +30,23 @@ class NetworkImageBox extends StatelessWidget {
     'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&fit=crop&auto=format',
   ];
 
+  static String? resolveUrl(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final clean = raw.trim();
+    if (clean.startsWith('/')) {
+      final base = ApiConstants.baseUrl.replaceAll('/api/v1', '');
+      return '$base$clean';
+    }
+    return clean;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final effectiveUrl = (url != null && url!.trim().isNotEmpty)
+    final rawUrl = (url != null && url!.trim().isNotEmpty)
         ? url!.trim()
         : (fallbackUrl != null && fallbackUrl!.trim().isNotEmpty ? fallbackUrl!.trim() : null);
+
+    final effectiveUrl = resolveUrl(rawUrl);
 
     if (effectiveUrl == null) {
       return _renderStylizedFallback();

@@ -31,6 +31,9 @@ public class EventImportPreviewDto {
     private List<String> galleryImageUrls = new ArrayList<>();
 
     @Builder.Default
+    private List<ScrapedImageCandidateDto> artworkCandidates = new ArrayList<>();
+
+    @Builder.Default
     private List<ValidationMessageDto> validationMessages = new ArrayList<>();
 
     @Builder.Default
