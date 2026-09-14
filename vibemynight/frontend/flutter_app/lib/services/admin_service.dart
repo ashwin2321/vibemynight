@@ -208,6 +208,15 @@ class AdminService {
     return EventImportPreview.fromJson(data as Map<String, dynamic>);
   }
 
+  /// 1-Click Web Event Scraper: Fetches and parses event metadata from BookMyShow, District, Showmates, etc.
+  Future<EventImportPreview> scrapeEventUrl(String url) async {
+    final data = await _client.post(
+      ApiConstants.adminEventImportUrl,
+      body: {'url': url.trim()},
+    );
+    return EventImportPreview.fromJson(data as Map<String, dynamic>);
+  }
+
   /// Downloads the raw bytes for the official Excel event import template
   Future<List<int>> downloadEventTemplate() {
     return _client.getRawBytes(ApiConstants.adminEventImportTemplate);

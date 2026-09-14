@@ -59,6 +59,7 @@ class ApiConstants {
   static const String adminSettings = '/admin/settings';
   static const String adminUploads = '/admin/uploads';
   static const String adminEventImportParse = '/admin/events/import/parse';
+  static const String adminEventImportUrl = '/admin/events/import/url';
   static const String adminEventImportTemplate = '/admin/events/import/template';
   static const String adminEventImportConfirm = '/admin/events/import/confirm';
   static const String adminInquiries = '/admin/inquiries';

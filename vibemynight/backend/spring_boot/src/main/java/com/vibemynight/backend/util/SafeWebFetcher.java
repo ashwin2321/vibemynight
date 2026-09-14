@@ -1,0 +1,126 @@
+package com.vibemynight.backend.util;
+
+import com.vibemynight.backend.exception.BadRequestException;
+import com.vibemynight.backend.security.UrlSecurityValidator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Optional;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class SafeWebFetcher {
+
+    private final UrlSecurityValidator urlSecurityValidator;
+
+    private static final int MAX_REDIRECTS = 5;
+    private static final int MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration READ_TIMEOUT = Duration.ofSeconds(8);
+
+    private static final String USER_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
+    /**
+     * Safely fetches the HTML content of a public URL with SSRF protection,
+     * validated redirects, timeout bounds, and maximum response size limits.
+     */
+    public String fetchHtml(String rawUrl) {
+        URI currentUri = urlSecurityValidator.validateAndSanitizeUrl(rawUrl);
+
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(CONNECT_TIMEOUT)
+                .followRedirects(HttpClient.Redirect.NEVER) // Manual redirect validation for SSRF safety
+                .build();
+
+        int redirectCount = 0;
+
+        while (redirectCount <= MAX_REDIRECTS) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(currentUri)
+                    .timeout(READ_TIMEOUT)
+                    .header("User-Agent", USER_AGENT)
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+                    .header("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,gu;q=0.7")
+                    .GET()
+                    .build();
+
+            try {
+                HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                int statusCode = response.statusCode();
+
+                // Handle Redirects (301, 302, 303, 307, 308)
+                if (statusCode >= 300 && statusCode < 400) {
+                    Optional<String> locationOpt = response.headers().firstValue("Location");
+                    if (locationOpt.isEmpty() || locationOpt.get().isBlank()) {
+                        throw new BadRequestException("Redirect response missing Location header.");
+                    }
+
+                    String redirectLocation = locationOpt.get();
+                    URI targetUri = currentUri.resolve(redirectLocation);
+
+                    // Re-validate redirect target for SSRF!
+                    currentUri = urlSecurityValidator.validateAndSanitizeUrl(targetUri.toString());
+                    redirectCount++;
+                    continue;
+                }
+
+                if (statusCode == 403 || statusCode == 401) {
+                    throw new BadRequestException("Access denied by source website (HTTP " + statusCode + "). Anti-bot protection enabled on target.");
+                }
+
+                if (statusCode == 404) {
+                    throw new BadRequestException("Event page not found (HTTP 404). Please verify the link.");
+                }
+
+                if (statusCode >= 400) {
+                    throw new BadRequestException("Remote website returned an error (HTTP " + statusCode + ").");
+                }
+
+                // Read limited response body
+                try (InputStream in = response.body(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    int totalRead = 0;
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        totalRead += bytesRead;
+                        if (totalRead > MAX_BODY_BYTES) {
+                            log.warn("Response exceeded maximum allowed size of 2MB for URL: {}", currentUri);
+                            break;
+                        }
+                        out.write(buffer, 0, bytesRead);
+                    }
+
+                    return out.toString(StandardCharsets.UTF_8);
+                }
+
+            } catch (BadRequestException e) {
+                throw e;
+            } catch (java.net.http.HttpTimeoutException e) {
+                throw new BadRequestException("Connection to source website timed out. Please try again.");
+            } catch (java.io.IOException e) {
+                log.warn("Network error fetching URL {}: {}", currentUri, e.getMessage());
+                throw new BadRequestException("Network error connecting to source website: " + e.getMessage());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BadRequestException("Request was interrupted.");
+            } catch (Exception e) {
+                log.error("Unexpected error fetching URL {}: {}", currentUri, e.getMessage());
+                throw new BadRequestException("Unable to fetch event page: " + e.getMessage());
+            }
+        }
+
+        throw new BadRequestException("Too many redirects encountered while fetching event page.");
+    }
+}

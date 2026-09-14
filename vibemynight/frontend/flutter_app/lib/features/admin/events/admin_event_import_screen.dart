@@ -12,11 +12,14 @@ import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../../models/event_import_models.dart';
 import '../widgets/admin_shell.dart';
-import '../widgets/status_badge.dart';
 
-/// Admin Event Builder & Excel Import Screen
-/// Allows admins to upload an Excel file containing the complete event structure (Event, Days, Passes, Artists, Facilities),
-/// inspect the live preview with validation badges, and atomically create the entire event in one click.
+enum _ImportMode { url, excel }
+
+/// Admin Event Builder & Multi-Platform Auto-Importer
+/// Allows admins to:
+/// 1. 🌐 1-Click Scrape & Auto-Fill events from BookMyShow, District/Insider, Showmates, or web links.
+/// 2. 📁 Upload Excel (.xlsx) workbooks containing complete event hierarchies.
+/// Inspect live preview with validation badges across 5 tabs and atomically create complete events in one click.
 class AdminEventImportScreen extends ConsumerStatefulWidget {
   const AdminEventImportScreen({super.key});
 
@@ -25,6 +28,8 @@ class AdminEventImportScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen> with SingleTickerProviderStateMixin {
+  _ImportMode _mode = _ImportMode.url;
+  final TextEditingController _urlController = TextEditingController();
   PlatformFile? _selectedFile;
   bool _isParsing = false;
   bool _isCreating = false;
@@ -40,6 +45,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
 
   @override
   void dispose() {
+    _urlController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -61,6 +67,33 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error downloading template: $e')));
+    }
+  }
+
+  Future<void> _scrapeUrl() async {
+    final rawUrl = _urlController.text.trim();
+    if (rawUrl.isEmpty) {
+      setState(() => _errorMessage = 'Please enter or paste a valid event URL.');
+      return;
+    }
+
+    setState(() {
+      _isParsing = true;
+      _errorMessage = null;
+      _preview = null;
+    });
+
+    try {
+      final preview = await ref.read(adminServiceProvider).scrapeEventUrl(rawUrl);
+      setState(() {
+        _preview = preview;
+        _isParsing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isParsing = false;
+        _errorMessage = e.toString().replaceAll('Exception:', '').trim();
+      });
     }
   }
 
@@ -105,7 +138,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
     } catch (e) {
       setState(() {
         _isParsing = false;
-        _errorMessage = e.toString();
+        _errorMessage = e.toString().replaceAll('Exception:', '').trim();
       });
     }
   }
@@ -135,7 +168,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
       if (mounted) {
         setState(() {
           _isCreating = false;
-          _errorMessage = e.toString();
+          _errorMessage = e.toString().replaceAll('Exception:', '').trim();
         });
       }
     }
@@ -144,18 +177,19 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
   @override
   Widget build(BuildContext context) {
     return AdminShell(
-      title: 'Event Import / Builder',
+      title: 'Event Auto-Importer & Builder',
       currentPath: '/admin/events',
       actions: [
-        OutlinedButton.icon(
-          icon: const Icon(Icons.download_rounded, size: 16),
-          label: const Text('Download Blank Template'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.neonBlue,
-            side: const BorderSide(color: AppColors.neonBlue),
+        if (_mode == _ImportMode.excel)
+          OutlinedButton.icon(
+            icon: const Icon(Icons.download_rounded, size: 16),
+            label: const Text('Download Excel Template'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.neonBlue,
+              side: const BorderSide(color: AppColors.neonBlue),
+            ),
+            onPressed: _downloadTemplate,
           ),
-          onPressed: _downloadTemplate,
-        ),
         const SizedBox(width: 8),
         TextButton.icon(
           icon: const Icon(Icons.arrow_back, size: 16),
@@ -168,39 +202,39 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Instructions Banner
+            // Mode Selector Banner
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppColors.surfaceGlass,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.divider),
               ),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.neonPurple.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
+                  Expanded(
+                    child: _ModeSelectorButton(
+                      icon: Icons.language_rounded,
+                      title: '1-Click Web URL Import',
+                      subtitle: 'BookMyShow • District • Showmates • Web',
+                      isSelected: _mode == _ImportMode.url,
+                      onTap: () => setState(() {
+                        _mode = _ImportMode.url;
+                        _errorMessage = null;
+                      }),
                     ),
-                    child: const Icon(Icons.auto_awesome, color: AppColors.neonPurple, size: 24),
                   ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bulk Event Builder (Excel .xlsx)',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Create a complete multi-day event with all Days, Passes, Prices, Artists, and Facilities in seconds. Download our pre-formatted template, fill your details, and upload below.',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                        ),
-                      ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _ModeSelectorButton(
+                      icon: Icons.table_chart_rounded,
+                      title: 'Excel (.xlsx) Import',
+                      subtitle: 'Bulk multi-day spreadsheet upload',
+                      isSelected: _mode == _ImportMode.excel,
+                      onTap: () => setState(() {
+                        _mode = _ImportMode.excel;
+                        _errorMessage = null;
+                      }),
                     ),
                   ),
                 ],
@@ -208,81 +242,146 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
             ),
             const SizedBox(height: 20),
 
-            // Upload Box
-            GlassCard(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: _isParsing || _isCreating ? null : _pickFile,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _selectedFile != null ? AppColors.neonPurple : AppColors.divider,
-                          style: BorderStyle.solid,
-                          width: _selectedFile != null ? 2 : 1,
+            // Mode 1: 1-Click URL Scraper
+            if (_mode == _ImportMode.url) ...[
+              GlassCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.auto_awesome, color: AppColors.neonPurple, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          '1-Click Multi-Platform Event Importer',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Paste any event link from BookMyShow, District by Zomato, Showmates, or any ticketing webpage. We will extract the full poster, 16:9 banner, date range, venue, artists, and prices automatically.',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Supported Brand Badges
+                    const Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _PlatformBadge(label: 'BookMyShow', icon: Icons.movie_outlined, color: Color(0xFFE11D48)),
+                        _PlatformBadge(label: 'District by Zomato', icon: Icons.local_activity_outlined, color: Color(0xFFF97316)),
+                        _PlatformBadge(label: 'Showmates', icon: Icons.theater_comedy_outlined, color: Color(0xFF84CC16)),
+                        _PlatformBadge(label: 'Any Event Webpage', icon: Icons.public, color: Color(0xFF60A5FA)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Input & Action
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _urlController,
+                            enabled: !_isParsing && !_isCreating,
+                            decoration: InputDecoration(
+                              hintText: 'https://in.bookmyshow.com/events/... or https://cdn.district.in/...',
+                              prefixIcon: const Icon(Icons.link_rounded, color: AppColors.neonPurple),
+                              suffixIcon: _urlController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 18),
+                                      onPressed: () => setState(() => _urlController.clear()),
+                                    )
+                                  : null,
+                            ),
+                            onSubmitted: (_) => _scrapeUrl(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        GradientButton(
+                          label: _isParsing ? 'FETCHING...' : '⚡ FETCH & AUTO-FILL',
+                          isLoading: _isParsing,
+                          onPressed: _isParsing || _isCreating ? null : _scrapeUrl,
+                        ),
+                      ],
+                    ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      _buildErrorBanner(_errorMessage!),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+
+            // Mode 2: Excel File Upload
+            if (_mode == _ImportMode.excel) ...[
+              GlassCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    InkWell(
+                      onTap: _isParsing || _isCreating ? null : _pickFile,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _selectedFile != null ? AppColors.neonPurple : AppColors.divider,
+                            style: BorderStyle.solid,
+                            width: _selectedFile != null ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _selectedFile != null ? Icons.description_rounded : Icons.cloud_upload_outlined,
+                              size: 48,
+                              color: _selectedFile != null ? AppColors.neonPink : AppColors.neonPurple,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _selectedFile != null ? _selectedFile!.name : 'Click or Drag & Drop Excel File Here (.xlsx)',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _selectedFile != null
+                                  ? '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB — Click to change file'
+                                  : 'Supports Microsoft Excel (.xlsx) workbooks with Event, Days, Passes, Artists, & Facilities sheets',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _selectedFile != null ? Icons.description_rounded : Icons.cloud_upload_outlined,
-                            size: 48,
-                            color: _selectedFile != null ? AppColors.neonPink : AppColors.neonPurple,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _selectedFile != null ? _selectedFile!.name : 'Click or Drag & Drop Excel File Here (.xlsx)',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _selectedFile != null
-                                ? '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB — Click to change file'
-                                : 'Supports Microsoft Excel (.xlsx) workbooks with Event, Days, Passes, Artists, & Facilities sheets',
-                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                          ),
-                        ],
-                      ),
                     ),
-                  ),
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.error),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(_errorMessage!, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                          ),
-                        ],
-                      ),
-                    ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      _buildErrorBanner(_errorMessage!),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 24),
 
-            // Parsing Loading State
+            // Loading State
             if (_isParsing)
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: LoadingView(message: 'Parsing and validating Excel sheets...'),
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: LoadingView(
+                    message: _mode == _ImportMode.url
+                        ? 'Connecting to source, extracting high-res posters, dates & lineup...'
+                        : 'Parsing and validating Excel sheets...',
+                  ),
                 ),
               ),
 
@@ -320,7 +419,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                       ],
                     ),
                     SizedBox(
-                      height: 420,
+                      height: 440,
                       child: TabBarView(
                         controller: _tabController,
                         children: [
@@ -346,9 +445,10 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                         ? null
                         : () => setState(() {
                               _selectedFile = null;
+                              _urlController.clear();
                               _preview = null;
                             }),
-                    child: const Text('Discard & Re-upload'),
+                    child: const Text('Discard & Start Over'),
                   ),
                   GradientButton(
                     label: _isCreating ? 'Creating Event...' : '🚀 Confirm & Create Complete Event',
@@ -360,6 +460,26 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.error),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(message, style: const TextStyle(color: Colors.white, fontSize: 13)),
+          ),
+        ],
       ),
     );
   }
@@ -438,7 +558,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Validation Feedback', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          const Text('Validation Feedback & Warnings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 8),
           ...messages.map((m) {
             final color = m.isError ? AppColors.error : (m.isWarning ? AppColors.warning : AppColors.neonBlue);
@@ -450,10 +570,22 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                 children: [
                   Icon(icon, color: color, size: 16),
                   const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      m.sheet,
+                      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '[${m.sheet}${m.row != null ? " Row ${m.row}" : ""}] ${m.message}',
-                      style: TextStyle(color: color, fontSize: 12),
+                      m.message,
+                      style: const TextStyle(fontSize: 12, color: Colors.white70),
                     ),
                   ),
                 ],
@@ -466,52 +598,111 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
   }
 
   Widget _buildEventTab(EventHeaderImport? event) {
-    if (event == null) return const Center(child: Text('No event header data'));
+    if (event == null) return const Center(child: Text('No event header data found.'));
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _RowInfo('Event Name', event.name),
-        _RowInfo('Slug', event.slug ?? '(Auto-generated)'),
-        _RowInfo('Dates', '${event.startDate ?? "-"} to ${event.endDate ?? "-"}'),
-        _RowInfo('City & Location', '${event.city ?? "-"}, ${event.location ?? "-"}'),
-        _RowInfo('Venue', event.venue ?? '-'),
-        _RowInfo('Address', event.address ?? '-'),
-        _RowInfo('Organizer', '${event.organizer ?? "-"} (${event.contactNumber ?? "-"})'),
-        _RowInfo('Status', event.status),
-        _RowInfo('Featured', event.featured ? 'Yes' : 'No'),
-        _RowInfo('Description', event.description ?? '-'),
+        _buildInfoRow('Event Name', event.name),
+        _buildInfoRow('Slug', event.slug ?? 'auto-generated'),
+        _buildInfoRow('Dates', '${event.startDate ?? "TBD"} to ${event.endDate ?? "TBD"}'),
+        _buildInfoRow('City / Venue', '${event.city ?? "Ahmedabad"} • ${event.venue ?? "TBD"}'),
+        _buildInfoRow('Location / Address', event.location ?? event.address ?? 'Not specified'),
+        _buildInfoRow('Organizer', '${event.organizer ?? "VibeMyNight"} (${event.contactNumber ?? "N/A"})'),
+        _buildInfoRow('Status', event.status),
+        _buildInfoRow('Description', event.description ?? 'N/A'),
+        const SizedBox(height: 12),
+        const Text('Media & Banners:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white70)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            if (event.mainImage != null) _buildThumbCard('3:4 Poster', event.mainImage!),
+            if (event.banner != null) _buildThumbCard('16:9 Banner', event.banner!),
+            if (event.thumbnail != null) _buildThumbCard('Thumbnail', event.thumbnail!),
+          ],
+        ),
       ],
     );
   }
 
+  Widget _buildThumbCard(String label, String url) {
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.neonPurple)),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.network(
+              url,
+              height: 70,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDaysTab(List<EventDayImportItem> days) {
-    return ListView.separated(
+    if (days.isEmpty) return const Center(child: Text('No days defined.'));
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: days.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, i) {
-        final d = days[i];
+        final day = days[i];
         return Container(
-          padding: const EdgeInsets.all(14),
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: AppColors.surfaceGlass,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.divider),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Day ${d.dayNumber} — ${d.dayName ?? d.programName ?? "Schedule"}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.neonPurple)),
-                  Text(d.date ?? '-', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                ],
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.neonPurple.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '${day.dayNumber}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.neonPurple),
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
-              Text('⏰ ${d.startTime ?? "TBD"} – ${d.endTime ?? "TBD"} • 📍 ${d.venue ?? "Main Venue"}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              const SizedBox(height: 6),
-              Text('🎟️ ${d.passes.length} Passes • 🎤 ${d.artists.length} Artists', style: const TextStyle(fontSize: 12, color: AppColors.neonPink)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${day.dayName ?? "Day ${day.dayNumber}"} • ${day.date ?? ""}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${day.programName ?? "Live Night"} (${day.startTime ?? "20:00"} - ${day.endTime ?? "00:00"}) • ${day.passes.length} Passes • ${day.artists.length} Artists',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );
@@ -526,37 +717,56 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         allPasses.add({'day': d.dayNumber, 'pass': p});
       }
     }
+    if (allPasses.isEmpty) return const Center(child: Text('No passes configured.'));
 
-    if (allPasses.isEmpty) return const Center(child: Text('No passes specified'));
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: allPasses.length,
+      itemBuilder: (context, i) {
+        final item = allPasses[i];
+        final dayNum = item['day'];
+        final pass = item['pass'] as PassImportItem;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SingleChildScrollView(
-        child: DataTable(
-          headingRowColor: WidgetStateProperty.all(AppColors.surfaceGlass),
-          columns: const [
-            DataColumn(label: Text('Day', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Pass Name', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Type', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Price', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Benefits', style: TextStyle(fontWeight: FontWeight.bold))),
-          ],
-          rows: allPasses.map((item) {
-            final pass = item['pass'] as PassImportItem;
-            return DataRow(
-              cells: [
-                DataCell(Text('Day ${item['day']}')),
-                DataCell(Text(pass.name, style: const TextStyle(fontWeight: FontWeight.w600))),
-                DataCell(StatusBadge(status: pass.type)),
-                DataCell(Text('₹${pass.price.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.neonPink, fontWeight: FontWeight.bold))),
-                DataCell(Text('${pass.availableQuantity}')),
-                DataCell(Text(pass.benefits.join(', '), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.neonPurple.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text('Day $dayNum', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.neonPurple)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(pass.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    if (pass.benefits.isNotEmpty)
+                      Text(pass.benefits.join(', '), style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('₹${pass.price.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.neonPink, fontSize: 16)),
+                  Text('${pass.availableQuantity} qty', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -567,50 +777,54 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         allArtists.add({'day': d.dayNumber, 'artist': a});
       }
     }
+    if (allArtists.isEmpty) {
+      return const Center(
+        child: Text('No performers/artists found in source. You can assign artists after creation.', style: TextStyle(color: AppColors.textSecondary)),
+      );
+    }
 
-    if (allArtists.isEmpty) return const Center(child: Text('No artists specified'));
-
-    return ListView.separated(
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: allArtists.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, i) {
         final item = allArtists[i];
+        final dayNum = item['day'];
         final a = item['artist'] as ArtistImportItem;
+
         return Container(
+          margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: AppColors.surfaceGlass, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.divider),
+          ),
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: AppColors.neonPurple.withValues(alpha: 0.3),
-                child: const Icon(Icons.music_note, color: Colors.white, size: 18),
+                radius: 18,
+                backgroundImage: a.photoUrl != null && a.photoUrl!.isNotEmpty ? NetworkImage(a.photoUrl!) : null,
+                child: a.photoUrl == null || a.photoUrl!.isEmpty ? const Icon(Icons.person, size: 18) : null,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(a.artistName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        const SizedBox(width: 8),
-                        if (a.isPrimary)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: AppColors.neonPink.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(4)),
-                            child: const Text('HEADLINER', style: TextStyle(fontSize: 10, color: AppColors.neonPink, fontWeight: FontWeight.bold)),
-                          ),
-                      ],
-                    ),
-                    Text('Day ${item['day']} • ${a.artistType} • Order #${a.performanceOrder ?? 1} • ${a.performanceStartTime ?? "TBD"} – ${a.performanceEndTime ?? "TBD"}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    Text(a.artistName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text('${a.artistType} • Day $dayNum', style: const TextStyle(fontSize: 11, color: AppColors.neonPurple)),
                   ],
                 ),
               ),
-              Text(
-                a.isExistingArtist ? '🟢 Matched' : '🟡 New Artist',
-                style: TextStyle(fontSize: 11, color: a.isExistingArtist ? AppColors.success : AppColors.warning),
-              ),
+              if (a.isPrimary)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.neonPink.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text('Headline Artist', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.neonPink)),
+                ),
             ],
           ),
         );
@@ -622,62 +836,143 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('Event Facilities', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.neonPurple)),
+        const Text('Event Facilities & Amenities', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
-        if (preview.eventFacilities.isEmpty)
-          const Text('No event-level facilities', style: TextStyle(color: AppColors.textSecondary, fontSize: 12))
-        else
-          ...preview.eventFacilities.map((f) => ListTile(
-                dense: true,
-                leading: const Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
-                title: Text(f.name),
-                subtitle: Text(f.description ?? f.scope, style: const TextStyle(fontSize: 11)),
-              )),
-        const Divider(color: AppColors.divider),
-        const Text('Highlights', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.neonPurple)),
-        const SizedBox(height: 8),
-        ...preview.highlights.map((h) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 14),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(h, style: const TextStyle(fontSize: 12))),
-                ],
-              ),
-            )),
-        const Divider(color: AppColors.divider),
-        const Text('Rules & Guidelines', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.neonPurple)),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: preview.eventFacilities
+              .map((f) => Chip(
+                    avatar: const Icon(Icons.check_circle_outline, size: 16, color: AppColors.success),
+                    label: Text(f.name, style: const TextStyle(fontSize: 12)),
+                    backgroundColor: AppColors.surfaceGlass,
+                  ))
+              .toList(),
+        ),
+        const SizedBox(height: 20),
+        const Text('Rules & Guidelines', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
         ...preview.rules.map((r) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
                 children: [
-                  const Icon(Icons.shield_outlined, color: AppColors.neonBlue, size: 14),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(r, style: const TextStyle(fontSize: 12))),
+                  const Icon(Icons.shield_outlined, size: 14, color: AppColors.neonBlue),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(r, style: const TextStyle(fontSize: 12, color: Colors.white70))),
                 ],
               ),
             )),
       ],
     );
   }
-}
 
-class _RowInfo extends StatelessWidget {
-  final String label;
-  final String value;
-  const _RowInfo(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 140, child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+          SizedBox(
+            width: 140,
+            child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          ),
+          Expanded(
+            child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeSelectorButton extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ModeSelectorButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.neonPurple : Colors.transparent),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? AppColors.neonPurple : AppColors.textSecondary, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isSelected ? Colors.white70 : AppColors.textSecondary.withValues(alpha: 0.7),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlatformBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _PlatformBadge({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 5),
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
         ],
       ),
     );
