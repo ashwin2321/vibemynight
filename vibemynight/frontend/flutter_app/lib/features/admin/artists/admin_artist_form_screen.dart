@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/providers/artist_type_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/gradient_button.dart';
@@ -77,28 +78,6 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
   bool _submitting = false;
   String? _error;
 
-  static const Map<String, String> _typeOptions = {
-    'SINGER': 'Singer / Vocalist',
-    'DJ': 'DJ / Music Producer',
-    'BAND': 'Band / Orchestra / Mandli',
-    'CELEBRITY': 'Celebrity / Special Appearance',
-    'PERFORMER': 'Performer / Stage Artist',
-    'LIVE_ARTIST': 'Live Artist',
-    'DHOL_PLAYER': 'Dhol Player / Percussionist',
-    'HOST': 'Host / MC',
-    'ANCHOR': 'Anchor / Presenter',
-    'COMEDIAN': 'Comedian / Standup',
-    'DANCER': 'Dancer / Dance Troupe',
-    'MUSICIAN': 'Musician / Composer',
-    'FOLK_ARTIST': 'Folk Artist / Traditional',
-    'INSTRUMENTALIST': 'Instrumentalist',
-    'SPECIAL_GUEST': 'Special Guest',
-    'ACTOR': 'Actor / Actress',
-    'INFLUENCER': 'Influencer / Creator',
-    'RAPPER': 'Rapper / Hip-Hop',
-    'OTHER': 'Other / Custom Role',
-  };
-
   @override
   void initState() {
     super.initState();
@@ -112,14 +91,9 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
     _instagramUrl = TextEditingController(text: a?.instagramUrl ?? '');
     _facebookUrl = TextEditingController(text: a?.facebookUrl ?? '');
     _youtubeUrl = TextEditingController(text: a?.youtubeUrl ?? '');
-    
+
     final initialType = a?.type.toUpperCase() ?? 'SINGER';
-    if (_typeOptions.containsKey(initialType)) {
-      _type = initialType;
-    } else {
-      _type = 'OTHER';
-      _customRole.text = a?.type ?? '';
-    }
+    _type = initialType;
     _featured = a?.featured ?? false;
   }
 
@@ -129,6 +103,75 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
       c.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _promptNewArtistType() async {
+    final controller = TextEditingController();
+    final newType = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.divider),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.stars_rounded, color: AppColors.neonPurple, size: 22),
+            SizedBox(width: 8),
+            Text('Add Custom Artist Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter new artist category/type code (e.g. GARBA_SINGER, FLUTIST, CHOREOGRAPHER, SHAYAR, MAGICIAN, TABLA_PLAYER)',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                labelText: 'Artist Type Name *',
+                hintText: 'e.g. GARBA_SINGER',
+                prefixIcon: Icon(Icons.mic, color: AppColors.neonPurple, size: 18),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonPurple),
+            onPressed: () {
+              final text = controller.text.trim().toUpperCase().replaceAll(' ', '_');
+              if (text.isNotEmpty) Navigator.pop(ctx, text);
+            },
+            child: const Text('Add Type'),
+          ),
+        ],
+      ),
+    );
+
+    if (newType != null && newType.isNotEmpty) {
+      final addedCode = await ref.read(artistTypesProvider.notifier).addArtistType(newType);
+      setState(() => _type = addedCode);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added new artist type "$addedCode" to catalog! 🎉'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _submit() async {
@@ -177,6 +220,13 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.artistId != null;
+    final availableTypes = ref.watch(artistTypesProvider);
+
+    // Ensure selected type exists in available types list
+    if (!availableTypes.contains(_type)) {
+      availableTypes.add(_type);
+    }
+
     return AdminShell(
       title: isEdit ? 'Edit Artist' : 'Create Artist',
       currentPath: '/admin/artists',
@@ -197,18 +247,49 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _type,
-              isExpanded: true,
-              dropdownColor: AppColors.surface,
-              decoration: const InputDecoration(
-                labelText: 'Artist Type / Role *',
-                helperText: 'Select performance role or choose Other for custom role',
-              ),
-              items: _typeOptions.entries
-                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                  .toList(),
-              onChanged: (v) => setState(() => _type = v ?? _type),
+
+            // DYNAMIC ARTIST TYPE DROPDOWN + QUICK ADD BUTTON
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _type,
+                    isExpanded: true,
+                    dropdownColor: AppColors.surface,
+                    decoration: const InputDecoration(
+                      labelText: 'Artist Type / Role *',
+                      helperText: 'Select role or add your own custom type',
+                    ),
+                    items: availableTypes
+                        .map(
+                          (t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(
+                              formatArtistType(t),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _type = v ?? _type),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: IconButton.filledTonal(
+                    onPressed: _promptNewArtistType,
+                    tooltip: 'Add Custom Artist Type',
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.neonPurple.withValues(alpha: 0.2),
+                      foregroundColor: AppColors.neonPurple,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.add, size: 20),
+                  ),
+                ),
+              ],
             ),
             if (_type == 'OTHER') ...[
               const SizedBox(height: 12),
