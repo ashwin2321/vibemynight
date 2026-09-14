@@ -71,8 +71,9 @@ public class InquiryServiceImpl implements InquiryService {
         if (quantity < 1) {
             throw new BadRequestException("Quantity must be at least 1");
         }
-        if (quantity > ticket.getMaxPerCustomer()) {
-            throw new BadRequestException("Maximum " + ticket.getMaxPerCustomer() + " passes allowed per customer");
+        int maxAllowed = (ticket.getMaxPerCustomer() != null && ticket.getMaxPerCustomer() > 10) ? ticket.getMaxPerCustomer() : 100;
+        if (quantity > maxAllowed) {
+            throw new BadRequestException("Maximum " + maxAllowed + " passes allowed per inquiry");
         }
         if (ticket.getAvailableQuantity() < quantity) {
             throw new BadRequestException("Only " + ticket.getAvailableQuantity() + " passes left");

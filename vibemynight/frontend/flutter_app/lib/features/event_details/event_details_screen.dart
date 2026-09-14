@@ -1590,15 +1590,15 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                               child: Text('$_quantity', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
                             ),
                             InkWell(
-                              onTap: _quantity < currentPass.maxPerCustomer ? () => setState(() => _quantity++) : null,
+                              onTap: _quantity < 100 ? () => setState(() => _quantity++) : null,
                               borderRadius: BorderRadius.circular(6),
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: _quantity < currentPass.maxPerCustomer ? AppColors.neonBlue.withValues(alpha: 0.15) : Colors.transparent,
+                                  color: _quantity < 100 ? AppColors.neonBlue.withValues(alpha: 0.15) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: Icon(Icons.add, size: 16, color: _quantity < currentPass.maxPerCustomer ? AppColors.neonBlue : AppColors.textMuted),
+                                child: Icon(Icons.add, size: 16, color: _quantity < 100 ? AppColors.neonBlue : AppColors.textMuted),
                               ),
                             ),
                           ],

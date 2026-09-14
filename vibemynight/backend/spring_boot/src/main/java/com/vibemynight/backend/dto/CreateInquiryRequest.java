@@ -31,7 +31,7 @@ public class CreateInquiryRequest {
 
     @NotNull(message = "quantity is required")
     @Min(value = 1, message = "quantity must be at least 1")
-    @Max(value = 50, message = "quantity is too large")
+    @Max(value = 500, message = "quantity is too large")
     private Integer quantity;
 
     private String message;
