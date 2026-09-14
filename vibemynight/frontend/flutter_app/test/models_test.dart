@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vibemynight/core/utils/csv_exporter.dart';
 import 'package:vibemynight/models/admin_requests.dart';
 import 'package:vibemynight/models/admin_user.dart';
 import 'package:vibemynight/models/event_day_detail.dart';
@@ -257,6 +258,11 @@ void main() {
       expect(summary.quantity, 2);
       expect(summary.estimatedTotal, 4998.0);
       expect(summary.status, 'CONFIRMED');
+    });
+
+    test('CsvExporter handles empty lists safely', () async {
+      final result = await CsvExporter.exportInquiries([]);
+      expect(result, isFalse);
     });
   });
 }

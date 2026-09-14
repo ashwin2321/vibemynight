@@ -10,10 +10,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: when_authorized
+    prometheus:
+      enabled: true
 
 spring:
   application:
@@ -23,6 +25,14 @@ spring:
     url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:}}
     username: ${SPRING_DATASOURCE_USERNAME:${DATABASE_USERNAME:${MYSQLUSER:neondb_owner}}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DATABASE_PASSWORD:${MYSQLPASSWORD:}}}
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-timeout: 20000
+      keepalive-time: 30000
+      leak-detection-threshold: 25000
 
   jpa:
     hibernate:

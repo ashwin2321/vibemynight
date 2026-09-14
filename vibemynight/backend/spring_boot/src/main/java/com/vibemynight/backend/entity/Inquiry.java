@@ -35,7 +35,8 @@ import java.math.BigDecimal;
         @Index(name = "idx_inquiries_number", columnList = "inquiry_number"),
         @Index(name = "idx_inquiries_mobile", columnList = "customer_mobile"),
         @Index(name = "idx_inquiries_status", columnList = "status"),
-        @Index(name = "idx_inquiries_created_at", columnList = "created_at")
+        @Index(name = "idx_inquiries_created_at", columnList = "created_at"),
+        @Index(name = "idx_inquiries_status_created", columnList = "status, created_at")
     }
 )
 public class Inquiry extends BaseEntity {

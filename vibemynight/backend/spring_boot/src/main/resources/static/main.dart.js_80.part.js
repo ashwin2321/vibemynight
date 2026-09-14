@@ -1,18 +1,18 @@
 ((a,b)=>{a[b]=a[b]||{}})(self,"$__dart_deferred_initializers__")
 $__dart_deferred_initializers__.current=function(a,b,c,$){var J,A,C,H,I,K,F,E,B={
-bl2(){return new B.v5(null)},
-bl6(d){return new B.v9(d,null)},
-v5:function v5(d){this.a=d},
-v9:function v9(d,e){this.e=d
+bl6(){return new B.v7(null)},
+bla(d){return new B.vb(d,null)},
+v7:function v7(d){this.a=d},
+vb:function vb(d,e){this.e=d
 this.a=e},
-adI:function adI(){},
-adH:function adH(d){this.a=d},
-adF:function adF(d){this.a=d},
+adJ:function adJ(){},
+adI:function adI(d){this.a=d},
 adG:function adG(d){this.a=d},
-Da:function Da(d,e,f){this.d=d
+adH:function adH(d){this.a=d},
+Db:function Db(d,e,f){this.d=d
 this.e=e
 this.a=f},
-M0:function M0(d){var _=this
+M1:function M1(d){var _=this
 _.w=d
 _.ay=_.ax=_.at=_.as=_.Q=_.z=_.y=_.x=$
 _.ch="SINGER"
@@ -20,18 +20,18 @@ _.cx=_.CW=!1
 _.cy=null
 _.d=$
 _.c=_.a=null},
-aEf:function aEf(d){this.a=d},
-aEg:function aEg(d,e){this.a=d
-this.b=e},
 aEh:function aEh(d){this.a=d},
-aEk:function aEk(){},
-aEl:function aEl(){},
-aEm:function aEm(){},
-aEn:function aEn(d){this.a=d},
-aEj:function aEj(d,e){this.a=d
-this.b=e},
-aEo:function aEo(d){this.a=d},
 aEi:function aEi(d,e){this.a=d
+this.b=e},
+aEj:function aEj(d){this.a=d},
+aEm:function aEm(){},
+aEn:function aEn(){},
+aEo:function aEo(){},
+aEp:function aEp(d){this.a=d},
+aEl:function aEl(d,e){this.a=d
+this.b=e},
+aEq:function aEq(d){this.a=d},
+aEk:function aEk(d,e){this.a=d
 this.b=e}},D,G
 J=c[1]
 A=c[0]
@@ -44,13 +44,13 @@ E=c[41]
 B=a.updateHolder(c[10],B)
 D=c[42]
 G=c[44]
-B.v5.prototype={
-E(d){return D.amw}}
-B.v9.prototype={
-fe(d,e){return A.eh(e.bc($.m3(),x.n),new B.adG(this),new B.adH(e),new B.adI(),!1,!0,!1,x.Y,x.l)}}
-B.Da.prototype={
-W(){return new B.M0(new A.aX(null,x.w))}}
-B.M0.prototype={
+B.v7.prototype={
+E(d){return D.amC}}
+B.vb.prototype={
+fe(d,e){return A.eh(e.bc($.m3(),x.n),new B.adH(this),new B.adI(e),new B.adJ(),!1,!0,!1,x.Y,x.l)}}
+B.Db.prototype={
+X(){return new B.M1(new A.aX(null,x.w))}}
+B.M1.prototype={
 al(){var w,v,u,t,s=this,r=null
 s.az()
 w=s.a.e
@@ -112,12 +112,12 @@ q=[m,w,v,u,t,s,r,q]
 p=0
 for(;p<8;++p){o=q[p]
 o.O$=$.ae()
-o.N$=0}n.ao()},
-x3(){var w=0,v=A.F(x.H),u,t=2,s=[],r=[],q=this,p,o,n,m,l,k,j,i,h,g
-var $async$x3=A.G(function(d,e){if(d===1){s.push(e)
+o.N$=0}n.ap()},
+x3(){var w=0,v=A.E(x.H),u,t=2,s=[],r=[],q=this,p,o,n,m,l,k,j,i,h,g
+var $async$x3=A.F(function(d,e){if(d===1){s.push(e)
 w=t}for(;;)switch(w){case 0:if(!q.w.gU().iV()){w=1
-break}q.G(new B.aEf(q))
-m=A.B(x.N,x.K)
+break}q.G(new B.aEh(q))
+m=A.G(x.N,x.K)
 l=q.x
 l===$&&A.a()
 m.n(0,"name",C.c.ag(l.a.a))
@@ -162,14 +162,14 @@ case 7:j=o.a
 i=j.a
 i===$&&A.a()
 w=10
-return A.w(j.cg(i.rI(0,"/admin/artists/"+A.n(l),p,k)),$async$x3)
+return A.w(j.ci(i.rI(0,"/admin/artists/"+A.n(l),p,k)),$async$x3)
 case 10:w=8
 break
 case 9:l=o.a
 j=l.a
 j===$&&A.a()
 w=11
-return A.w(l.cg(j.h1("/admin/artists",p,k)),$async$x3)
+return A.w(l.ci(j.h1("/admin/artists",p,k)),$async$x3)
 case 11:case 8:l=$.m3()
 if(m.e==null)A.V(A.O(y.b))
 m.gbA().bG(l)
@@ -182,36 +182,36 @@ break
 case 4:t=3
 g=s.pop()
 n=A.aa(g)
-q.G(new B.aEg(q,n))
+q.G(new B.aEi(q,n))
 r.push(6)
 w=5
 break
 case 3:r=[2]
 case 5:t=2
-if(q.c!=null)q.G(new B.aEh(q))
+if(q.c!=null)q.G(new B.aEj(q))
 w=r.pop()
 break
-case 6:case 1:return A.D(u,v)
-case 2:return A.C(s.at(-1),v)}})
-return A.E($async$x3,v)},
+case 6:case 1:return A.C(u,v)
+case 2:return A.B(s.at(-1),v)}})
+return A.D($async$x3,v)},
 E(d){var w,v,u,t,s,r,q,p,o=this,n=null,m=o.a.d!=null,l=m?"Edit Artist":"Create Artist",k=o.x
 k===$&&A.a()
-k=A.bD(!1,k,D.Wy,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEk())
+k=A.bD(!1,k,D.WB,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEm())
 w=o.y
 w===$&&A.a()
-w=A.bD(!1,w,I.vO,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEl())
+w=A.bD(!1,w,I.vO,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,new B.aEn())
 v=o.ch
 u=x.v
-u=A.W(new A.Y(D.Z_,new B.aEm(),u),u.h("ai.E"))
-v=F.p2(D.We,C.ah,n,v,!0,u,new B.aEn(o),x.N)
+u=A.W(new A.Y(D.Z2,new B.aEo(),u),u.h("ai.E"))
+v=F.p2(D.Wh,C.ah,n,v,!0,u,new B.aEp(o),x.N)
 u=o.z
 u===$&&A.a()
 t=o.Q
 t===$&&A.a()
-t=A.bD(!1,t,D.WC,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
+t=A.bD(!1,t,D.WF,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
 s=o.as
 s===$&&A.a()
-s=A.bD(!1,s,D.W9,!1,n,n,n,4,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
+s=A.bD(!1,s,D.Wc,!1,n,n,n,4,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
 r=o.at
 r===$&&A.a()
 r=A.bD(!1,r,G.vN,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
@@ -220,91 +220,91 @@ q===$&&A.a()
 q=A.bD(!1,q,G.vQ,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n)
 p=o.ay
 p===$&&A.a()
-p=A.b([k,C.x,w,C.x,v,C.x,new H.pk(u,"Photo URL","artists",n),C.x,t,C.x,s,C.x,r,C.x,q,C.x,A.bD(!1,p,D.Wj,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n),C.x,K.aBy(n,C.a0,new B.aEo(o),n,D.ahm,o.CW),C.aZ],x.p)
+p=A.b([k,C.x,w,C.x,v,C.x,new H.pk(u,"Photo URL","artists",n),C.x,t,C.x,s,C.x,r,C.x,q,C.x,A.bD(!1,p,D.Wm,!1,n,n,n,1,!1,n,n,n,n,n,!1,n,n,C.u,n,n),C.x,K.aBA(n,C.a0,new B.aEq(o),n,D.ahq,o.CW),C.aZ],x.p)
 k=o.cy
 if(k!=null)p.push(new A.dF(k,n,n))
 k=o.cx
 if(k)w="SAVING..."
 else w=m?"SAVE CHANGES":"CREATE ARTIST"
-p.push(A.fX(n,n,!1,w,k?n:o.gahU(),n))
-return E.hV(n,A.mq(n,A.jZ(p,C.aA,n,!1),o.w),"/admin/artists",l)}}
-var z=a.updateTypes(["fA()","fA(q,bH)","ab<~>()","dA<h>(h)"])
-B.adI.prototype={
+p.push(A.fX(n,n,!1,w,k?n:o.gahT(),n))
+return E.hV(n,A.mq(n,A.k_(p,C.aA,n,!1),o.w),"/admin/artists",l)}}
+var z=a.updateTypes(["fB()","fB(q,bH)","ab<~>()","dA<h>(h)"])
+B.adJ.prototype={
 $0(){return D.J0},
 $S:z+0}
-B.adH.prototype={
-$2(d,e){return E.hV(null,new A.dF(J.bv(d),new B.adF(this.a),null),"/admin/artists","Edit Artist")},
+B.adI.prototype={
+$2(d,e){return E.hV(null,new A.dF(J.bv(d),new B.adG(this.a),null),"/admin/artists","Edit Artist")},
 $S:z+1}
-B.adF.prototype={
+B.adG.prototype={
 $0(){var w=this.a,v=$.m3()
 if(w.e==null)A.V(A.O(y.b))
 w.gbA().bG(v)
 return null},
 $S:0}
-B.adG.prototype={
+B.adH.prototype={
 $1(d){var w,v=J.be(d),u=this.a.e
 for(;;){if(!v.v()){w=null
 break}w=v.gR(v)
 if(w.a===u)break}if(w==null)return D.J3
-return new B.Da(u,w,null)},
+return new B.Db(u,w,null)},
 $S:826}
-B.aEf.prototype={
+B.aEh.prototype={
 $0(){var w=this.a
 w.cx=!0
 w.cy=null},
 $S:0}
-B.aEg.prototype={
+B.aEi.prototype={
 $0(){return this.a.cy=J.bv(this.b)},
 $S:0}
-B.aEh.prototype={
+B.aEj.prototype={
 $0(){return this.a.cx=!1},
 $S:0}
-B.aEk.prototype={
-$1(d){return d==null||C.c.ag(d).length===0?"Required":null},
-$S:9}
-B.aEl.prototype={
-$1(d){return d==null||C.c.ag(d).length===0?"Required":null},
-$S:9}
 B.aEm.prototype={
+$1(d){return d==null||C.c.ag(d).length===0?"Required":null},
+$S:9}
+B.aEn.prototype={
+$1(d){return d==null||C.c.ag(d).length===0?"Required":null},
+$S:9}
+B.aEo.prototype={
 $1(d){var w=null
 return F.p3(A.v(d,w,w,w,w,w,w,w,w),!0,d,x.N)},
 $S:z+3}
-B.aEn.prototype={
+B.aEp.prototype={
 $1(d){var w=this.a
-return w.G(new B.aEj(w,d))},
+return w.G(new B.aEl(w,d))},
 $S:58}
-B.aEj.prototype={
+B.aEl.prototype={
 $0(){return this.a.ch=this.b},
 $S:0}
-B.aEo.prototype={
+B.aEq.prototype={
 $1(d){var w=this.a
-return w.G(new B.aEi(w,d))},
+return w.G(new B.aEk(w,d))},
 $S:7}
-B.aEi.prototype={
+B.aEk.prototype={
 $0(){return this.a.CW=this.b},
 $S:0};(function installTearOffs(){var w=a._instance_0u
-w(B.M0.prototype,"gahU","x3",2)})();(function inheritance(){var w=a.inherit,v=a.inheritMany
-w(B.v5,A.ad)
-w(B.v9,A.lf)
-v(A.ev,[B.adI,B.adF,B.aEf,B.aEg,B.aEh,B.aEj,B.aEi])
-w(B.adH,A.fe)
-v(A.dc,[B.adG,B.aEk,B.aEl,B.aEm,B.aEn,B.aEo])
-w(B.Da,A.ff)
-w(B.M0,A.hg)})()
-A.dO(b.typeUniverse,JSON.parse('{"Da":{"R":[],"c":[]},"v5":{"ad":[],"c":[]},"v9":{"R":[],"c":[]},"M0":{"X":["Da"]}}'))
+w(B.M1.prototype,"gahT","x3",2)})();(function inheritance(){var w=a.inherit,v=a.inheritMany
+w(B.v7,A.ad)
+w(B.vb,A.lf)
+v(A.ew,[B.adJ,B.adG,B.aEh,B.aEi,B.aEj,B.aEl,B.aEk])
+w(B.adI,A.fe)
+v(A.dc,[B.adH,B.aEm,B.aEn,B.aEo,B.aEp,B.aEq])
+w(B.Db,A.ff)
+w(B.M1,A.hg)})()
+A.dO(b.typeUniverse,JSON.parse('{"Db":{"R":[],"c":[]},"v7":{"ad":[],"c":[]},"vb":{"R":[],"c":[]},"M1":{"X":["Db"]}}'))
 var y={b:'Cannot use "ref" after the widget was disposed.'}
 var x=(function rtii(){var w=A.Z
-return{b:w("eO"),n:w("cg<r<cc>>"),p:w("t<c>"),w:w("aX<jT>"),Y:w("r<cc>"),v:w("Y<h,dA<h>>"),K:w("q"),N:w("h"),l:w("c"),z:w("@"),H:w("~")}})();(function constants(){var w=a.makeConstList
-D.J0=new E.fA("Edit Artist","/admin/artists",C.bp,null,null)
-D.ahA=new A.L("Artist not found.",null,null,null,null,null,null,null,null,null,null)
-D.Mm=new A.dR(C.J,null,null,D.ahA,null)
-D.J3=new E.fA("Edit Artist","/admin/artists",D.Mm,null,null)
-D.W9=new A.bi(null,null,null,"Full Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.We=new A.bi(null,null,null,"Type *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wj=new A.bi(null,null,null,"YouTube URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wy=new A.bi(null,null,null,"Artist Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.WC=new A.bi(null,null,null,"Short Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Z_=w(["SINGER","DJ","BAND","CELEBRITY","PERFORMER","LIVE_ARTIST","OTHER"],A.Z("t<h>"))
-D.ahm=new A.L("Featured",null,null,null,null,null,null,null,null,null,null)
-D.amw=new B.Da(null,null,null)})()};
-(a=>{a["QWYC6OSuyEZN/EuDscJumA3WATU="]=a.current})($__dart_deferred_initializers__);
+return{b:w("eO"),n:w("cg<r<cc>>"),p:w("t<c>"),w:w("aX<jU>"),Y:w("r<cc>"),v:w("Y<h,dA<h>>"),K:w("q"),N:w("h"),l:w("c"),z:w("@"),H:w("~")}})();(function constants(){var w=a.makeConstList
+D.J0=new E.fB("Edit Artist","/admin/artists",C.bo,null,null)
+D.ahE=new A.L("Artist not found.",null,null,null,null,null,null,null,null,null,null)
+D.Mn=new A.dR(C.J,null,null,D.ahE,null)
+D.J3=new E.fB("Edit Artist","/admin/artists",D.Mn,null,null)
+D.Wc=new A.bi(null,null,null,"Full Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wh=new A.bi(null,null,null,"Type *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wm=new A.bi(null,null,null,"YouTube URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.WB=new A.bi(null,null,null,"Artist Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.WF=new A.bi(null,null,null,"Short Bio",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Z2=w(["SINGER","DJ","BAND","CELEBRITY","PERFORMER","LIVE_ARTIST","OTHER"],A.Z("t<h>"))
+D.ahq=new A.L("Featured",null,null,null,null,null,null,null,null,null,null)
+D.amC=new B.Db(null,null,null)})()};
+(a=>{a["0zCjWLfLE8IcP9hPYDF8IAk5Ar8="]=a.current})($__dart_deferred_initializers__);

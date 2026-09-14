@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/providers/admin_providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/csv_exporter.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../../models/inquiry_admin_summary.dart';
@@ -141,29 +142,54 @@ class _AdminInquiriesScreenState extends ConsumerState<AdminInquiriesScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _statuses.map((s) {
-                        final selected = _selectedStatus == s;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(s),
-                            selected: selected,
-                            selectedColor: AppColors.neonPurple,
-                            backgroundColor: AppColors.surfaceGlass,
-                            labelStyle: TextStyle(
-                              fontSize: 12,
-                              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                              color: selected ? Colors.white : AppColors.textSecondary,
-                            ),
-                            onSelected: (_) => setState(() => _selectedStatus = s),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _statuses.map((s) {
+                              final selected = _selectedStatus == s;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  label: Text(s),
+                                  selected: selected,
+                                  selectedColor: AppColors.neonPurple,
+                                  backgroundColor: AppColors.surfaceGlass,
+                                  labelStyle: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                                    color: selected ? Colors.white : AppColors.textSecondary,
+                                  ),
+                                  onSelected: (_) => setState(() => _selectedStatus = s),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
-                    ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.download_rounded, size: 16),
+                        label: const Text('Export CSV', style: TextStyle(fontSize: 12)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.neonBlue,
+                          side: const BorderSide(color: AppColors.neonBlue),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        onPressed: () async {
+                          final currentList = inquiriesAsync.valueOrNull ?? [];
+                          if (currentList.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('No inquiries available to export.')),
+                            );
+                            return;
+                          }
+                          await CsvExporter.exportInquiries(currentList);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

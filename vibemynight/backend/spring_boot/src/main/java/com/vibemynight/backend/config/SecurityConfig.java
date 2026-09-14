@@ -2,6 +2,8 @@ package com.vibemynight.backend.config;
 
 import com.vibemynight.backend.security.JwtAuthenticationEntryPoint;
 import com.vibemynight.backend.security.JwtAuthenticationFilter;
+import com.vibemynight.backend.security.RateLimitingFilter;
+import com.vibemynight.backend.security.RequestCorrelationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +25,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final RequestCorrelationFilter requestCorrelationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -93,6 +97,8 @@ public class SecurityConfig {
                         // Any other API mutating endpoint defaults to requiring authentication
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(requestCorrelationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -1,8 +1,8 @@
 ((a,b)=>{a[b]=a[b]||{}})(self,"$__dart_deferred_initializers__")
 $__dart_deferred_initializers__.current=function(a,b,c,$){var J,A,B,F,G,E,C={
-blh(){return new C.r5(null)},
+bll(){return new C.r5(null)},
 r5:function r5(d){this.a=d},
-M9:function M9(d,e,f,g,h,i,j,k,l,m){var _=this
+Ma:function Ma(d,e,f,g,h,i,j,k,l,m){var _=this
 _.w=d
 _.x=e
 _.y=f
@@ -19,15 +19,15 @@ _.cy=!1
 _.db=null
 _.d=$
 _.c=_.a=null},
-aIA:function aIA(d){this.a=d},
-aIB:function aIB(d){this.a=d},
-aIC:function aIC(d){this.a=d},
-aID:function aID(d,e){this.a=d
-this.b=e},
+aID:function aID(d){this.a=d},
 aIE:function aIE(d){this.a=d},
-aIF:function aIF(){},
-aIG:function aIG(){},
-aIH:function aIH(){}},D
+aIF:function aIF(d){this.a=d},
+aIG:function aIG(d,e){this.a=d
+this.b=e},
+aIH:function aIH(d){this.a=d},
+aII:function aII(){},
+aIJ:function aIJ(){},
+aIK:function aIK(){}},D
 J=c[1]
 A=c[0]
 B=c[2]
@@ -37,14 +37,14 @@ E=c[44]
 C=a.updateHolder(c[16],C)
 D=c[94]
 C.r5.prototype={
-W(){var x=$.ae()
-return new C.M9(new A.aX(null,y.o),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x),new A.aR(B.av,x))}}
-C.M9.prototype={
+X(){var x=$.ae()
+return new C.Ma(new A.aX(null,y.o),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x),new A.aR(B.aw,x))}}
+C.Ma.prototype={
 al(){this.az()
 this.xS()},
-xS(){var x=0,w=A.F(y.v),v=1,u=[],t=[],s=this,r,q,p,o,n
-var $async$xS=A.G(function(d,e){if(d===1){u.push(e)
-x=v}for(;;)switch(x){case 0:s.G(new C.aIA(s))
+xS(){var x=0,w=A.E(y.v),v=1,u=[],t=[],s=this,r,q,p,o,n
+var $async$xS=A.F(function(d,e){if(d===1){u.push(e)
+x=v}for(;;)switch(x){case 0:s.G(new C.aID(s))
 v=3
 x=6
 return A.w(s.gbl().bY(0,$.db(),y.g).Be(),$async$xS)
@@ -82,22 +82,22 @@ x=4
 break
 case 2:t=[1]
 case 4:v=1
-if(s.c!=null)s.G(new C.aIB(s))
+if(s.c!=null)s.G(new C.aIE(s))
 x=t.pop()
 break
-case 5:return A.D(null,w)
-case 1:return A.C(u.at(-1),w)}})
-return A.E($async$xS,w)},
+case 5:return A.C(null,w)
+case 1:return A.B(u.at(-1),w)}})
+return A.D($async$xS,w)},
 l(){var x,w,v,u=this
 for(x=[u.x,u.y,u.z,u.Q,u.as,u.at,u.ax,u.ay,u.ch],w=0;w<9;++w){v=x[w]
 v.O$=$.ae()
-v.N$=0}u.ao()},
-Ef(){var x=0,w=A.F(y.v),v,u=2,t=[],s=[],r=this,q,p,o,n,m,l
-var $async$Ef=A.G(function(d,e){if(d===1){t.push(e)
+v.N$=0}u.ap()},
+Ee(){var x=0,w=A.E(y.v),v,u=2,t=[],s=[],r=this,q,p,o,n,m,l
+var $async$Ee=A.F(function(d,e){if(d===1){t.push(e)
 x=u}for(;;)switch(x){case 0:if(!r.w.gU().iV()){x=1
-break}r.G(new C.aIC(r))
+break}r.G(new C.aIF(r))
 o=y.w
-o=A.B(o,o)
+o=A.G(o,o)
 o.n(0,"websiteName",B.c.ag(r.x.a.a))
 n=B.c.ag(r.y.a.a)
 if(n.length!==0)o.n(0,"logoUrl",n)
@@ -119,81 +119,81 @@ o=r.gbl().bY(0,$.db(),y.g).a
 n=o.a
 n===$&&A.a()
 x=7
-return A.w(o.cg(n.rI(0,"/admin/settings",q,y.b)),$async$Ef)
+return A.w(o.ci(n.rI(0,"/admin/settings",q,y.b)),$async$Ee)
 case 7:o=r.c
-if(o!=null)o.X(y.q).f.cZ(D.a9b)
+if(o!=null)o.W(y.q).f.cO(D.a9e)
 s.push(6)
 x=5
 break
 case 4:u=3
 l=t.pop()
 p=A.aa(l)
-r.G(new C.aID(r,p))
+r.G(new C.aIG(r,p))
 s.push(6)
 x=5
 break
 case 3:s=[2]
 case 5:u=2
-if(r.c!=null)r.G(new C.aIE(r))
+if(r.c!=null)r.G(new C.aIH(r))
 x=s.pop()
 break
-case 6:case 1:return A.D(v,w)
-case 2:return A.C(t.at(-1),w)}})
-return A.E($async$Ef,w)},
+case 6:case 1:return A.C(v,w)
+case 2:return A.B(t.at(-1),w)}})
+return A.D($async$Ee,w)},
 E(d){var x,w,v,u=this,t=null
-if(u.CW)x=B.bp
+if(u.CW)x=B.bo
 else{x=u.cx
-if(x!=null)x=new A.dF(x,u.gath(),t)
-else{x=A.b([A.bD(!1,u.x,D.VY,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIF()),B.x,A.bD(!1,u.y,D.Wo,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.z,D.VM,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIG()),B.x,A.bD(!1,u.Q,D.VG,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.as,F.vP,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.at,E.vN,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ax,E.vQ,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ay,D.Wk,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIH()),B.x,A.bD(!1,u.ch,D.Wz,!1,t,t,t,2,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.aZ],y.u)
+if(x!=null)x=new A.dF(x,u.gatg(),t)
+else{x=A.b([A.bD(!1,u.x,D.W0,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aII()),B.x,A.bD(!1,u.y,D.Wr,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.z,D.VP,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIJ()),B.x,A.bD(!1,u.Q,D.VJ,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.as,F.vP,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.at,E.vN,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ax,E.vQ,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.x,A.bD(!1,u.ay,D.Wn,!1,t,t,t,1,!1,t,t,t,t,t,!1,t,t,B.u,t,new C.aIK()),B.x,A.bD(!1,u.ch,D.WC,!1,t,t,t,2,!1,t,t,t,t,t,!1,t,t,B.u,t,t),B.aZ],y.u)
 w=u.db
 if(w!=null)x.push(new A.dF(w,t,t))
 w=u.cy
 v=w?"SAVING...":"SAVE SETTINGS"
-x.push(A.fX(t,t,!1,v,w?t:u.gayY(),t))
-x=A.mq(t,A.jZ(x,B.aA,t,!1),u.w)}}return G.hV(t,x,"/admin/settings","Settings")}}
+x.push(A.fX(t,t,!1,v,w?t:u.gayX(),t))
+x=A.mq(t,A.k_(x,B.aA,t,!1),u.w)}}return G.hV(t,x,"/admin/settings","Settings")}}
 var z=a.updateTypes(["ab<~>()"])
-C.aIA.prototype={
+C.aID.prototype={
 $0(){var x=this.a
 x.CW=!0
 x.cx=null},
 $S:0}
-C.aIB.prototype={
+C.aIE.prototype={
 $0(){return this.a.CW=!1},
 $S:0}
-C.aIC.prototype={
+C.aIF.prototype={
 $0(){var x=this.a
 x.cy=!0
 x.db=null},
 $S:0}
-C.aID.prototype={
+C.aIG.prototype={
 $0(){return this.a.db=J.bv(this.b)},
 $S:0}
-C.aIE.prototype={
+C.aIH.prototype={
 $0(){return this.a.cy=!1},
 $S:0}
-C.aIF.prototype={
+C.aII.prototype={
 $1(d){return d==null||B.c.ag(d).length===0?"Required":null},
 $S:9}
-C.aIG.prototype={
+C.aIJ.prototype={
 $1(d){return d==null||B.c.ag(d).length===0?"Required":null},
 $S:9}
-C.aIH.prototype={
+C.aIK.prototype={
 $1(d){return d==null||B.c.ag(d).length===0?"Required":null},
 $S:9};(function installTearOffs(){var x=a._instance_0u
 var w
-x(w=C.M9.prototype,"gath","xS",0)
-x(w,"gayY","Ef",0)})();(function inheritance(){var x=a.inherit,w=a.inheritMany
+x(w=C.Ma.prototype,"gatg","xS",0)
+x(w,"gayX","Ee",0)})();(function inheritance(){var x=a.inherit,w=a.inheritMany
 x(C.r5,A.ff)
-x(C.M9,A.hg)
-w(A.ev,[C.aIA,C.aIB,C.aIC,C.aID,C.aIE])
-w(A.dc,[C.aIF,C.aIG,C.aIH])})()
-A.dO(b.typeUniverse,JSON.parse('{"r5":{"R":[],"c":[]},"M9":{"X":["r5"]}}'))
-var y={g:A.Z("eO"),u:A.Z("t<c>"),o:A.Z("aX<jT>"),w:A.Z("h"),q:A.Z("jC"),b:A.Z("@"),v:A.Z("~")};(function constants(){D.VG=new A.bi(null,null,null,"Phone",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.VM=new A.bi(null,null,null,"WhatsApp Number *",null,null,null,"International format, no + sign, e.g. 917041615131",null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.VY=new A.bi(null,null,null,"Website Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wk=new A.bi(null,null,null,"Currency *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wo=new A.bi(null,null,null,"Logo URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.Wz=new A.bi(null,null,null,"Footer Text",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
-D.ak6=new A.L("Settings saved",null,null,null,null,null,null,null,null,null,null)
-D.a9b=new A.kc(D.ak6,null,null,null,null,null,null,null,null,null,null,null,null,B.aw,!1,null,null,null,B.v,null)})()};
-(a=>{a["UyfAwLu2fBvUCtUtl2wd1gXedW0="]=a.current})($__dart_deferred_initializers__);
+x(C.Ma,A.hg)
+w(A.ew,[C.aID,C.aIE,C.aIF,C.aIG,C.aIH])
+w(A.dc,[C.aII,C.aIJ,C.aIK])})()
+A.dO(b.typeUniverse,JSON.parse('{"r5":{"R":[],"c":[]},"Ma":{"X":["r5"]}}'))
+var y={g:A.Z("eO"),u:A.Z("t<c>"),o:A.Z("aX<jU>"),w:A.Z("h"),q:A.Z("jD"),b:A.Z("@"),v:A.Z("~")};(function constants(){D.VJ=new A.bi(null,null,null,"Phone",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.VP=new A.bi(null,null,null,"WhatsApp Number *",null,null,null,"International format, no + sign, e.g. 917041615131",null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.W0=new A.bi(null,null,null,"Website Name *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wn=new A.bi(null,null,null,"Currency *",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.Wr=new A.bi(null,null,null,"Logo URL",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.WC=new A.bi(null,null,null,"Footer Text",null,null,null,null,null,null,null,null,null,null,null,null,!0,!0,!1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,!0,null,null,null,null)
+D.akc=new A.L("Settings saved",null,null,null,null,null,null,null,null,null,null)
+D.a9e=new A.jn(D.akc,null,null,null,null,null,null,null,null,null,null,null,null,B.au,!1,null,null,null,B.v,null)})()};
+(a=>{a["FhueB+VJFI5JbfDRhShcM+vEU40="]=a.current})($__dart_deferred_initializers__);

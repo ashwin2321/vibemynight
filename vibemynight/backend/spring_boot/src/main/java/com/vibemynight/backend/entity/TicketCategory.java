@@ -39,7 +39,8 @@ import java.util.List;
     indexes = {
         @Index(name = "idx_ticket_categories_day", columnList = "event_day_id"),
         @Index(name = "idx_ticket_categories_status", columnList = "status"),
-        @Index(name = "idx_ticket_categories_type", columnList = "type")
+        @Index(name = "idx_ticket_categories_type", columnList = "type"),
+        @Index(name = "idx_ticket_day_status", columnList = "event_day_id, status")
     }
 )
 public class TicketCategory extends BaseEntity {

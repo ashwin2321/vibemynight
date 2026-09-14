@@ -37,7 +37,8 @@ import java.util.List;
         @Index(name = "idx_events_slug", columnList = "slug"),
         @Index(name = "idx_events_status", columnList = "status"),
         @Index(name = "idx_events_featured", columnList = "featured"),
-        @Index(name = "idx_events_start_date", columnList = "start_date")
+        @Index(name = "idx_events_start_date", columnList = "start_date"),
+        @Index(name = "idx_events_status_start", columnList = "status, start_date")
     }
 )
 public class Event extends BaseEntity {

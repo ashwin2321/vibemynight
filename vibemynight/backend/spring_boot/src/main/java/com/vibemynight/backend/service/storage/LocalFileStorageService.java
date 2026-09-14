@@ -48,6 +48,8 @@ public class LocalFileStorageService implements FileStorageService {
             throw new BadRequestException("Only image files are allowed (jpg, jpeg, png, webp, gif)");
         }
 
+        validateImageMagicBytes(file);
+
         String safeSubfolder = (subfolder == null || subfolder.isBlank()) ? "misc" : subfolder.replaceAll("[^a-zA-Z0-9_-]", "");
         String filename = UUID.randomUUID() + "." + extension;
 
@@ -67,5 +69,31 @@ public class LocalFileStorageService implements FileStorageService {
     private String getExtension(String filename) {
         List<String> parts = List.of(filename.split("\\."));
         return parts.size() > 1 ? parts.get(parts.size() - 1) : "";
+    }
+
+    private void validateImageMagicBytes(MultipartFile file) {
+        try (var is = file.getInputStream()) {
+            byte[] header = new byte[12];
+            int read = is.read(header);
+            if (read < 4) {
+                throw new BadRequestException("Uploaded file header is invalid");
+            }
+            // JPEG: FF D8 FF
+            boolean isJpeg = (header[0] == (byte) 0xFF && header[1] == (byte) 0xD8 && header[2] == (byte) 0xFF);
+            // PNG: 89 50 4E 47
+            boolean isPng = (header[0] == (byte) 0x89 && header[1] == (byte) 0x50 && header[2] == (byte) 0x4E && header[3] == (byte) 0x47);
+            // GIF: 47 49 46 38 ('GIF8')
+            boolean isGif = (header[0] == 0x47 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x38);
+            // WEBP: RIFF....WEBP (header[0..3] == RIFF and header[8..11] == WEBP)
+            boolean isWebp = (read >= 12
+                    && header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46
+                    && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50);
+
+            if (!isJpeg && !isPng && !isGif && !isWebp) {
+                throw new BadRequestException("Uploaded file signature does not match a valid image format (JPEG, PNG, GIF, WebP)");
+            }
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to inspect file content");
+        }
     }
 }

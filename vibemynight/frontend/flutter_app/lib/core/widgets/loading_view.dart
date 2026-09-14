@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -81,28 +82,23 @@ class LoadingView extends StatefulWidget {
 
 class _LoadingViewState extends State<LoadingView> {
   int _secondsElapsed = 0;
-  bool _isDisposed = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() async {
-    while (!_isDisposed && mounted) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!_isDisposed && mounted) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
         setState(() {
           _secondsElapsed++;
         });
       }
-    }
+    });
   }
 
   @override
   void dispose() {
-    _isDisposed = true;
+    _timer?.cancel();
     super.dispose();
   }
 
