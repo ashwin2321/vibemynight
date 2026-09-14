@@ -37,27 +37,37 @@ class EventCard extends StatelessWidget {
     final isCompact = MediaQuery.of(context).size.width < 600;
     final fallbackUrl = _curatedPosters[event.id.abs() % _curatedPosters.length];
 
+    // Format display date line: e.g. "Sun 11 Oct - Tue 20 Oct | 8:00 PM"
+    final dateDisplay = [
+      if (hasStartDate) event.startDate,
+      if (event.endDate.isNotEmpty && event.endDate != event.startDate) event.endDate,
+    ].join(' - ');
+
+    final dateWithTime = dateDisplay.isNotEmpty
+        ? '$dateDisplay | 8:00 PM'
+        : 'Dates Announced Soon';
+
     return GlassCard(
       padding: EdgeInsets.zero,
-      borderRadius: isCompact ? 16 : 20,
+      borderRadius: isCompact ? 14 : 18,
       onTap: () => context.push(targetRoute),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 1. POSTER IMAGE WITH OVERLAYS (True 16:9 Landscape Ratio)
+          // 1. POSTER IMAGE WITH OVERLAYS (Showmates 3:4 Vertical Poster Ratio)
           Stack(
             children: [
               Hero(
                 tag: 'event-image-${event.id}',
                 child: AspectRatio(
-                  aspectRatio: 16 / 9,
+                  aspectRatio: 3 / 4,
                   child: NetworkImageBox(
                     url: event.thumbnail ?? event.mainImage,
                     fallbackUrl: fallbackUrl,
                     width: double.infinity,
                     height: double.infinity,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 16 : 20)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 14 : 18)),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -67,7 +77,7 @@ class EventCard extends StatelessWidget {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 60,
+                height: 40,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -75,199 +85,87 @@ class EventCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        const Color(0xFF0D0A1C).withValues(alpha: 0.9),
+                        const Color(0xFF0D0A1C).withValues(alpha: 0.6),
                       ],
                     ),
                   ),
                 ),
               ),
-              // Top-left: Date & Time pill
-              if (hasStartDate)
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isCompact ? 8 : 10,
-                      vertical: isCompact ? 3.5 : 4.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xE607070E),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.5),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.calendar_month, color: const Color(0xFFC084FC), size: isCompact ? 11 : 13),
-                        const SizedBox(width: 4),
-                        Text(
-                          event.startDate,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isCompact ? 10 : 11.5,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               // Top-right: Featured / Selling Fast tag
               if (event.featured)
                 Positioned(
-                  top: 10,
-                  right: 10,
+                  top: 8,
+                  right: 8,
                   child: _FeaturedBadge(isCompact: isCompact),
                 ),
             ],
           ),
 
-          // 2. EVENT DETAILS BODY
+          // 2. SHOWMATES STYLE EVENT DETAILS BODY
           Padding(
             padding: EdgeInsets.fromLTRB(
-              isCompact ? 12 : 14,
               isCompact ? 10 : 12,
-              isCompact ? 12 : 14,
-              isCompact ? 12 : 14,
+              isCompact ? 8 : 10,
+              isCompact ? 10 : 12,
+              isCompact ? 10 : 12,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Event Name (Bold, 2 lines max)
+                // Date & Time in Showmates Olive/Green accent
+                Text(
+                  dateWithTime,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: const Color(0xFF84CC16), // Olive/Lime accent as in Showmates screenshot
+                    fontSize: isCompact ? 10.5 : 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                SizedBox(height: isCompact ? 4 : 5),
+
+                // Event Name (Bold, 2 lines max, Gujarati/Hindi/English safe)
                 Text(
                   event.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: isCompact ? 13.5 : 15,
+                    fontSize: isCompact ? 13 : 14.5,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     height: 1.25,
                   ),
                 ),
-                SizedBox(height: isCompact ? 4 : 6),
+                SizedBox(height: isCompact ? 4 : 5),
 
-                // Location / Venue
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, color: const Color(0xFF60A5FA), size: isCompact ? 13 : 14),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        [
-                          if (event.location != null && event.location!.isNotEmpty) event.location!,
-                          if (event.city != null && event.city!.isNotEmpty) event.city!,
-                        ].where((s) => s.isNotEmpty).join(', ').ifEmpty('Venue To Be Announced'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: isCompact ? 11 : 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Featured Artist (if any)
-                if (event.featuredArtistName != null && event.featuredArtistName!.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Icon(Icons.mic_none, color: const Color(0xFFA855F7), size: isCompact ? 13 : 14),
-                      const SizedBox(width: 3),
-                      Expanded(
-                        child: Text(
-                          event.featuredArtistName!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: isCompact ? 11 : 12,
-                          ),
-                        ),
-                      ),
-                    ],
+                // Location / Venue (Subtle grey text)
+                Text(
+                  [
+                    if (event.location != null && event.location!.isNotEmpty) event.location!,
+                    if (event.city != null && event.city!.isNotEmpty) event.city!,
+                  ].where((s) => s.isNotEmpty).join(', ').ifEmpty('Venue To Be Announced'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: isCompact ? 10.5 : 11.5,
                   ),
-                ],
+                ),
+                SizedBox(height: isCompact ? 6 : 8),
 
-                SizedBox(height: isCompact ? 8 : 10),
-                const Divider(height: 1, color: Color(0x1AFFFFFF)),
-                SizedBox(height: isCompact ? 8 : 10),
-
-                // Bottom Price & Action Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'from',
-                          style: TextStyle(
-                            fontSize: isCompact ? 9 : 10,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        Text(
-                          event.startingPrice != null
-                              ? '₹${event.startingPrice!.toInt()}'
-                              : '₹499',
-                          style: TextStyle(
-                            fontSize: isCompact ? 14 : 16,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFA855F7),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isCompact ? 10 : 12,
-                        vertical: isCompact ? 5 : 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Get Pass',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          SizedBox(width: 3),
-                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 12),
-                        ],
-                      ),
-                    ),
-                  ],
+                // Price Tag (e.g. ₹999 onwards)
+                Text(
+                  event.startingPrice != null
+                      ? '₹${event.startingPrice!.toInt()} onwards'
+                      : '₹499 onwards',
+                  style: TextStyle(
+                    fontSize: isCompact ? 12.5 : 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white.withValues(alpha: 0.95),
+                  ),
                 ),
               ],
             ),

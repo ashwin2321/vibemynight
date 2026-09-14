@@ -234,13 +234,54 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
               decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 3,
             ),
+            const SizedBox(height: 16),
+            const Text(
+              'EVENT MEDIA & ARTWORK',
+              style: TextStyle(
+                color: Color(0xFFA855F7),
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.5,
+              ),
+            ),
             const SizedBox(height: 12),
-            ImageUploadField(controller: _mainImage, label: 'Main Image URL', folder: 'events'),
-            const SizedBox(height: 12),
-            ImageUploadField(controller: _banner, label: 'Banner URL', folder: 'events'),
-            const SizedBox(height: 12),
-            ImageUploadField(controller: _thumbnail, label: 'Thumbnail URL', folder: 'events'),
-            const SizedBox(height: 12),
+
+            // 1. [16:9 BANNER] Landscape Hero Banner
+            ImageUploadField(
+              controller: _banner,
+              label: 'Landscape Hero Banner',
+              folder: 'events',
+              aspectRatio: 16 / 9,
+              badgeLabel: '16:9 BANNER',
+              recommendedSize: '1920 × 1080 px',
+              helperText: 'Home page ke top Hero/Spotlight banner aur Event Details header ke liye.',
+              previewHeight: 100,
+            ),
+
+            // 2. [3:4 POSTER] Vertical Event Poster
+            ImageUploadField(
+              controller: _mainImage,
+              label: 'Vertical Event Poster',
+              folder: 'events',
+              aspectRatio: 3 / 4,
+              badgeLabel: '3:4 POSTER',
+              recommendedSize: '900 × 1200 px',
+              helperText: 'Mobile 2-Column Grid, Desktop Featured Cards, aur Events Listing page ke liye.',
+              previewHeight: 120,
+            ),
+
+            // 3. [1:1 SQUARE] Thumbnail / Icon
+            ImageUploadField(
+              controller: _thumbnail,
+              label: 'Thumbnail / Icon (Optional)',
+              folder: 'events',
+              aspectRatio: 1 / 1,
+              badgeLabel: '1:1 SQUARE',
+              recommendedSize: '400 × 400 px',
+              helperText: 'Search results, compact previews aur WhatsApp share cards ke liye.',
+              previewHeight: 100,
+            ),
+            const SizedBox(height: 8),
             TextFormField(controller: _venue, decoration: const InputDecoration(labelText: 'Venue')),
             const SizedBox(height: 12),
             TextFormField(controller: _address, decoration: const InputDecoration(labelText: 'Address')),

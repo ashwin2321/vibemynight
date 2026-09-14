@@ -1299,8 +1299,7 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
 
-    final cardWidth = isDesktop ? 340.0 : (isTablet ? 290.0 : 280.0);
-    final imageHeight = isDesktop ? 191.0 : (isTablet ? 163.0 : 157.0);
+    final cardWidth = isDesktop ? 260.0 : 220.0;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -1360,7 +1359,7 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Left Arrow Button (Desktop & Tablet)
-                      if (!isDesktop ? false : true) ...[
+                      if (isDesktop || isTablet) ...[
                         _NavArrowButton(
                           icon: Icons.arrow_back_rounded,
                           onPressed: () => _scrollBy(-(cardWidth * 2)),
@@ -1402,7 +1401,7 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
               ),
               const SizedBox(height: 18),
 
-              // Horizontal Side-Scrolling Events Slider
+              // Dynamic Events Layout: 2-Column Grid on Mobile, Horizontal Scroll on Desktop/Tablet
               widget.eventsAsync.when(
                 loading: () => SizedBox(
                   height: isDesktop ? 340 : 300,
@@ -1520,6 +1519,27 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                   }
                   if (filtered.isEmpty) filtered = events;
 
+                  // On Mobile: 2-Column Grid matching Showmates mobile UI
+                  if (!isDesktop && !isTablet) {
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.54,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 14,
+                      ),
+                      itemBuilder: (context, index) {
+                        return EventCard(
+                          event: filtered[index],
+                        );
+                      },
+                    );
+                  }
+
+                  // On Desktop & Tablet: Horizontal Smooth Slider with Nav Controls
                   return ScrollConfiguration(
                     behavior: ScrollConfiguration.of(context).copyWith(
                       dragDevices: {
@@ -1541,7 +1561,6 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                               width: cardWidth,
                               child: EventCard(
                                 event: event,
-                                imageHeight: imageHeight,
                               ),
                             ),
                           );
