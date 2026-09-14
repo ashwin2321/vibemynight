@@ -3,6 +3,7 @@ import '../core/network/api_client.dart';
 import '../models/artist.dart';
 import '../models/event_day_detail.dart';
 import '../models/event_detail.dart';
+import '../models/event_import_models.dart';
 import '../models/event_summary.dart';
 import '../models/facility.dart';
 import '../models/inquiry.dart';
@@ -193,5 +194,31 @@ class AdminService {
       folderValue: folder,
     );
     return (data as Map<String, dynamic>)['url'] as String;
+  }
+
+  // ---------- Event Import & Builder ----------
+
+  /// Parses and validates an Excel workbook (.xlsx) returning the preview hierarchy
+  Future<EventImportPreview> parseEventExcel(List<int> fileBytes, String filename) async {
+    final data = await _client.uploadFile(
+      ApiConstants.adminEventImportParse,
+      fileBytes: fileBytes,
+      filename: filename,
+    );
+    return EventImportPreview.fromJson(data as Map<String, dynamic>);
+  }
+
+  /// Downloads the raw bytes for the official Excel event import template
+  Future<List<int>> downloadEventTemplate() {
+    return _client.getRawBytes(ApiConstants.adminEventImportTemplate);
+  }
+
+  /// Executes atomic creation of the complete event hierarchy
+  Future<EventDetail> confirmEventImport(EventImportPreview preview) async {
+    final data = await _client.post(
+      ApiConstants.adminEventImportConfirm,
+      body: preview.toJson(),
+    );
+    return EventDetail.fromJson(data as Map<String, dynamic>);
   }
 }

@@ -66,6 +66,15 @@ class ApiClient {
     return _unwrap(_dio.post(path, data: formData));
   }
 
+  /// Raw byte stream download (for Excel templates, PDFs, etc.)
+  Future<List<int>> getRawBytes(String path) async {
+    final response = await _dio.get<List<int>>(
+      path,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return response.data ?? [];
+  }
+
   Future<dynamic> _unwrap(Future<Response> request) async {
     try {
       final response = await request;

@@ -10,6 +10,7 @@ import '../../features/admin/billing/admin_billing_screen.dart' deferred as admi
 import '../../features/admin/dashboard/admin_dashboard_screen.dart' deferred as admin_dashboard;
 import '../../features/admin/events/admin_days_screen.dart' deferred as admin_days;
 import '../../features/admin/events/admin_event_form_screen.dart' deferred as admin_event_form;
+import '../../features/admin/events/admin_event_import_screen.dart' deferred as admin_event_import;
 import '../../features/admin/events/admin_events_screen.dart' deferred as admin_events;
 import '../../features/admin/events/admin_passes_screen.dart' deferred as admin_passes;
 import '../../features/admin/facilities/admin_facilities_screen.dart' deferred as admin_facilities;
@@ -179,6 +180,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => DeferredWidget(
           loadLibrary: admin_events.loadLibrary,
           builder: () => admin_events.AdminEventsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/admin/events/import',
+        builder: (context, state) => DeferredWidget(
+          loadLibrary: admin_event_import.loadLibrary,
+          builder: () => admin_event_import.AdminEventImportScreen(),
         ),
       ),
       GoRoute(

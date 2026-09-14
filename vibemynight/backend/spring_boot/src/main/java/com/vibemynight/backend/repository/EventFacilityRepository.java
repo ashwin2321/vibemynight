@@ -8,4 +8,5 @@ import java.util.List;
 public interface EventFacilityRepository extends JpaRepository<EventFacility, Long> {
     List<EventFacility> findByEventId(Long eventId);
     void deleteByEventIdAndFacilityId(Long eventId, Long facilityId);
+    boolean existsByEventIdAndFacilityId(Long eventId, Long facilityId);
 }

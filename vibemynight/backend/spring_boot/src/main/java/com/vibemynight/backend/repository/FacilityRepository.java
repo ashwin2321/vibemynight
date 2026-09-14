@@ -9,4 +9,5 @@ import java.util.List;
 public interface FacilityRepository extends JpaRepository<Facility, Long> {
     List<Facility> findByStatus(ActiveStatus status);
     boolean existsByName(String name);
+    java.util.Optional<Facility> findByNameIgnoreCase(String name);
 }

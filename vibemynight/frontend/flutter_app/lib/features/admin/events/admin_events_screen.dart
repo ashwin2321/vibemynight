@@ -174,13 +174,13 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
       currentPath: '/admin/events',
       actions: [
         OutlinedButton.icon(
-          icon: const Icon(Icons.upload_file, size: 16),
-          label: const Text('Excel / CSV Import'),
+          icon: const Icon(Icons.auto_awesome, size: 16),
+          label: const Text('Import Event (Excel)'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.neonPurple,
-            side: const BorderSide(color: AppColors.neonPurple),
+            foregroundColor: AppColors.neonBlue,
+            side: const BorderSide(color: AppColors.neonBlue),
           ),
-          onPressed: () => _openBulkImportDialog(context),
+          onPressed: () => context.push('/admin/events/import'),
         ),
         const SizedBox(width: 8),
         Padding(

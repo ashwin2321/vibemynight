@@ -4,6 +4,7 @@ import 'package:vibemynight/models/admin_requests.dart';
 import 'package:vibemynight/models/admin_user.dart';
 import 'package:vibemynight/models/event_day_detail.dart';
 import 'package:vibemynight/models/event_detail.dart';
+import 'package:vibemynight/models/event_import_models.dart';
 import 'package:vibemynight/models/event_summary.dart';
 import 'package:vibemynight/models/inquiry.dart';
 import 'package:vibemynight/models/inquiry_admin_summary.dart';
@@ -263,6 +264,86 @@ void main() {
     test('CsvExporter handles empty lists safely', () async {
       final result = await CsvExporter.exportInquiries([]);
       expect(result, isFalse);
+    });
+
+    test('EventImportPreview.fromJson and toJson work correctly', () {
+      final previewJson = {
+        'event': {
+          'name': 'Navratri Grand 2026',
+          'slug': 'navratri-grand-2026',
+          'startDate': '2026-10-15',
+          'endDate': '2026-10-17',
+          'city': 'Ahmedabad',
+          'featured': true,
+          'status': 'PUBLISHED',
+        },
+        'days': [
+          {
+            'dayNumber': 1,
+            'date': '2026-10-15',
+            'programName': 'Opening Garba',
+            'passes': [
+              {
+                'dayNumber': '1',
+                'name': 'VIP Pass',
+                'type': 'VIP',
+                'price': 1299.0,
+                'availableQuantity': 150,
+                'benefits': ['VIP Entry', 'Drinks'],
+              }
+            ],
+            'artists': [
+              {
+                'dayNumber': 1,
+                'artistName': 'Falguni Pathak',
+                'artistType': 'SINGER',
+                'isPrimary': true,
+              }
+            ],
+            'facilities': [
+              {
+                'name': 'Free Parking',
+                'scope': 'EVENT',
+              }
+            ],
+          }
+        ],
+        'eventFacilities': [
+          {
+            'name': 'Valet Parking',
+            'scope': 'EVENT',
+          }
+        ],
+        'highlights': ['Air conditioned arena'],
+        'rules': ['Traditional attire required'],
+        'validationMessages': [
+          {
+            'level': 'WARNING',
+            'sheet': 'ARTISTS',
+            'message': 'Artist is new',
+          }
+        ],
+        'hasBlockingErrors': false,
+        'totalDays': 1,
+        'totalPasses': 1,
+        'totalArtists': 1,
+      };
+
+      final preview = EventImportPreview.fromJson(previewJson);
+      expect(preview.event?.name, 'Navratri Grand 2026');
+      expect(preview.days.length, 1);
+      expect(preview.days.first.passes.first.name, 'VIP Pass');
+      expect(preview.days.first.passes.first.price, 1299.0);
+      expect(preview.days.first.artists.first.artistName, 'Falguni Pathak');
+      expect(preview.days.first.artists.first.isPrimary, isTrue);
+      expect(preview.eventFacilities.first.name, 'Valet Parking');
+      expect(preview.highlights.first, 'Air conditioned arena');
+      expect(preview.hasBlockingErrors, isFalse);
+      expect(preview.validationMessages.first.isWarning, isTrue);
+
+      final encodedJson = preview.toJson();
+      expect(encodedJson['totalDays'], 1);
+      expect((encodedJson['event'] as Map)['name'], 'Navratri Grand 2026');
     });
   });
 }
