@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -876,9 +877,9 @@ class _MobileSpotlightCarouselState extends State<_MobileSpotlightCarousel> {
 }
 
 // ==========================================
-// 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS - 2 COLUMNS ON MOBILE)
+// 3. FEATURED NIGHTS SECTION (DISTRICT BY ZOMATO STYLE HORIZONTAL SIDE-SCROLLING CAROUSEL)
 // ==========================================
-class _FeaturedNightsSection extends ConsumerWidget {
+class _FeaturedNightsSection extends StatefulWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
   final String selectedCategory;
 
@@ -888,27 +889,61 @@ class _FeaturedNightsSection extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<_FeaturedNightsSection> createState() => _FeaturedNightsSectionState();
+}
+
+class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollBy(double offset) {
+    if (!_scrollController.hasClients) return;
+    final target = (_scrollController.offset + offset).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
-    final cols = isDesktop ? 4 : (isTablet ? 3 : 2);
+
+    final cardWidth = isDesktop ? 260.0 : (isTablet ? 220.0 : 190.0);
+    final imageHeight = isDesktop ? 290.0 : (isTablet ? 250.0 : 215.0);
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 48 : 12,
-        vertical: isDesktop ? 32 : 16,
+        horizontal: isDesktop ? 48 : 16,
+        vertical: isDesktop ? 32 : 18,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Header with Title + Left/Right Chevron Navigation Buttons + View All
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Column(
@@ -927,9 +962,10 @@ class _FeaturedNightsSection extends ConsumerWidget {
                         Text(
                           'Featured Nights',
                           style: TextStyle(
-                            fontSize: isDesktop ? 32 : 20,
-                            fontWeight: FontWeight.w800,
+                            fontSize: isDesktop ? 32 : 22,
+                            fontWeight: FontWeight.w900,
                             color: Colors.white,
+                            letterSpacing: -0.5,
                           ),
                         ),
                         if (isDesktop) ...[
@@ -937,7 +973,7 @@ class _FeaturedNightsSection extends ConsumerWidget {
                           Text(
                             'Discover the most happening events and book official passes',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: Colors.white.withValues(alpha: 0.55),
                               fontSize: 14,
                             ),
                           ),
@@ -945,32 +981,72 @@ class _FeaturedNightsSection extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () => context.push('/events'),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View All',
-                          style: TextStyle(
-                            color: Color(0xFFA855F7),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+
+                  // Actions: Left/Right Arrows + View All Link
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Left Arrow Button (Desktop & Tablet)
+                      if (!isDesktop ? false : true) ...[
+                        _NavArrowButton(
+                          icon: Icons.arrow_back_rounded,
+                          onPressed: () => _scrollBy(-(cardWidth * 2)),
+                        ),
+                        const SizedBox(width: 8),
+                        _NavArrowButton(
+                          icon: Icons.arrow_forward_rounded,
+                          onPressed: () => _scrollBy(cardWidth * 2),
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+
+                      // View All Link
+                      InkWell(
+                        onTap: () => context.push('/events'),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'View All',
+                                style: TextStyle(
+                                  color: const Color(0xFFA855F7),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: isDesktop ? 14 : 13,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.arrow_forward_rounded, color: Color(0xFFA855F7), size: 15),
+                            ],
                           ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(Icons.arrow_forward, color: Color(0xFFA855F7), size: 14),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // Dynamic Events Grid with 3:4 Poster EventCard
-              eventsAsync.when(
-                loading: () => ShimmerCardGrid(count: cols * 2, cardHeight: 320),
+              // Horizontal Side-Scrolling Events Slider
+              widget.eventsAsync.when(
+                loading: () => SizedBox(
+                  height: isDesktop ? 440 : 360,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 4,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
+                    itemBuilder: (_, __) => Container(
+                      width: cardWidth,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF15102A),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                    ),
+                  ),
+                ),
                 error: (err, _) => Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
@@ -993,12 +1069,6 @@ class _FeaturedNightsSection extends ConsumerWidget {
                           'Tap below to refresh upcoming events or reach out on WhatsApp.',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.white60, fontSize: 13),
-                        ),
-                        const SizedBox(height: 14),
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.refresh, size: 16),
-                          onPressed: () => ref.invalidate(publishedEventsProvider),
-                          label: const Text('Refresh Events'),
                         ),
                       ],
                     ),
@@ -1059,55 +1129,6 @@ class _FeaturedNightsSection extends ConsumerWidget {
                               letterSpacing: -0.5,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 580),
-                            child: const Text(
-                              'We are curating the biggest AC Dome Garba nights, EDM concerts, and celebrity lineups for 2026. Connect on WhatsApp for early-bird booking alerts and VIP reservations.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
-                            ),
-                          ),
-                          const SizedBox(height: 22),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              ElevatedButton.icon(
-                                icon: const Icon(Icons.chat, size: 18, color: Colors.white),
-                                label: const Text(
-                                  'WhatsApp Pass Inquiries',
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF25D366),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                onPressed: () {
-                                  final uri = Uri.parse(
-                                    'https://wa.me/917041615131?text=Hi%20VibeMyNight!%20I%20want%20to%20inquire%20about%20upcoming%20passes%20and%20VIP%20tables.',
-                                  );
-                                  launchUrl(uri, mode: LaunchMode.externalApplication);
-                                },
-                              ),
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.explore, size: 18, color: Colors.white),
-                                label: const Text(
-                                  'Explore Artists',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.white24),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                onPressed: () => context.push('/artists'),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     );
@@ -1115,41 +1136,80 @@ class _FeaturedNightsSection extends ConsumerWidget {
 
                   // Filter by category if selected
                   var filtered = events;
-                  if (selectedCategory == 'Navratri 2026') {
+                  if (widget.selectedCategory == 'Navratri 2026') {
                     filtered = events.where((e) => e.name.toLowerCase().contains('garba') || e.name.toLowerCase().contains('navratri') || (e.location?.toLowerCase().contains('garba') ?? false)).toList();
-                  } else if (selectedCategory == 'DJ & EDM') {
+                  } else if (widget.selectedCategory == 'DJ & EDM') {
                     filtered = events.where((e) => e.name.toLowerCase().contains('dj') || e.name.toLowerCase().contains('edm') || (e.featuredArtistName?.toLowerCase().contains('dj') ?? false)).toList();
-                  } else if (selectedCategory == 'Live Concerts') {
+                  } else if (widget.selectedCategory == 'Live Concerts') {
                     filtered = events.where((e) => e.name.toLowerCase().contains('concert') || e.name.toLowerCase().contains('live') || (e.featuredArtistName?.isNotEmpty ?? false)).toList();
-                  } else if (selectedCategory == 'VIP Exclusives') {
+                  } else if (widget.selectedCategory == 'VIP Exclusives') {
                     filtered = events.where((e) => e.featured).toList();
                   }
                   if (filtered.isEmpty) filtered = events;
 
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      final spacing = isDesktop ? 16.0 : 10.0;
-                      final itemWidth = (constraints.maxWidth - (cols - 1) * spacing) / cols;
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: spacing + 6,
-                        children: filtered.take(8).map((event) {
-                          return SizedBox(
-                            width: itemWidth,
-                            child: EventCard(
-                              event: event,
-                              imageHeight: isDesktop ? 220 : 165,
+                  return ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      dragDevices: {
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse,
+                        PointerDeviceKind.trackpad,
+                      },
+                    ),
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: filtered.map((event) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 16, bottom: 4),
+                            child: SizedBox(
+                              width: cardWidth,
+                              child: EventCard(
+                                event: event,
+                                imageHeight: imageHeight,
+                              ),
                             ),
                           );
                         }).toList(),
-                      );
-                    },
+                      ),
+                    ),
                   );
                 },
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _NavArrowButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _NavArrowButton({
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon, color: Colors.white, size: 16),
       ),
     );
   }

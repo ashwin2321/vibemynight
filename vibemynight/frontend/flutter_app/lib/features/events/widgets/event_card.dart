@@ -6,7 +6,7 @@ import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/network_image_box.dart';
 import '../../../models/event_summary.dart';
 
-/// Showmates-inspired 3:4 Vertical Poster Event Card with luxury dark neon styling:
+/// Showmates & Zomato District inspired 3:4 Vertical Poster Event Card with luxury dark neon styling:
 /// - High-fidelity poster visual with rounded corners
 /// - Floating date & time pill
 /// - Featured / Selling Fast status badge
@@ -18,21 +18,32 @@ class EventCard extends StatelessWidget {
   const EventCard({
     super.key,
     required this.event,
-    this.imageHeight = 220,
+    this.imageHeight = 280,
   });
+
+  static const List<String> _curatedPosters = [
+    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=800&fit=crop&auto=format',
+  ];
 
   @override
   Widget build(BuildContext context) {
     final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
     final hasStartDate = event.startDate.isNotEmpty;
     final isCompact = MediaQuery.of(context).size.width < 600;
+    final fallbackUrl = _curatedPosters[event.id.abs() % _curatedPosters.length];
 
     return GlassCard(
       padding: EdgeInsets.zero,
-      borderRadius: isCompact ? 14 : 18,
+      borderRadius: isCompact ? 16 : 20,
       onTap: () => context.push(targetRoute),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // 1. POSTER IMAGE WITH OVERLAYS (3:4 Ratio)
           Stack(
@@ -41,9 +52,10 @@ class EventCard extends StatelessWidget {
                 tag: 'event-image-${event.id}',
                 child: NetworkImageBox(
                   url: event.thumbnail ?? event.mainImage,
-                  height: isCompact ? 165 : imageHeight,
+                  fallbackUrl: fallbackUrl,
+                  height: isCompact ? 220 : imageHeight,
                   width: double.infinity,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 14 : 18)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 16 : 20)),
                 ),
               ),
               // Gradient bottom shadow on image for readability
@@ -51,7 +63,7 @@ class EventCard extends StatelessWidget {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 50,
+                height: 60,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -59,7 +71,7 @@ class EventCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        const Color(0xFF100D22).withValues(alpha: 0.85),
+                        const Color(0xFF0D0A1C).withValues(alpha: 0.9),
                       ],
                     ),
                   ),
@@ -68,22 +80,22 @@ class EventCard extends StatelessWidget {
               // Top-left: Date & Time pill
               if (hasStartDate)
                 Positioned(
-                  top: 8,
-                  left: 8,
+                  top: 10,
+                  left: 10,
                   child: Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isCompact ? 7 : 10,
-                      vertical: isCompact ? 3 : 4,
+                      horizontal: isCompact ? 8 : 10,
+                      vertical: isCompact ? 3.5 : 4.5,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xE607070E),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.5),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
+                          color: Colors.black.withValues(alpha: 0.6),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -92,14 +104,14 @@ class EventCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.calendar_month, color: const Color(0xFFC084FC), size: isCompact ? 10 : 12),
+                        Icon(Icons.calendar_month, color: const Color(0xFFC084FC), size: isCompact ? 11 : 13),
                         const SizedBox(width: 4),
                         Text(
                           event.startDate,
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: isCompact ? 9.5 : 11,
-                            fontWeight: FontWeight.w600,
+                            fontSize: isCompact ? 10 : 11.5,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -109,8 +121,8 @@ class EventCard extends StatelessWidget {
               // Top-right: Featured / Selling Fast tag
               if (event.featured)
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 10,
+                  right: 10,
                   child: _FeaturedBadge(isCompact: isCompact),
                 ),
             ],
@@ -119,13 +131,14 @@ class EventCard extends StatelessWidget {
           // 2. EVENT DETAILS BODY
           Padding(
             padding: EdgeInsets.fromLTRB(
-              isCompact ? 10 : 14,
-              isCompact ? 8 : 12,
-              isCompact ? 10 : 14,
-              isCompact ? 10 : 14,
+              isCompact ? 12 : 14,
+              isCompact ? 10 : 12,
+              isCompact ? 12 : 14,
+              isCompact ? 12 : 14,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Event Name (Bold, 2 lines max)
                 Text(
@@ -133,7 +146,7 @@ class EventCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: isCompact ? 13 : 15,
+                    fontSize: isCompact ? 13.5 : 15,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     height: 1.25,
@@ -144,7 +157,7 @@ class EventCard extends StatelessWidget {
                 // Location / Venue
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, color: const Color(0xFF60A5FA), size: isCompact ? 12 : 14),
+                    Icon(Icons.location_on_outlined, color: const Color(0xFF60A5FA), size: isCompact ? 13 : 14),
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(
@@ -155,20 +168,20 @@ class EventCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.65),
-                          fontSize: isCompact ? 10.5 : 12,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: isCompact ? 11 : 12,
                         ),
                       ),
                     ),
                   ],
                 ),
 
-                // Featured Artist
+                // Featured Artist (if any)
                 if (event.featuredArtistName != null && event.featuredArtistName!.isNotEmpty) ...[
                   const SizedBox(height: 3),
                   Row(
                     children: [
-                      Icon(Icons.mic_none, color: const Color(0xFFA855F7), size: isCompact ? 12 : 14),
+                      Icon(Icons.mic_none, color: const Color(0xFFA855F7), size: isCompact ? 13 : 14),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
@@ -176,8 +189,8 @@ class EventCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.65),
-                            fontSize: isCompact ? 10.5 : 12,
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: isCompact ? 11 : 12,
                           ),
                         ),
                       ),
@@ -185,9 +198,9 @@ class EventCard extends StatelessWidget {
                   ),
                 ],
 
-                SizedBox(height: isCompact ? 8 : 12),
-                const Divider(height: 1, color: Color(0x1FFFFFFF)),
-                SizedBox(height: isCompact ? 6 : 10),
+                SizedBox(height: isCompact ? 8 : 10),
+                const Divider(height: 1, color: Color(0x1AFFFFFF)),
+                SizedBox(height: isCompact ? 8 : 10),
 
                 // Bottom Price & Action Row
                 Row(
@@ -201,7 +214,7 @@ class EventCard extends StatelessWidget {
                           'from',
                           style: TextStyle(
                             fontSize: isCompact ? 9 : 10,
-                            color: Colors.white.withValues(alpha: 0.45),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                         Text(
@@ -209,8 +222,8 @@ class EventCard extends StatelessWidget {
                               ? '₹${event.startingPrice!.toInt()}'
                               : '₹499',
                           style: TextStyle(
-                            fontSize: isCompact ? 13 : 16,
-                            fontWeight: FontWeight.w800,
+                            fontSize: isCompact ? 14 : 16,
+                            fontWeight: FontWeight.w900,
                             color: const Color(0xFFA855F7),
                           ),
                         ),
@@ -218,29 +231,35 @@ class EventCard extends StatelessWidget {
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: isCompact ? 8 : 12,
-                        vertical: isCompact ? 4 : 6,
+                        horizontal: isCompact ? 10 : 12,
+                        vertical: isCompact ? 5 : 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                         ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            isCompact ? 'Passes' : 'Get Pass',
+                            'Get Pass',
                             style: TextStyle(
-                              color: const Color(0xFFC084FC),
-                              fontSize: isCompact ? 9.5 : 11,
-                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                          const SizedBox(width: 2),
-                          Icon(Icons.arrow_forward, color: const Color(0xFFC084FC), size: isCompact ? 10 : 12),
+                          SizedBox(width: 3),
+                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 12),
                         ],
                       ),
                     ),
