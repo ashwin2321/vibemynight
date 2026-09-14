@@ -9,9 +9,12 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * SSRF (Server-Side Request Forgery) protection validator for outgoing web requests.
@@ -35,22 +38,64 @@ public class UrlSecurityValidator {
     );
 
     /**
+     * Extracts and cleans the best event URL from potentially dirty or concatenated input strings.
+     */
+    public String extractAndCleanSingleUrl(String rawInput) {
+        if (rawInput == null || rawInput.isBlank()) {
+            throw new BadRequestException("Event URL cannot be blank.");
+        }
+
+        String input = rawInput.trim();
+
+        // 1. Regex to find all http/https URLs in the input
+        Pattern urlPattern = Pattern.compile("https?://[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = urlPattern.matcher(input);
+        List<String> foundUrls = new ArrayList<>();
+        while (matcher.find()) {
+            String u = matcher.group();
+            // In case of joined https://...https://... without spaces, split at secondary 'https?://'
+            String[] splits = u.split("(?=https?://)");
+            for (String s : splits) {
+                if (!s.isBlank()) {
+                    foundUrls.add(s.trim());
+                }
+            }
+        }
+
+        if (foundUrls.isEmpty()) {
+            if (input.startsWith("www.") || input.contains(".com") || input.contains(".in") || input.contains(".org")) {
+                return "https://" + input;
+            }
+            throw new BadRequestException("Please enter a valid web URL starting with https:// or http://");
+        }
+
+        // 2. Prioritize specific event detail links over generic explore/city pages
+        for (String u : foundUrls) {
+            String lower = u.toLowerCase();
+            if (lower.contains("/events/") || lower.contains("/event/") || lower.contains("/buy-tickets/")
+                    || lower.contains("/et00") || lower.contains("/p/")) {
+                return u;
+            }
+        }
+
+        // Return the first valid URL
+        return foundUrls.get(0);
+    }
+
+    /**
      * Validates that a given URL is safe to fetch externally.
      * Throws BadRequestException if the URL violates SSRF safety rules.
      */
     public URI validateAndSanitizeUrl(String rawUrl) {
-        if (rawUrl == null || rawUrl.isBlank()) {
-            throw new BadRequestException("Event URL cannot be blank.");
-        }
+        String cleanedUrl = extractAndCleanSingleUrl(rawUrl);
 
-        String trimmed = rawUrl.trim();
-        if (trimmed.length() > 2048) {
+        if (cleanedUrl.length() > 2048) {
             throw new BadRequestException("URL is excessively long.");
         }
 
         URI uri;
         try {
-            uri = URI.create(trimmed);
+            uri = URI.create(cleanedUrl);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid URL format: " + e.getMessage());
         }

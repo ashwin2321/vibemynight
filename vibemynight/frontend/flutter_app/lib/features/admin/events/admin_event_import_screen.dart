@@ -288,7 +288,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                             controller: _urlController,
                             enabled: !_isParsing && !_isCreating,
                             decoration: InputDecoration(
-                              hintText: 'https://in.bookmyshow.com/events/... or https://cdn.district.in/...',
+                              hintText: 'https://showmates.in/events/... or https://www.district.in/...',
                               prefixIcon: const Icon(Icons.link_rounded, color: AppColors.neonPurple),
                               suffixIcon: _urlController.text.isNotEmpty
                                   ? IconButton(
@@ -305,6 +305,44 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                           label: _isParsing ? 'FETCHING...' : '⚡ FETCH & AUTO-FILL',
                           isLoading: _isParsing,
                           onPressed: _isParsing || _isCreating ? null : _scrapeUrl,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Quick Sample Link Chips for Easy Testing
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        const Text(
+                          'Try Sample:',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        ActionChip(
+                          avatar: const Icon(Icons.theater_comedy, size: 14, color: Color(0xFF84CC16)),
+                          label: const Text('Showmates Dome Garba', style: TextStyle(fontSize: 11)),
+                          backgroundColor: AppColors.surface,
+                          side: const BorderSide(color: Color(0xFF84CC16), width: 0.5),
+                          onPressed: () {
+                            setState(() {
+                              _urlController.text = 'https://showmates.in/events/swarnim-nagari-ac-dome-garba-2026/B61D192';
+                            });
+                            _scrapeUrl();
+                          },
+                        ),
+                        ActionChip(
+                          avatar: const Icon(Icons.local_activity, size: 14, color: Color(0xFFF97316)),
+                          label: const Text('District Navratri', style: TextStyle(fontSize: 11)),
+                          backgroundColor: AppColors.surface,
+                          side: const BorderSide(color: Color(0xFFF97316), width: 0.5),
+                          onPressed: () {
+                            setState(() {
+                              _urlController.text = 'https://www.district.in/events/navratri-in-ahmedabad-book-tickets';
+                            });
+                            _scrapeUrl();
+                          },
                         ),
                       ],
                     ),

@@ -50,8 +50,16 @@ public class SafeWebFetcher {
                     .uri(currentUri)
                     .timeout(READ_TIMEOUT)
                     .header("User-Agent", USER_AGENT)
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
                     .header("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,gu;q=0.7")
+                    .header("Sec-Ch-Ua", "\"Chromium\";v=\"128\", \"Not;A=Brand\";v=\"24\", \"Google Chrome\";v=\"128\"")
+                    .header("Sec-Ch-Ua-Mobile", "?0")
+                    .header("Sec-Ch-Ua-Platform", "\"Windows\"")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "none")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
                     .GET()
                     .build();
 
@@ -75,12 +83,14 @@ public class SafeWebFetcher {
                     continue;
                 }
 
-                if (statusCode == 403 || statusCode == 401) {
-                    throw new BadRequestException("Access denied by source website (HTTP " + statusCode + "). Anti-bot protection enabled on target.");
-                }
-
                 if (statusCode == 404) {
                     throw new BadRequestException("Event page not found (HTTP 404). Please verify the link.");
+                }
+
+                if (statusCode == 403 || statusCode == 401) {
+                    log.warn("Website returned status {} for URL: {}. Proceeding with URL metadata fallback.", statusCode, currentUri);
+                    // Return minimal fallback HTML so the user gets an initialized draft rather than hard failure
+                    return "<html><head><title>" + currentUri.getPath() + "</title></head><body><!-- bot-protected --></body></html>";
                 }
 
                 if (statusCode >= 400) {

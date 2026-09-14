@@ -45,19 +45,7 @@ public class EventScraperServiceImpl implements EventScraperService {
 
     @Override
     public EventImportPreviewDto scrapeEventFromUrl(String url) {
-        if (url == null || url.isBlank()) {
-            throw new BadRequestException("Event URL cannot be blank.");
-        }
-
-        // 1. Safely fetch HTML with SSRF validation
-        String html = safeWebFetcher.fetchHtml(url.trim());
-        if (html == null || html.isBlank()) {
-            throw new BadRequestException("No readable content received from source URL.");
-        }
-
-        Document doc = Jsoup.parse(html, url);
-        URI uri = URI.create(url);
-        String host = uri.getHost() != null ? uri.getHost().toLowerCase() : "";
+        String cleanUrl = urlSecurityValidator.extractAndCleanSingleUrl(url);
 
         List<ValidationMessageDto> validationMessages = new ArrayList<>();
         List<EventDayImportDto> days = new ArrayList<>();
@@ -66,13 +54,52 @@ public class EventScraperServiceImpl implements EventScraperService {
         List<String> rules = new ArrayList<>();
         List<String> galleryUrls = new ArrayList<>();
 
+        // 1. Safely fetch HTML with SSRF validation
+        String html = safeWebFetcher.fetchHtml(cleanUrl);
+        if (html == null || html.isBlank()) {
+            throw new BadRequestException("No readable content received from source URL.");
+        }
+
+        Document doc = Jsoup.parse(html, cleanUrl);
+        URI uri = URI.create(cleanUrl);
+        String host = uri.getHost() != null ? uri.getHost().toLowerCase() : "";
+
+        // 1.1 Check if this is an Explore or Listing page (e.g., /explore/ahmedabad, /ahmedabad, /events)
+        Elements eventLinks = doc.select("a[href*=/events/], a[href*=/event/], a[href*=/buy-tickets/], a[href*=/et00]");
+        boolean isLikelyListing = (cleanUrl.contains("/explore/") || cleanUrl.matches(".*/[a-z-]+$"))
+                && !eventLinks.isEmpty()
+                && doc.select("script[type=application/ld+json]").isEmpty();
+
+        if (isLikelyListing) {
+            for (Element el : eventLinks) {
+                String childUrl = el.absUrl("href");
+                if (childUrl != null && !childUrl.isBlank() && !childUrl.equalsIgnoreCase(cleanUrl)) {
+                    try {
+                        String childClean = urlSecurityValidator.extractAndCleanSingleUrl(childUrl);
+                        String childHtml = safeWebFetcher.fetchHtml(childClean);
+                        if (childHtml != null && !childHtml.isBlank()) {
+                            doc = Jsoup.parse(childHtml, childClean);
+                            cleanUrl = childClean;
+                            uri = URI.create(childClean);
+                            host = uri.getHost() != null ? uri.getHost().toLowerCase() : "";
+                            validationMessages.add(ValidationMessageDto.info("SCRAPER", 1, "listing",
+                                    "Listing / Explore page detected. Auto-extracted first featured event from URL: " + childClean));
+                            break;
+                        }
+                    } catch (Exception e) {
+                        log.debug("Could not scrape child link from listing: {}", e.getMessage());
+                    }
+                }
+            }
+        }
+
         // 2. Classify platform
         String platform = classifyPlatform(host);
         validationMessages.add(ValidationMessageDto.info("SCRAPER", 1, "platform", "Detected source platform: " + platform));
 
         // 3. Extract metadata from JSON-LD, OpenGraph, and Meta tags
         ScrapedData data = new ScrapedData();
-        data.sourceUrl = url;
+        data.sourceUrl = cleanUrl;
 
         // Try JSON-LD first
         extractJsonLd(doc, data, validationMessages);
@@ -88,6 +115,9 @@ public class EventScraperServiceImpl implements EventScraperService {
         } else if ("SHOWMATES".equals(platform)) {
             extractShowmatesSpecifics(doc, data);
         }
+
+        // Inferred city from URL or content
+        inferCityIfMissing(data, cleanUrl);
 
         // 4. Validate & Normalize Event Header
         EventHeaderImportDto header = buildEventHeader(data, validationMessages);
@@ -301,8 +331,51 @@ public class EventScraperServiceImpl implements EventScraperService {
         }
     }
 
+    private void inferCityIfMissing(ScrapedData data, String url) {
+        if (data.city != null && !data.city.isBlank()) return;
+
+        List<String> cities = List.of(
+                "Ahmedabad", "Gandhinagar", "Vadodara", "Baroda", "Surat", "Rajkot", "Bhavnagar",
+                "Mumbai", "Pune", "Delhi", "Bengaluru", "Bangalore", "Goa", "Jaipur", "Hyderabad",
+                "Kolkata", "Chennai", "Indore", "Udaipur", "Chandigarh"
+        );
+
+        String combined = (url + " " + (data.title != null ? data.title : "") + " " + (data.venue != null ? data.venue : "")).toLowerCase();
+        for (String c : cities) {
+            if (combined.contains(c.toLowerCase())) {
+                data.city = c;
+                return;
+            }
+        }
+        data.city = "Ahmedabad"; // Default city
+    }
+
     private EventHeaderImportDto buildEventHeader(ScrapedData data, List<ValidationMessageDto> messages) {
-        String title = (data.title != null && !data.title.isBlank()) ? data.title : "Imported Web Event";
+        String title = data.title;
+        if (title == null || title.isBlank() || title.equalsIgnoreCase("Imported Web Event")) {
+            // Extract from URL path
+            if (data.sourceUrl != null) {
+                try {
+                    URI u = URI.create(data.sourceUrl);
+                    String path = u.getPath();
+                    if (path != null && !path.isBlank()) {
+                        String[] parts = path.split("/");
+                        for (int i = parts.length - 1; i >= 0; i--) {
+                            String segment = parts[i].trim();
+                            if (!segment.isEmpty() && !segment.matches("^[0-9A-Z]{4,10}$") && !segment.equals("events") && !segment.equals("explore")) {
+                                String readable = segment.replace("-", " ").replace("_", " ");
+                                title = capitalizeWords(readable);
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        if (title == null || title.isBlank()) {
+            title = "Imported Web Event";
+        }
+
         String slug = title.toLowerCase().replaceAll("[^a-z0-9-]+", "-").replaceAll("^-+|-+$", "");
         if (slug.isBlank()) slug = "imported-event-" + System.currentTimeMillis();
 
@@ -310,7 +383,7 @@ public class EventScraperServiceImpl implements EventScraperService {
         LocalDate end = data.endDate != null ? data.endDate : start;
 
         String city = (data.city != null && !data.city.isBlank()) ? data.city : "Ahmedabad";
-        String venue = (data.venue != null && !data.venue.isBlank()) ? data.venue : "Grand Arena";
+        String venue = (data.venue != null && !data.venue.isBlank()) ? data.venue : "Grand Arena, " + city;
         String location = (data.location != null && !data.location.isBlank()) ? data.location : venue + ", " + city;
 
         String banner = null;
@@ -342,6 +415,19 @@ public class EventScraperServiceImpl implements EventScraperService {
                 .mainImage(poster)
                 .thumbnail(thumbnail)
                 .build();
+    }
+
+    private String capitalizeWords(String input) {
+        if (input == null || input.isBlank()) return input;
+        StringBuilder sb = new StringBuilder();
+        for (String word : input.split("\\s+")) {
+            if (!word.isBlank()) {
+                sb.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1).toLowerCase())
+                        .append(" ");
+            }
+        }
+        return sb.toString().trim();
     }
 
     private List<EventDayImportDto> buildEventDays(EventHeaderImportDto header, ScrapedData data) {
