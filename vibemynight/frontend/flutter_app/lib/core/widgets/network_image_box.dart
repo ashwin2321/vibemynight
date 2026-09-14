@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../constants/api_constants.dart';
 import '../theme/app_colors.dart';
 
 /// Network image with rounded corners, progressive loading state,
-/// CORS-safe image proxy resolution, and graceful fallback (never broken-image icon or plain blank box).
+/// and graceful fallback (never broken-image icon or plain blank box).
 class NetworkImageBox extends StatelessWidget {
   final String? url;
   final String? fallbackUrl;
@@ -31,41 +29,15 @@ class NetworkImageBox extends StatelessWidget {
     'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&fit=crop&auto=format',
   ];
 
-  static String resolveUrl(String? raw) {
-    if (raw == null || raw.trim().isEmpty) return '';
-    final trimmed = raw.trim();
-
-    // 1. Relative local storage paths
-    if (trimmed.startsWith('/uploads/')) {
-      final base = ApiConstants.baseUrl.replaceAll('/api/v1', '');
-      return '$base$trimmed';
-    }
-
-    // 2. Already hosted on our backend or localhost
-    if (trimmed.contains('vibemynight.onrender.com') || trimmed.contains('localhost')) {
-      return trimmed;
-    }
-
-    // 3. For third-party ticketing CDNs on Web (e.g. cdn.showmates.in, in.bmscdn.com, district.in)
-    // CanvasKit blocks these due to missing CORS headers. Proxy through backend.
-    if (kIsWeb && (trimmed.contains('showmates.in') || trimmed.contains('bmscdn.com') || trimmed.contains('district.in') || trimmed.contains('insider.in'))) {
-      return '${ApiConstants.baseUrl}/public/images/proxy?url=${Uri.encodeComponent(trimmed)}';
-    }
-
-    return trimmed;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final rawUrl = (url != null && url!.trim().isNotEmpty)
+    final effectiveUrl = (url != null && url!.trim().isNotEmpty)
         ? url!.trim()
         : (fallbackUrl != null && fallbackUrl!.trim().isNotEmpty ? fallbackUrl!.trim() : null);
 
-    if (rawUrl == null) {
+    if (effectiveUrl == null) {
       return _renderStylizedFallback();
     }
-
-    final effectiveUrl = resolveUrl(rawUrl);
 
     return ClipRRect(
       borderRadius: borderRadius,
@@ -79,26 +51,13 @@ class NetworkImageBox extends StatelessWidget {
           return _renderLoadingState();
         },
         errorBuilder: (context, error, stack) {
-          // If direct loading failed on web, retry with backend image proxy
-          final proxied = '${ApiConstants.baseUrl}/public/images/proxy?url=${Uri.encodeComponent(rawUrl)}';
-          if (effectiveUrl != proxied) {
+          if (fallbackUrl != null && fallbackUrl != effectiveUrl) {
             return Image.network(
-              proxied,
+              fallbackUrl!,
               height: height,
               width: width,
               fit: fit,
-              errorBuilder: (_, __, ___) {
-                if (fallbackUrl != null && fallbackUrl != rawUrl) {
-                  return Image.network(
-                    resolveUrl(fallbackUrl!),
-                    height: height,
-                    width: width,
-                    fit: fit,
-                    errorBuilder: (_, __, ___) => _renderStylizedFallback(),
-                  );
-                }
-                return _renderStylizedFallback();
-              },
+              errorBuilder: (_, __, ___) => _renderStylizedFallback(),
             );
           }
           return _renderStylizedFallback();

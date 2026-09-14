@@ -78,8 +78,7 @@ public class SecurityConfig {
                                 "/api/v1/artists/**",
                                 "/api/v1/facilities/**",
                                 "/api/v1/event-days/**",
-                                "/api/v1/settings/public",
-                                "/api/v1/public/images/**"
+                                "/api/v1/settings/public"
                         ).permitAll()
 
                         // Inquiry submission and status lookup are public
