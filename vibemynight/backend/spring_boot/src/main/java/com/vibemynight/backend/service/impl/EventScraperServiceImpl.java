@@ -397,32 +397,35 @@ public class EventScraperServiceImpl implements EventScraperService {
 
         for (EventDayImportDto day : days) {
             day.getPasses().add(PassImportDto.builder()
+                    .dayNumber(String.valueOf(day.getDayNumber()))
                     .name("Regular Pass")
                     .type("REGULAR")
                     .price(basePrice)
                     .availableQuantity(500)
                     .maxPerCustomer(5)
-                    .benefits("General Ground Entry, Dance Arena Access")
+                    .benefits(List.of("General Ground Entry", "Dance Arena Access"))
                     .description("Standard entry pass.")
                     .build());
 
             day.getPasses().add(PassImportDto.builder()
+                    .dayNumber(String.valueOf(day.getDayNumber()))
                     .name("VIP Pass")
                     .type("VIP")
                     .price(basePrice.multiply(new BigDecimal("2.0")))
                     .availableQuantity(150)
                     .maxPerCustomer(4)
-                    .benefits("VIP Lounge, Dedicated Gate, Fast-track entry")
+                    .benefits(List.of("VIP Lounge", "Dedicated Gate", "Fast-track entry"))
                     .description("VIP elevated view pass.")
                     .build());
 
             day.getPasses().add(PassImportDto.builder()
+                    .dayNumber(String.valueOf(day.getDayNumber()))
                     .name("Couple Pass")
                     .type("COUPLE")
                     .price(basePrice.multiply(new BigDecimal("1.8")))
                     .availableQuantity(100)
                     .maxPerCustomer(2)
-                    .benefits("1 Couple Entry (1 Female + 1 Male)")
+                    .benefits(List.of("1 Couple Entry (1 Female + 1 Male)"))
                     .description("Combined couple pass.")
                     .build());
         }
