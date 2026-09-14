@@ -3,21 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/about/about_screen.dart';
-import '../../features/admin/artists/admin_artist_form_screen.dart' deferred as admin_artist_form;
-import '../../features/admin/artists/admin_artists_screen.dart' deferred as admin_artists;
-import '../../features/admin/auth/admin_login_screen.dart' deferred as admin_login;
-import '../../features/admin/billing/admin_billing_screen.dart' deferred as admin_billing;
-import '../../features/admin/dashboard/admin_dashboard_screen.dart' deferred as admin_dashboard;
-import '../../features/admin/events/admin_days_screen.dart' deferred as admin_days;
-import '../../features/admin/events/admin_event_form_screen.dart' deferred as admin_event_form;
-import '../../features/admin/events/admin_event_import_screen.dart' deferred as admin_event_import;
-import '../../features/admin/events/admin_events_screen.dart' deferred as admin_events;
-import '../../features/admin/events/admin_passes_screen.dart' deferred as admin_passes;
-import '../../features/admin/facilities/admin_facilities_screen.dart' deferred as admin_facilities;
-import '../../features/admin/inquiries/admin_inquiries_screen.dart' deferred as admin_inquiries;
-import '../../features/admin/inquiries/admin_inquiry_details_screen.dart' deferred as admin_inquiry_details;
-import '../../features/admin/passes/admin_pass_catalog_screen.dart' deferred as admin_pass_catalog;
-import '../../features/admin/settings/admin_settings_screen.dart' deferred as admin_settings;
+import '../../features/admin/artists/admin_artist_form_screen.dart';
+import '../../features/admin/artists/admin_artists_screen.dart';
+import '../../features/admin/auth/admin_login_screen.dart';
+import '../../features/admin/billing/admin_billing_screen.dart';
+import '../../features/admin/dashboard/admin_dashboard_screen.dart';
+import '../../features/admin/events/admin_days_screen.dart';
+import '../../features/admin/events/admin_event_form_screen.dart';
+import '../../features/admin/events/admin_event_import_screen.dart';
+import '../../features/admin/events/admin_events_screen.dart';
+import '../../features/admin/events/admin_passes_screen.dart';
+import '../../features/admin/facilities/admin_facilities_screen.dart';
+import '../../features/admin/inquiries/admin_inquiries_screen.dart';
+import '../../features/admin/inquiries/admin_inquiry_details_screen.dart';
+import '../../features/admin/passes/admin_pass_catalog_screen.dart';
+import '../../features/admin/settings/admin_settings_screen.dart';
 import '../../features/artists/artists_screen.dart';
 import '../../features/contact/contact_screen.dart';
 import '../../features/event_details/event_day_screen.dart';
@@ -29,43 +29,6 @@ import '../../features/inquiry/inquiry_success_screen.dart';
 import '../../models/inquiry.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/loading_view.dart';
-
-/// Deferred loader helper for code splitting in Flutter Web
-class DeferredWidget extends StatelessWidget {
-  final Future<void> Function() loadLibrary;
-  final Widget Function() builder;
-
-  const DeferredWidget({
-    super.key,
-    required this.loadLibrary,
-    required this.builder,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: loadLibrary(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return Scaffold(
-              backgroundColor: const Color(0xFF07070E),
-              body: Center(
-                child: Text('Error loading module: ${snapshot.error}',
-                    style: const TextStyle(color: Colors.white70)),
-              ),
-            );
-          }
-          return builder();
-        }
-        return const Scaffold(
-          backgroundColor: Color(0xFF07070E),
-          body: LoadingView(message: 'Loading admin panel...'),
-        );
-      },
-    );
-  }
-}
 
 /// Every screen/route named in the spec is wired here now (Phase 7).
 /// Admin routes redirect to /admin/login when there's no JWT in storage.
@@ -160,67 +123,43 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ---------- Admin (Deferred / Code-Split) ----------
+      // ---------- Admin ----------
       GoRoute(
         path: '/admin/login',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_login.loadLibrary,
-          builder: () => admin_login.AdminLoginScreen(),
-        ),
+        builder: (context, state) => const AdminLoginScreen(),
       ),
       GoRoute(
         path: '/admin/dashboard',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_dashboard.loadLibrary,
-          builder: () => admin_dashboard.AdminDashboardScreen(),
-        ),
+        builder: (context, state) => const AdminDashboardScreen(),
       ),
       GoRoute(
         path: '/admin/events',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_events.loadLibrary,
-          builder: () => admin_events.AdminEventsScreen(),
-        ),
+        builder: (context, state) => const AdminEventsScreen(),
       ),
       GoRoute(
         path: '/admin/events/import',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_event_import.loadLibrary,
-          builder: () => admin_event_import.AdminEventImportScreen(),
-        ),
+        builder: (context, state) => const AdminEventImportScreen(),
       ),
       GoRoute(
         path: '/admin/events/new',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_event_form.loadLibrary,
-          builder: () => admin_event_form.AdminCreateEventScreen(),
-        ),
+        builder: (context, state) => const AdminCreateEventScreen(),
       ),
       GoRoute(
         path: '/admin/events/:id/edit',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_event_form.loadLibrary,
-          builder: () => admin_event_form.AdminEditEventScreen(
-            eventId: int.parse(state.pathParameters['id']!),
-          ),
+        builder: (context, state) => AdminEditEventScreen(
+          eventId: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/admin/events/:id/days',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_days.loadLibrary,
-          builder: () => admin_days.AdminManageDaysScreen(
-            eventId: int.parse(state.pathParameters['id']!),
-          ),
+        builder: (context, state) => AdminManageDaysScreen(
+          eventId: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/admin/events/:id/days/new',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_days.loadLibrary,
-          builder: () => admin_days.AdminDayFormScreen(
-            eventId: int.parse(state.pathParameters['id']!),
-          ),
+        builder: (context, state) => AdminDayFormScreen(
+          eventId: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
@@ -228,109 +167,70 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final dayId = int.parse(state.pathParameters['dayId']!);
           final eventId = state.extra as int? ?? 0;
-          return DeferredWidget(
-            loadLibrary: admin_days.loadLibrary,
-            builder: () => admin_days.AdminDayFormScreen(
-              eventId: eventId,
-              dayId: dayId,
-            ),
+          return AdminDayFormScreen(
+            eventId: eventId,
+            dayId: dayId,
           );
         },
       ),
       GoRoute(
         path: '/admin/event-days/:dayId/passes',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_passes.loadLibrary,
-          builder: () => admin_passes.AdminManagePassesScreen(
-            eventDayId: int.parse(state.pathParameters['dayId']!),
-          ),
+        builder: (context, state) => AdminManagePassesScreen(
+          eventDayId: int.parse(state.pathParameters['dayId']!),
         ),
       ),
       GoRoute(
         path: '/admin/event-days/:dayId/passes/new',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_passes.loadLibrary,
-          builder: () => admin_passes.AdminCreatePassScreen(
-            eventDayId: int.parse(state.pathParameters['dayId']!),
-          ),
+        builder: (context, state) => AdminCreatePassScreen(
+          eventDayId: int.parse(state.pathParameters['dayId']!),
         ),
       ),
       GoRoute(
         path: '/admin/event-days/:dayId/passes/:passId/edit',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_passes.loadLibrary,
-          builder: () => admin_passes.AdminEditPassScreen(
-            eventDayId: int.parse(state.pathParameters['dayId']!),
-            passId: int.parse(state.pathParameters['passId']!),
-          ),
+        builder: (context, state) => AdminEditPassScreen(
+          eventDayId: int.parse(state.pathParameters['dayId']!),
+          passId: int.parse(state.pathParameters['passId']!),
         ),
       ),
       GoRoute(
         path: '/admin/artists',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_artists.loadLibrary,
-          builder: () => admin_artists.AdminArtistsScreen(),
-        ),
+        builder: (context, state) => const AdminArtistsScreen(),
       ),
       GoRoute(
         path: '/admin/artists/new',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_artist_form.loadLibrary,
-          builder: () => admin_artist_form.AdminCreateArtistScreen(),
-        ),
+        builder: (context, state) => const AdminCreateArtistScreen(),
       ),
       GoRoute(
         path: '/admin/artists/:id/edit',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_artist_form.loadLibrary,
-          builder: () => admin_artist_form.AdminEditArtistScreen(
-            artistId: int.parse(state.pathParameters['id']!),
-          ),
+        builder: (context, state) => AdminEditArtistScreen(
+          artistId: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/admin/pass-templates',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_pass_catalog.loadLibrary,
-          builder: () => admin_pass_catalog.AdminPassCatalogScreen(),
-        ),
+        builder: (context, state) => const AdminPassCatalogScreen(),
       ),
       GoRoute(
         path: '/admin/facilities',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_facilities.loadLibrary,
-          builder: () => admin_facilities.AdminFacilitiesScreen(),
-        ),
+        builder: (context, state) => const AdminFacilitiesScreen(),
       ),
       GoRoute(
         path: '/admin/inquiries',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_inquiries.loadLibrary,
-          builder: () => admin_inquiries.AdminInquiriesScreen(),
-        ),
+        builder: (context, state) => const AdminInquiriesScreen(),
       ),
       GoRoute(
         path: '/admin/inquiries/:id',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_inquiry_details.loadLibrary,
-          builder: () => admin_inquiry_details.AdminInquiryDetailsScreen(
-            inquiryId: int.parse(state.pathParameters['id']!),
-          ),
+        builder: (context, state) => AdminInquiryDetailsScreen(
+          inquiryId: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/admin/billing',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_billing.loadLibrary,
-          builder: () => admin_billing.AdminBillingScreen(),
-        ),
+        builder: (context, state) => const AdminBillingScreen(),
       ),
       GoRoute(
         path: '/admin/settings',
-        builder: (context, state) => DeferredWidget(
-          loadLibrary: admin_settings.loadLibrary,
-          builder: () => admin_settings.AdminSettingsScreen(),
-        ),
+        builder: (context, state) => const AdminSettingsScreen(),
       ),
     ],
   );
