@@ -230,11 +230,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                           return LayoutBuilder(
                             builder: (context, constraints) {
                               final width = constraints.maxWidth;
-                              final isLargeDesktop = width >= 1150;
-                              final isDesktopGrid = width >= 850 && width < 1150;
-                              final isTabletGrid = width >= 600 && width < 850;
-                              final cols = isLargeDesktop ? 4 : (isDesktopGrid ? 3 : (isTabletGrid ? 3 : 2));
-                              final spacing = (isLargeDesktop || isDesktopGrid) ? 18.0 : 10.0;
+                              final isDesktopGrid = width >= 900;
+                              final isTabletGrid = width >= 600 && width < 900;
+                              final cols = isDesktopGrid ? 3 : (isTabletGrid ? 2 : 1);
+                              final spacing = isDesktopGrid ? 20.0 : 14.0;
                               final itemWidth = (constraints.maxWidth - (cols - 1) * spacing) / cols;
 
                               return Wrap(

@@ -65,6 +65,7 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
   late final TextEditingController _slug;
+  late final TextEditingController _customRole;
   late final TextEditingController _photoUrl;
   late final TextEditingController _shortBio;
   late final TextEditingController _fullBio;
@@ -76,7 +77,27 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
   bool _submitting = false;
   String? _error;
 
-  static const _types = ['SINGER', 'DJ', 'BAND', 'CELEBRITY', 'PERFORMER', 'LIVE_ARTIST', 'OTHER'];
+  static const Map<String, String> _typeOptions = {
+    'SINGER': 'Singer / Vocalist',
+    'DJ': 'DJ / Music Producer',
+    'BAND': 'Band / Orchestra / Mandli',
+    'CELEBRITY': 'Celebrity / Special Appearance',
+    'PERFORMER': 'Performer / Stage Artist',
+    'LIVE_ARTIST': 'Live Artist',
+    'DHOL_PLAYER': 'Dhol Player / Percussionist',
+    'HOST': 'Host / MC',
+    'ANCHOR': 'Anchor / Presenter',
+    'COMEDIAN': 'Comedian / Standup',
+    'DANCER': 'Dancer / Dance Troupe',
+    'MUSICIAN': 'Musician / Composer',
+    'FOLK_ARTIST': 'Folk Artist / Traditional',
+    'INSTRUMENTALIST': 'Instrumentalist',
+    'SPECIAL_GUEST': 'Special Guest',
+    'ACTOR': 'Actor / Actress',
+    'INFLUENCER': 'Influencer / Creator',
+    'RAPPER': 'Rapper / Hip-Hop',
+    'OTHER': 'Other / Custom Role',
+  };
 
   @override
   void initState() {
@@ -84,19 +105,27 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
     final a = widget.initial;
     _name = TextEditingController(text: a?.name ?? '');
     _slug = TextEditingController(text: a?.slug ?? '');
+    _customRole = TextEditingController();
     _photoUrl = TextEditingController(text: a?.photoUrl ?? '');
     _shortBio = TextEditingController(text: a?.shortBio ?? '');
     _fullBio = TextEditingController(text: a?.fullBio ?? '');
     _instagramUrl = TextEditingController(text: a?.instagramUrl ?? '');
     _facebookUrl = TextEditingController(text: a?.facebookUrl ?? '');
     _youtubeUrl = TextEditingController(text: a?.youtubeUrl ?? '');
-    _type = a?.type ?? 'SINGER';
+    
+    final initialType = a?.type.toUpperCase() ?? 'SINGER';
+    if (_typeOptions.containsKey(initialType)) {
+      _type = initialType;
+    } else {
+      _type = 'OTHER';
+      _customRole.text = a?.type ?? '';
+    }
     _featured = a?.featured ?? false;
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _slug, _photoUrl, _shortBio, _fullBio, _instagramUrl, _facebookUrl, _youtubeUrl]) {
+    for (final c in [_name, _slug, _customRole, _photoUrl, _shortBio, _fullBio, _instagramUrl, _facebookUrl, _youtubeUrl]) {
       c.dispose();
     }
     super.dispose();
@@ -108,12 +137,21 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
       _submitting = true;
       _error = null;
     });
+
+    final roleType = _type == 'OTHER' && _customRole.text.trim().isNotEmpty
+        ? 'OTHER'
+        : _type;
+
+    final shortBioText = _type == 'OTHER' && _customRole.text.trim().isNotEmpty && _shortBio.text.trim().isEmpty
+        ? _customRole.text.trim()
+        : _shortBio.text.trim();
+
     final body = {
       'name': _name.text.trim(),
       'slug': _slug.text.trim(),
       if (_photoUrl.text.trim().isNotEmpty) 'photoUrl': _photoUrl.text.trim(),
-      'type': _type,
-      if (_shortBio.text.trim().isNotEmpty) 'shortBio': _shortBio.text.trim(),
+      'type': roleType,
+      if (shortBioText.isNotEmpty) 'shortBio': shortBioText,
       if (_fullBio.text.trim().isNotEmpty) 'fullBio': _fullBio.text.trim(),
       if (_instagramUrl.text.trim().isNotEmpty) 'instagramUrl': _instagramUrl.text.trim(),
       if (_facebookUrl.text.trim().isNotEmpty) 'facebookUrl': _facebookUrl.text.trim(),
@@ -163,10 +201,29 @@ class _AdminArtistFormState extends ConsumerState<_AdminArtistForm> {
               initialValue: _type,
               isExpanded: true,
               dropdownColor: AppColors.surface,
-              decoration: const InputDecoration(labelText: 'Type *'),
-              items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+              decoration: const InputDecoration(
+                labelText: 'Artist Type / Role *',
+                helperText: 'Select performance role or choose Other for custom role',
+              ),
+              items: _typeOptions.entries
+                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                  .toList(),
               onChanged: (v) => setState(() => _type = v ?? _type),
             ),
+            if (_type == 'OTHER') ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _customRole,
+                decoration: const InputDecoration(
+                  labelText: 'Custom Artist Role / Title *',
+                  hintText: 'e.g. Traditional Garba Lead / Flutist / Choreographer',
+                  prefixIcon: Icon(Icons.stars_outlined, color: AppColors.neonPurple),
+                ),
+                validator: (v) => (_type == 'OTHER' && (v == null || v.trim().isEmpty))
+                    ? 'Please specify the custom role'
+                    : null,
+              ),
+            ],
             const SizedBox(height: 12),
             ImageUploadField(controller: _photoUrl, label: 'Photo URL', folder: 'artists'),
             const SizedBox(height: 12),

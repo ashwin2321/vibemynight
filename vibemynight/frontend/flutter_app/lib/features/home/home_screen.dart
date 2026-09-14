@@ -135,8 +135,9 @@ class _ShowmatesHeroCarousel extends StatefulWidget {
 class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   int _activeIndex = 0;
   late final PageController _pageController;
+  late final PageController _mobilePageController;
 
-  static const _defaultEvents = [
+  static const List<EventSummary> _defaultEvents = [
     EventSummary(
       id: 1,
       name: 'SANKALP NAGRI GARBA & MANDLI',
@@ -188,11 +189,13 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.74);
+    _mobilePageController = PageController(viewportFraction: 0.78);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _mobilePageController.dispose();
     super.dispose();
   }
 
@@ -205,23 +208,41 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   void _nextPage(int total) {
-    if (!_pageController.hasClients || total <= 1) return;
+    if (total <= 1) return;
     final next = (_activeIndex + 1) % total;
-    _pageController.animateToPage(
-      next,
-      duration: const Duration(milliseconds: 380),
-      curve: Curves.easeOutCubic,
-    );
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    if (_mobilePageController.hasClients) {
+      _mobilePageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   void _prevPage(int total) {
-    if (!_pageController.hasClients || total <= 1) return;
+    if (total <= 1) return;
     final prev = (_activeIndex - 1 + total) % total;
-    _pageController.animateToPage(
-      prev,
-      duration: const Duration(milliseconds: 380),
-      curve: Curves.easeOutCubic,
-    );
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        prev,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    if (_mobilePageController.hasClients) {
+      _mobilePageController.animateToPage(
+        prev,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   Future<void> _launchWhatsApp() async {
@@ -770,7 +791,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // MOBILE & TABLET RESPONSIVE HERO LAYOUT (16:9 BANNER)
+  // MOBILE & TABLET RESPONSIVE HERO LAYOUT (SHOWMATES 3:4 CENTERED CAROUSEL)
   // ==========================================
   Widget _buildMobileLayout(
     List<EventSummary> events,
@@ -793,60 +814,62 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     ].join(' ');
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Top Pill Badge
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.4)),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.local_fire_department, color: Color(0xFFC084FC), size: 13),
-                  SizedBox(width: 4),
-                  Text(
-                    'FEATURED NIGHTS',
-                    style: TextStyle(
-                      color: Color(0xFFC084FC),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 11,
-                      letterSpacing: 0.8,
+        // Top Pill Badge & Slide Indicator
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.4)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.local_fire_department, color: Color(0xFFC084FC), size: 13),
+                    SizedBox(width: 4),
+                    Text(
+                      'FEATURED NIGHTS',
+                      style: TextStyle(
+                        color: Color(0xFFC084FC),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        letterSpacing: 0.8,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // Slide counter (01/05)
-            Text(
-              '${(activeIdx + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
+              Text(
+                '${(activeIdx + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
-        // Horizontal Banner Carousel with Peeking Card (Strict 16:9 Aspect Ratio)
+        // Showmates Centered 3:4 Vertical Poster Carousel with Peeking Sides (viewportFraction: 0.78)
         LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth;
-            final itemWidth = availableWidth * 0.86;
-            final bannerHeight = itemWidth / (16 / 9);
+            final cardWidth = availableWidth * 0.78;
+            final cardHeight = cardWidth / (3 / 4);
 
             return SizedBox(
-              height: bannerHeight.clamp(180.0, 290.0) + 12,
+              height: cardHeight.clamp(260.0, 420.0) + 12,
               child: PageView.builder(
-                controller: _pageController,
+                controller: _mobilePageController,
                 itemCount: events.length,
                 onPageChanged: (idx) => setState(() => _activeIndex = idx),
                 itemBuilder: (context, index) {
@@ -856,7 +879,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
 
                   return Center(
                     child: AnimatedScale(
-                      scale: isCurrent ? 1.0 : 0.93,
+                      scale: isCurrent ? 1.0 : 0.90,
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeOutCubic,
                       child: GestureDetector(
@@ -864,7 +887,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                           if (isCurrent) {
                             context.push(targetRoute);
                           } else {
-                            _pageController.animateToPage(
+                            _mobilePageController.animateToPage(
                               index,
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
@@ -872,35 +895,35 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                           }
                         },
                         child: AspectRatio(
-                          aspectRatio: 16 / 9,
+                          aspectRatio: 3 / 4,
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isCurrent
                                     ? const Color(0xFF8B5CF6)
                                     : Colors.white.withValues(alpha: 0.12),
-                                width: isCurrent ? 1.8 : 1.0,
+                                width: isCurrent ? 2.0 : 1.0,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: isCurrent
-                                      ? const Color(0xFF8B5CF6).withValues(alpha: 0.4)
+                                      ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
                                       : Colors.black.withValues(alpha: 0.5),
-                                  blurRadius: isCurrent ? 16 : 8,
-                                  offset: const Offset(0, 6),
+                                  blurRadius: isCurrent ? 20 : 8,
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(18),
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  // 16:9 Banner Image with Safe Fallback
+                                  // 3:4 Poster Image with Fallback
                                   NetworkImageBox(
-                                    url: ev.mainImage ?? ev.thumbnail,
+                                    url: ev.thumbnail ?? ev.mainImage,
                                     fallbackUrl: HomeScreen._heroImg,
                                     width: double.infinity,
                                     height: double.infinity,
@@ -913,30 +936,30 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                                         end: Alignment.bottomCenter,
                                         colors: [
                                           Colors.transparent,
-                                          Colors.black.withValues(alpha: 0.3),
+                                          Colors.black.withValues(alpha: 0.1),
                                           const Color(0xFF07070E).withValues(alpha: 0.8),
                                         ],
-                                        stops: const [0.5, 0.75, 1.0],
+                                        stops: const [0.6, 0.8, 1.0],
                                       ),
                                     ),
                                   ),
                                   if (ev.startingPrice != null)
                                     Positioned(
-                                      top: 10,
-                                      right: 10,
+                                      top: 12,
+                                      right: 12,
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
                                           gradient: const LinearGradient(
                                             colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
                                           ),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(14),
                                         ),
                                         child: Text(
                                           '₹${ev.startingPrice!.toInt()}',
                                           style: const TextStyle(
                                             color: Colors.white,
-                                            fontSize: 10.5,
+                                            fontSize: 11,
                                             fontWeight: FontWeight.w900,
                                           ),
                                         ),
@@ -955,101 +978,94 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
             );
           },
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
 
-        // Active Event Title & Location
-        Text(
-          activeEvent.name.toUpperCase(),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(height: 6),
-
-        Row(
-          children: [
-            if (dateText.isNotEmpty) ...[
-              const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
-              const SizedBox(width: 4),
+        // Showmates-style Event Metadata below Card
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              // Event Name
               Text(
-                dateText,
+                activeEvent.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
                   color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12.5,
+                  letterSpacing: -0.3,
+                  height: 1.25,
                 ),
               ),
-              const SizedBox(width: 12),
-            ],
-            const Icon(Icons.location_on, color: Color(0xFF60A5FA), size: 14),
-            const SizedBox(width: 3),
-            Expanded(
-              child: Text(
-                displayLoc,
+              const SizedBox(height: 6),
+
+              // Subtitle: Date Range • Location / City
+              Text(
+                [
+                  if (dateText.isNotEmpty) dateText,
+                  displayLoc,
+                ].where((s) => s.isNotEmpty).join(' • '),
+                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: Colors.white.withValues(alpha: 0.65),
                   fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
+              const SizedBox(height: 14),
 
-        // CTA Button + Prev/Next Controls Row
-        Row(
-          children: [
-            Expanded(
-              child: GradientButton(
-                label: 'GET TICKETS',
-                icon: Icons.confirmation_number_outlined,
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                onPressed: () => context.push(eventRoute),
+              // Action Buttons Row
+              Row(
+                children: [
+                  Expanded(
+                    child: GradientButton(
+                      label: 'GET PASSES',
+                      icon: Icons.confirmation_number_outlined,
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      onPressed: () => context.push(eventRoute),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _CarouselArrowButton(
+                    icon: Icons.arrow_back_rounded,
+                    size: 44,
+                    iconSize: 18,
+                    onTap: () => _prevPage(events.length),
+                  ),
+                  const SizedBox(width: 8),
+                  _CarouselArrowButton(
+                    icon: Icons.arrow_forward_rounded,
+                    size: 44,
+                    iconSize: 18,
+                    onTap: () => _nextPage(events.length),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 10),
-            _CarouselArrowButton(
-              icon: Icons.arrow_back_rounded,
-              size: 44,
-              iconSize: 18,
-              onTap: () => _prevPage(events.length),
-            ),
-            const SizedBox(width: 8),
-            _CarouselArrowButton(
-              icon: Icons.arrow_forward_rounded,
-              size: 44,
-              iconSize: 18,
-              onTap: () => _nextPage(events.length),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-        // Dots Pagination Indicator
-        Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(events.length, (idx) {
-              final isCur = idx == activeIdx;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: isCur ? 18 : 6,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: isCur ? const Color(0xFFA855F7) : Colors.white24,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              );
-            }),
+              // Dots Pagination Indicator
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(events.length, (idx) {
+                  final isCur = idx == activeIdx;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: isCur ? 18 : 6,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: isCur ? const Color(0xFFA855F7) : Colors.white24,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
+            ],
           ),
         ),
       ],

@@ -60,7 +60,7 @@ public class ArtistController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .photoUrl(request.getPhotoUrl())
-                .type(ArtistType.valueOf(request.getType().toUpperCase()))
+                .type(parseArtistType(request.getType()))
                 .shortBio(request.getShortBio())
                 .fullBio(request.getFullBio())
                 .instagramUrl(request.getInstagramUrl())
@@ -78,7 +78,7 @@ public class ArtistController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .photoUrl(request.getPhotoUrl())
-                .type(ArtistType.valueOf(request.getType().toUpperCase()))
+                .type(parseArtistType(request.getType()))
                 .shortBio(request.getShortBio())
                 .fullBio(request.getFullBio())
                 .instagramUrl(request.getInstagramUrl())
@@ -87,6 +87,18 @@ public class ArtistController {
                 .featured(request.isFeatured())
                 .build();
         return ApiResponse.ok(artistMapper.toDto(artistService.update(id, artist)), "Artist updated");
+    }
+
+    private ArtistType parseArtistType(String typeStr) {
+        if (typeStr == null || typeStr.isBlank()) {
+            return ArtistType.OTHER;
+        }
+        String normalized = typeStr.trim().toUpperCase().replace(' ', '_').replace('-', '_');
+        try {
+            return ArtistType.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            return ArtistType.OTHER;
+        }
     }
 
     @DeleteMapping("/api/v1/admin/artists/{id}")

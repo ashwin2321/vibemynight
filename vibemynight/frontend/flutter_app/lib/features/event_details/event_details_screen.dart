@@ -908,39 +908,102 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   // ==========================================
-  // DYNAMIC "THINGS TO KNOW" GRID (District & Showmates Style)
+  // VERIFIED "THINGS TO KNOW" SPECIFICATIONS
   // ==========================================
   Widget _buildDynamicThingsToKnow(EventDetail event) {
-    // Dynamic Layout Type
-    String layoutType = 'Outdoor Arena / Lawn';
-    final nameVenue = '${event.name} ${event.venue ?? ""} ${event.description ?? ""}'.toLowerCase();
-    if (nameVenue.contains('ac dome') || nameVenue.contains('dome')) {
-      layoutType = 'AC Dome (Fully Air Conditioned)';
-    } else if (nameVenue.contains('hall') || nameVenue.contains('indoor')) {
-      layoutType = 'Indoor Air Conditioned Hall';
-    } else if (nameVenue.contains('farm') || nameVenue.contains('resort') || nameVenue.contains('lawn')) {
-      layoutType = 'Outdoor Open-Air Lawn & Farm';
-    }
+    final List<({IconData icon, String title, String value})> specs = [];
 
-    // Dynamic Duration
-    String duration = '5+ Hours Daily (Evening to Midnight)';
+    // 1. Duration (Deterministic from verified Event Days)
     if (event.days.isNotEmpty) {
-      duration = '${event.days.length} Nights · 5+ Hours Nightly';
+      final nightCount = event.days.length;
+      specs.add((
+        icon: Icons.timer_outlined,
+        title: 'Duration',
+        value: '$nightCount ${nightCount == 1 ? 'Night' : 'Nights'} Scheduled',
+      ));
     }
 
-    // Dynamic Parking
-    String parking = 'Available at Venue';
-    final hasParkingFacility = event.facilities.any((f) => f.name.toLowerCase().contains('parking'));
-    if (hasParkingFacility) {
-      parking = 'Managed Parking Available at Venue';
+    // 2. Venue & Layout (From verified venue / address data)
+    if (event.venue != null && event.venue!.trim().isNotEmpty) {
+      specs.add((
+        icon: Icons.stadium_outlined,
+        title: 'Venue',
+        value: event.venue!.trim(),
+      ));
+    } else if (event.location != null && event.location!.trim().isNotEmpty) {
+      specs.add((
+        icon: Icons.location_on_outlined,
+        title: 'Location',
+        value: event.location!.trim(),
+      ));
     }
 
-    // Dynamic Age Policy
-    String agePolicy = 'All Ages Allowed (Family Friendly)';
-    final hasAgeRule = event.rules.any((r) => r.toLowerCase().contains('age') || r.toLowerCase().contains('kid'));
-    if (hasAgeRule) {
-      final rule = event.rules.firstWhere((r) => r.toLowerCase().contains('age') || r.toLowerCase().contains('kid'));
-      agePolicy = rule;
+    // 3. Verified Facilities (Parking, AC, Seating, etc.)
+    for (final facility in event.facilities) {
+      final lowerName = facility.name.toLowerCase();
+      IconData icon = Icons.check_circle_outline;
+      String title = 'Facility';
+
+      if (lowerName.contains('parking')) {
+        icon = Icons.local_parking_outlined;
+        title = 'Parking';
+      } else if (lowerName.contains('ac') || lowerName.contains('air')) {
+        icon = Icons.ac_unit_outlined;
+        title = 'Comfort';
+      } else if (lowerName.contains('food') || lowerName.contains('beverage') || lowerName.contains('stall')) {
+        icon = Icons.restaurant_outlined;
+        title = 'Food & Beverage';
+      } else if (lowerName.contains('security') || lowerName.contains('cctv')) {
+        icon = Icons.security_outlined;
+        title = 'Security';
+      } else if (lowerName.contains('medical') || lowerName.contains('first aid')) {
+        icon = Icons.medical_services_outlined;
+        title = 'Medical Aid';
+      } else if (lowerName.contains('wheelchair') || lowerName.contains('accessible')) {
+        icon = Icons.accessible_outlined;
+        title = 'Accessibility';
+      }
+
+      specs.add((
+        icon: icon,
+        title: title,
+        value: facility.name,
+      ));
+    }
+
+    // 4. Verified Event Rules (Age policy, dress code, entry requirements)
+    for (final rule in event.rules) {
+      final lowerRule = rule.toLowerCase();
+      if (lowerRule.contains('age') || lowerRule.contains('kid') || lowerRule.contains('child') || lowerRule.contains('family')) {
+        specs.add((
+          icon: Icons.family_restroom,
+          title: 'Age Policy',
+          value: rule,
+        ));
+      } else if (lowerRule.contains('dress') || lowerRule.contains('attire') || lowerRule.contains('clothing')) {
+        specs.add((
+          icon: Icons.checkroom_outlined,
+          title: 'Dress Code',
+          value: rule,
+        ));
+      } else if (lowerRule.contains('entry') || lowerRule.contains('pass') || lowerRule.contains('wristband') || lowerRule.contains('id proof')) {
+        specs.add((
+          icon: Icons.confirmation_number_outlined,
+          title: 'Entry Requirement',
+          value: rule,
+        ));
+      } else if (lowerRule.contains('pet') || lowerRule.contains('food') || lowerRule.contains('alcohol') || lowerRule.contains('smoke')) {
+        specs.add((
+          icon: Icons.block_outlined,
+          title: 'Venue Policy',
+          value: rule,
+        ));
+      }
+    }
+
+    // If no verified specs exist, do not display empty or guessed content
+    if (specs.isEmpty) {
+      return const SizedBox.shrink();
     }
 
     return Container(
@@ -961,56 +1024,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               return Wrap(
                 spacing: 24,
                 runSpacing: 16,
-                children: [
-                  _buildSpecItem(
-                    icon: Icons.translate,
-                    title: 'Language',
-                    value: 'Gujarati, Hindi',
+                children: specs.map((item) {
+                  return _buildSpecItem(
+                    icon: item.icon,
+                    title: item.title,
+                    value: item.value,
                     width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.timer_outlined,
-                    title: 'Duration',
-                    value: duration,
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.family_restroom,
-                    title: 'Age Policy',
-                    value: agePolicy,
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.confirmation_number_outlined,
-                    title: 'Entry Requirement',
-                    value: 'Digital QR Pass / Physical Wristband',
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.stadium_outlined,
-                    title: 'Venue Layout',
-                    value: layoutType,
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.local_parking_outlined,
-                    title: 'Parking',
-                    value: parking,
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.checkroom_outlined,
-                    title: 'Dress Code',
-                    value: 'Traditional Garba Attire Recommended',
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                  _buildSpecItem(
-                    icon: Icons.pets_outlined,
-                    title: 'Pets & Outside Food',
-                    value: 'Not Allowed at Venue',
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
-                  ),
-                ],
+                  );
+                }).toList(),
               );
             },
           ),
@@ -1558,53 +1579,12 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
 
                 const SizedBox(height: 14),
 
-                // Compact Quantity Stepper
+                // Compact Quantity Stepper with Direct Number Input
                 if (!currentPass.soldOut)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF16102E),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF2A204E)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Pass Quantity', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                              borderRadius: BorderRadius.circular(6),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: _quantity > 1 ? AppColors.neonPink.withValues(alpha: 0.15) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Icon(Icons.remove, size: 16, color: _quantity > 1 ? AppColors.neonPink : AppColors.textMuted),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text('$_quantity', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
-                            ),
-                            InkWell(
-                              onTap: _quantity < 100 ? () => setState(() => _quantity++) : null,
-                              borderRadius: BorderRadius.circular(6),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: _quantity < 100 ? AppColors.neonBlue.withValues(alpha: 0.15) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Icon(Icons.add, size: 16, color: _quantity < 100 ? AppColors.neonBlue : AppColors.textMuted),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  _PassQuantityStepper(
+                    quantity: _quantity,
+                    maxQuantity: currentPass.availableQuantity > 0 ? currentPass.availableQuantity : 100,
+                    onChanged: (newQty) => setState(() => _quantity = newQty),
                   ),
 
                 const SizedBox(height: 18),
@@ -1797,6 +1777,169 @@ class _TrustBadgeItem extends StatelessWidget {
           child: Text(text, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
         ),
       ],
+    );
+  }
+}
+
+class _PassQuantityStepper extends StatefulWidget {
+  final int quantity;
+  final int maxQuantity;
+  final ValueChanged<int> onChanged;
+
+  const _PassQuantityStepper({
+    required this.quantity,
+    required this.maxQuantity,
+    required this.onChanged,
+  });
+
+  @override
+  State<_PassQuantityStepper> createState() => _PassQuantityStepperState();
+}
+
+class _PassQuantityStepperState extends State<_PassQuantityStepper> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '${widget.quantity}');
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _validateAndSubmit(_controller.text);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _PassQuantityStepper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.quantity != widget.quantity && !_focusNode.hasFocus) {
+      _controller.text = '${widget.quantity}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _validateAndSubmit(String val) {
+    final parsed = int.tryParse(val.replaceAll(RegExp(r'[^0-9]'), ''));
+    if (parsed == null || parsed < 1) {
+      widget.onChanged(1);
+      _controller.text = '1';
+    } else {
+      final maxLimit = widget.maxQuantity > 0 ? widget.maxQuantity : 100;
+      final clamped = parsed.clamp(1, maxLimit);
+      widget.onChanged(clamped);
+      _controller.text = '$clamped';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canDec = widget.quantity > 1;
+    final maxLimit = widget.maxQuantity > 0 ? widget.maxQuantity : 100;
+    final canInc = widget.quantity < maxLimit;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF16102E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF2A204E)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Pass Quantity', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+          Row(
+            children: [
+              InkWell(
+                onTap: canDec
+                    ? () {
+                        final next = widget.quantity - 1;
+                        widget.onChanged(next);
+                        _controller.text = '$next';
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: canDec ? AppColors.neonPink.withValues(alpha: 0.15) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(Icons.remove, size: 16, color: canDec ? AppColors.neonPink : AppColors.textMuted),
+                ),
+              ),
+              Container(
+                width: 48,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    fillColor: const Color(0xFF23184A),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: Color(0xFF4C3888), width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: AppColors.neonPurple, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: Color(0xFF38296A), width: 1),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    final parsed = int.tryParse(val);
+                    if (parsed != null && parsed >= 1) {
+                      final clamped = parsed.clamp(1, maxLimit);
+                      widget.onChanged(clamped);
+                    }
+                  },
+                  onSubmitted: _validateAndSubmit,
+                ),
+              ),
+              InkWell(
+                onTap: canInc
+                    ? () {
+                        final next = widget.quantity + 1;
+                        widget.onChanged(next);
+                        _controller.text = '$next';
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: canInc ? AppColors.neonBlue.withValues(alpha: 0.15) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(Icons.add, size: 16, color: canInc ? AppColors.neonBlue : AppColors.textMuted),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

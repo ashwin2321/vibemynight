@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -340,55 +341,10 @@ class _InquiryScreenState extends ConsumerState<InquiryScreen> {
                           const SizedBox(height: 12),
 
                           // 3. Inline Quantity Selector & Total
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Quantity',
-                                  style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      visualDensity: VisualDensity.compact,
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                                      icon: Icon(
-                                        Icons.remove_circle_outline,
-                                        color: _quantity > 1 ? const Color(0xFFC084FC) : Colors.white24,
-                                        size: 22,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        '$_quantity',
-                                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.white),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      visualDensity: VisualDensity.compact,
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                      onPressed: () => setState(() => _quantity++),
-                                      icon: const Icon(Icons.add_circle_outline, color: Color(0xFFC084FC), size: 22),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                          _InquiryQuantitySelector(
+                            quantity: _quantity,
+                            maxQuantity: 100,
+                            onChanged: (newQty) => setState(() => _quantity = newQty),
                           ),
 
                           // 4. Expandable Optional Fields (Email & Message)
@@ -533,6 +489,170 @@ class _InquiryScreenState extends ConsumerState<InquiryScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InquiryQuantitySelector extends StatefulWidget {
+  final int quantity;
+  final int maxQuantity;
+  final ValueChanged<int> onChanged;
+
+  const _InquiryQuantitySelector({
+    required this.quantity,
+    required this.maxQuantity,
+    required this.onChanged,
+  });
+
+  @override
+  State<_InquiryQuantitySelector> createState() => _InquiryQuantitySelectorState();
+}
+
+class _InquiryQuantitySelectorState extends State<_InquiryQuantitySelector> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '${widget.quantity}');
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _validateAndSubmit(_controller.text);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _InquiryQuantitySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.quantity != widget.quantity && !_focusNode.hasFocus) {
+      _controller.text = '${widget.quantity}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _validateAndSubmit(String val) {
+    final parsed = int.tryParse(val.replaceAll(RegExp(r'[^0-9]'), ''));
+    if (parsed == null || parsed < 1) {
+      widget.onChanged(1);
+      _controller.text = '1';
+    } else {
+      final maxLimit = widget.maxQuantity > 0 ? widget.maxQuantity : 100;
+      final clamped = parsed.clamp(1, maxLimit);
+      widget.onChanged(clamped);
+      _controller.text = '$clamped';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canDec = widget.quantity > 1;
+    final maxLimit = widget.maxQuantity > 0 ? widget.maxQuantity : 100;
+    final canInc = widget.quantity < maxLimit;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Quantity',
+            style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
+          ),
+          Row(
+            children: [
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                onPressed: canDec
+                    ? () {
+                        final next = widget.quantity - 1;
+                        widget.onChanged(next);
+                        _controller.text = '$next';
+                      }
+                    : null,
+                icon: Icon(
+                  Icons.remove_circle_outline,
+                  color: canDec ? const Color(0xFFC084FC) : Colors.white24,
+                  size: 22,
+                ),
+              ),
+              Container(
+                width: 48,
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.white),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    fillColor: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: Color(0xFFC084FC), width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    final parsed = int.tryParse(val);
+                    if (parsed != null && parsed >= 1) {
+                      final clamped = parsed.clamp(1, maxLimit);
+                      widget.onChanged(clamped);
+                    }
+                  },
+                  onSubmitted: _validateAndSubmit,
+                ),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                onPressed: canInc
+                    ? () {
+                        final next = widget.quantity + 1;
+                        widget.onChanged(next);
+                        _controller.text = '$next';
+                      }
+                    : null,
+                icon: Icon(
+                  Icons.add_circle_outline,
+                  color: canInc ? const Color(0xFFC084FC) : Colors.white24,
+                  size: 22,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
