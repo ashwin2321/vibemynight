@@ -125,7 +125,49 @@ class AdminDashboardScreen extends ConsumerWidget {
               const SizedBox(height: 14),
               inquiriesAsync.when(
                 loading: () => const Center(child: Padding(padding: EdgeInsets.all(24), child: LoadingView())),
-                error: (err, _) => ErrorView(message: err.toString()),
+                error: (err, _) {
+                  final msg = err.toString();
+                  if (msg.contains('Authentication required') || msg.contains('401')) {
+                    return Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                      ),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            const Icon(Icons.lock_clock_outlined, color: AppColors.neonPink, size: 36),
+                            const SizedBox(height: 10),
+                            const Text(
+                              'Admin Session Expired',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Please sign in again with your admin credentials to load live metrics and inquiries.',
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                            const SizedBox(height: 14),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.login_rounded, size: 16),
+                              label: const Text('Sign In to Admin'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.neonPurple,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: () => context.go('/admin/login'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return ErrorView(message: msg);
+                },
                 data: (inquiries) => _RecentInquiriesCard(inquiries: inquiries.take(6).toList()),
               ),
               const SizedBox(height: 24),

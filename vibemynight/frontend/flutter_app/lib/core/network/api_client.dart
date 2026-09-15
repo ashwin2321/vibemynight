@@ -32,6 +32,12 @@ class ApiClient {
           }
           handler.next(options);
         },
+        onError: (DioException error, handler) async {
+          if (error.response?.statusCode == 401) {
+            await TokenStorage.instance.clearToken();
+          }
+          handler.next(error);
+        },
       ),
     );
   }
