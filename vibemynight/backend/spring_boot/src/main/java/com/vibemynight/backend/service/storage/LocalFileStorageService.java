@@ -62,8 +62,7 @@ public class LocalFileStorageService implements FileStorageService {
             throw new RuntimeException("Failed to store uploaded file", e);
         }
 
-        String base = publicBaseUrl.endsWith("/") ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
-        return base + "/" + safeSubfolder + "/" + filename;
+        return buildPublicUrl(safeSubfolder, filename);
     }
 
     @Override
@@ -92,6 +91,13 @@ public class LocalFileStorageService implements FileStorageService {
             throw new RuntimeException("Failed to store downloaded image", e);
         }
 
+        return buildPublicUrl(safeSubfolder, filename);
+    }
+
+    private String buildPublicUrl(String safeSubfolder, String filename) {
+        if (publicBaseUrl == null || publicBaseUrl.isBlank() || publicBaseUrl.contains("localhost")) {
+            return "/uploads/" + safeSubfolder + "/" + filename;
+        }
         String base = publicBaseUrl.endsWith("/") ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
         return base + "/" + safeSubfolder + "/" + filename;
     }

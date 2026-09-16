@@ -17,8 +17,9 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 45),
+        receiveTimeout: const Duration(seconds: 45),
+        sendTimeout: const Duration(seconds: 45),
         contentType: 'application/json',
       ),
     );
@@ -108,10 +109,14 @@ class ApiClient {
           statusCode: e.response?.statusCode,
         );
       }
+      String fallbackMessage = 'Something went wrong. Please try again.';
+      if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.connectionError) {
+        fallbackMessage = 'Could not reach the server. Please check your internet connection.';
+      } else if (e.type == DioExceptionType.receiveTimeout || e.type == DioExceptionType.sendTimeout) {
+        fallbackMessage = 'Request timed out while downloading source data. Please try again.';
+      }
       throw ApiException(
-        e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.connectionError
-            ? 'Could not reach the server. Check your connection and try again.'
-            : 'Something went wrong. Please try again.',
+        fallbackMessage,
         statusCode: e.response?.statusCode,
       );
     }
