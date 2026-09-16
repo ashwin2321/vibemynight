@@ -340,7 +340,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                           side: const BorderSide(color: Color(0xFFF97316), width: 0.5),
                           onPressed: () {
                             setState(() {
-                              _urlController.text = 'https://www.district.in/events/navratri-in-ahmedabad-book-tickets';
+                              _urlController.text = 'https://www.district.in/events/sachi-navaratri-ac-dome-garaba-2026-buy-tickets';
                             });
                             _scrapeUrl();
                           },

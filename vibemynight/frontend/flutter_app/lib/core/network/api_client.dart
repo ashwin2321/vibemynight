@@ -103,9 +103,17 @@ class ApiClient {
     } on DioException catch (e) {
       final data = e.response?.data;
       if (data is Map<String, dynamic>) {
+        final msg = data['message'] as String?;
+        final errors = (data['errors'] as List?)?.cast<String>();
+        String finalMsg = (msg != null && msg.isNotEmpty && msg != 'Something went wrong')
+            ? msg
+            : (errors != null && errors.isNotEmpty && errors.first.isNotEmpty
+                ? errors.first
+                : (msg ?? 'Something went wrong. Please try again.'));
+
         throw ApiException(
-          (data['message'] as String?) ?? 'Something went wrong',
-          errors: (data['errors'] as List?)?.cast<String>(),
+          finalMsg,
+          errors: errors,
           statusCode: e.response?.statusCode,
         );
       }
