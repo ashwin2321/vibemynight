@@ -220,17 +220,40 @@
       }
     };
 
-    // Watch for Flutter mounting to the DOM
+    // Watch for Flutter mounting to the DOM with active dimensions
     var observer = new MutationObserver(function(mutations, obs) {
-      if (document.querySelector('flutter-view') || document.querySelector('flt-glass-pane') || document.querySelector('flt-scene-host') || document.querySelector('canvas')) {
-        setTimeout(window.dismissVmnLoader, 250);
+      var flt = document.querySelector('flutter-view') || document.querySelector('flt-glass-pane') || document.querySelector('flt-scene-host') || document.querySelector('canvas');
+      if (flt) {
+        setTimeout(window.dismissVmnLoader, 200);
         obs.disconnect();
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Safety fallback dismiss
-    setTimeout(window.dismissVmnLoader, 3500);
+    // Show progressive status text if connection is slow
+    setTimeout(function() {
+      var brandText = document.querySelector('.vmn-brand-text');
+      if (brandText && !document.getElementById('vmn-apple-loader')?.classList.contains('dismissed')) {
+        var sub = document.getElementById('vmn-loading-sub');
+        if (!sub) {
+          sub = document.createElement('div');
+          sub.id = 'vmn-loading-sub';
+          sub.style.color = '#A78BFA';
+          sub.style.fontSize = '12px';
+          sub.style.marginTop = '10px';
+          sub.style.letterSpacing = '0.5px';
+          sub.innerText = 'Loading experience...';
+          brandText.parentNode.appendChild(sub);
+        }
+      }
+    }, 4000);
+
+    setTimeout(function() {
+      var sub = document.getElementById('vmn-loading-sub');
+      if (sub) {
+        sub.innerHTML = 'Taking longer than usual? <a href="javascript:location.reload()" style="color:#EC4899;text-decoration:underline;">Tap to reload</a>';
+      }
+    }, 18000);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
