@@ -9,5 +9,6 @@ import java.util.Optional;
 public interface EventDayArtistRepository extends JpaRepository<EventDayArtist, Long> {
     List<EventDayArtist> findByEventDayIdOrderByPerformanceOrderAsc(Long eventDayId);
     Optional<EventDayArtist> findByEventDayIdAndIsPrimaryTrue(Long eventDayId);
+    boolean existsByEventDayIdAndArtistId(Long eventDayId, Long artistId);
     void deleteByEventDayIdAndArtistId(Long eventDayId, Long artistId);
 }

@@ -743,30 +743,34 @@ public class EventScraperServiceImpl implements EventScraperService {
     }
 
     private void buildArtists(List<EventDayImportDto> days, ScrapedData data) {
-        if (data.artists.isEmpty()) {
+        if (data.artists.isEmpty() || days.isEmpty()) {
             return; // Zero fabrication rule
         }
 
-        for (int i = 0; i < data.artists.size(); i++) {
-            String name = data.artists.get(i);
-            String slug = name.toLowerCase().replaceAll("[^a-z0-9-]+", "-");
+        Set<String> seenSlugs = new HashSet<>();
+        int order = 0;
+        for (String rawName : data.artists) {
+            if (rawName == null || rawName.isBlank()) continue;
+            String name = rawName.trim();
+            String slug = name.toLowerCase().replaceAll("[^a-z0-9-]+", "-").replaceAll("^-+|-+$", "");
+            if (slug.isBlank() || seenSlugs.contains(slug)) continue;
+            seenSlugs.add(slug);
+
             Optional<Artist> existing = artistRepository.findBySlug(slug);
 
             DayArtistImportDto artistDto = DayArtistImportDto.builder()
                     .dayNumber(1)
                     .artistName(name)
                     .artistType("SINGER")
-                    .isPrimary(i == 0)
-                    .performanceOrder(i + 1)
+                    .isPrimary(order == 0)
+                    .performanceOrder(++order)
                     .performanceStartTime(LocalTime.of(20, 30))
                     .performanceEndTime(LocalTime.of(23, 30))
                     .isExistingArtist(existing.isPresent())
                     .matchedArtistId(existing.map(Artist::getId).orElse(null))
                     .build();
 
-            if (!days.isEmpty()) {
-                days.get(0).getArtists().add(artistDto);
-            }
+            days.get(0).getArtists().add(artistDto);
         }
     }
 

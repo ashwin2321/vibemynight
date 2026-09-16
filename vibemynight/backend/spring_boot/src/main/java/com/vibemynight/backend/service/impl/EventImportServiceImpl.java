@@ -264,17 +264,25 @@ public class EventImportServiceImpl implements EventImportService {
 
             // Artists for this day
             if (dayDto.getArtists() != null) {
+                Set<Long> processedArtistIds = new HashSet<>();
                 for (DayArtistImportDto artistDto : dayDto.getArtists()) {
                     Artist artist = resolveOrCreateArtist(artistDto);
-                    EventDayArtist dayArtist = EventDayArtist.builder()
-                            .eventDay(savedDay)
-                            .artist(artist)
-                            .isPrimary(artistDto.isPrimary())
-                            .performanceOrder(artistDto.getPerformanceOrder() != null ? artistDto.getPerformanceOrder() : 1)
-                            .performanceStartTime(artistDto.getPerformanceStartTime())
-                            .performanceEndTime(artistDto.getPerformanceEndTime())
-                            .build();
-                    eventDayArtistRepository.save(dayArtist);
+                    if (artist == null || processedArtistIds.contains(artist.getId())) {
+                        continue;
+                    }
+                    processedArtistIds.add(artist.getId());
+
+                    if (!eventDayArtistRepository.existsByEventDayIdAndArtistId(savedDay.getId(), artist.getId())) {
+                        EventDayArtist dayArtist = EventDayArtist.builder()
+                                .eventDay(savedDay)
+                                .artist(artist)
+                                .isPrimary(artistDto.isPrimary())
+                                .performanceOrder(artistDto.getPerformanceOrder() != null ? artistDto.getPerformanceOrder() : 1)
+                                .performanceStartTime(artistDto.getPerformanceStartTime())
+                                .performanceEndTime(artistDto.getPerformanceEndTime())
+                                .build();
+                        eventDayArtistRepository.save(dayArtist);
+                    }
                 }
             }
 
