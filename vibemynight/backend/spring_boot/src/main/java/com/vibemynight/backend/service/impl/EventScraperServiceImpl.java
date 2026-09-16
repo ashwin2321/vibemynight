@@ -465,7 +465,10 @@ public class EventScraperServiceImpl implements EventScraperService {
                 "Kolkata", "Chennai", "Indore", "Udaipur", "Chandigarh"
         );
 
-        String combined = (url + " " + (data.title != null ? data.title : "") + " " + (data.venue != null ? data.venue : "")).toLowerCase();
+        String combined = (url + " " + (data.title != null ? data.title : "") + " "
+                + (data.venue != null ? data.venue : "") + " "
+                + (data.location != null ? data.location : "") + " "
+                + (data.description != null ? data.description : "")).toLowerCase();
         for (String c : cities) {
             if (combined.contains(c.toLowerCase())) {
                 data.city = c;
