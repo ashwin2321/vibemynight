@@ -106,6 +106,7 @@ public class EventScraperServiceImpl implements EventScraperService {
         // 3. Extract metadata from Next.js state, JSON-LD, OpenGraph, and Meta tags
         ScrapedData data = new ScrapedData();
         data.sourceUrl = cleanUrl;
+        data.platform = platform;
 
         // 3.1 Try deep __NEXT_DATA__ payload first
         extractNextData(doc, data, validationMessages);
@@ -570,12 +571,19 @@ public class EventScraperServiceImpl implements EventScraperService {
                 log.debug("Could not download remote image {} for local storage: {}", imgUrl, e.getMessage());
             }
 
+            String friendlyLabel = switch (role) {
+                case "POSTER_3_4" -> "3:4 Poster";
+                case "BANNER_16_9" -> "16:9 Banner";
+                case "THUMBNAIL_1_1" -> "1:1 Thumbnail";
+                default -> "Gallery Item";
+            };
+
             artworkCandidates.add(ScrapedImageCandidateDto.builder()
                     .url(imgUrl)
                     .localUrl(localUrl)
                     .suggestedRole(role)
-                    .label(role.replace("_", " "))
-                    .source(data.sourceUrl)
+                    .label(friendlyLabel)
+                    .source(data.platform != null ? data.platform : "SCRAPED")
                     .build());
         }
 
@@ -793,6 +801,7 @@ public class EventScraperServiceImpl implements EventScraperService {
 
     private static class ScrapedData {
         String sourceUrl;
+        String platform;
         String title;
         String description;
         LocalDate startDate;

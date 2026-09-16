@@ -842,28 +842,30 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
                                       borderRadius: BorderRadius.circular(6),
                                       child: NetworkImageBox(
                                         url: effective,
+                                        fallbackUrl: c.url,
                                         width: double.infinity,
                                         height: double.infinity,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
-                                  if (c.source != null)
-                                    Positioned(
-                                      top: 4,
-                                      left: 4,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.7),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          c.source!,
-                                          style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w600),
-                                        ),
+                                  Positioned(
+                                    top: 4,
+                                    left: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.75),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        c.label != null && c.label!.isNotEmpty
+                                            ? c.label!
+                                            : (c.source != null && !c.source!.startsWith('http') ? c.source! : 'Image ${idx + 1}'),
+                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w600),
                                       ),
                                     ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -912,6 +914,16 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
   }
 
   Widget _buildThumbCard(String label, String? url, {double width = 140, double height = 80}) {
+    String? fallback;
+    if (url != null && _preview?.artworkCandidates != null) {
+      for (final c in _preview!.artworkCandidates) {
+        if (c.localUrl == url || c.url == url) {
+          fallback = c.url;
+          break;
+        }
+      }
+    }
+
     return Container(
       width: width,
       padding: const EdgeInsets.all(8),
@@ -930,6 +942,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
             width: double.infinity,
             child: NetworkImageBox(
               url: url,
+              fallbackUrl: fallback,
               width: double.infinity,
               height: height,
               borderRadius: BorderRadius.circular(4),

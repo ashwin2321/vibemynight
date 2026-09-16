@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/api_constants.dart';
@@ -34,6 +35,9 @@ class NetworkImageBox extends StatelessWidget {
     if (raw == null || raw.trim().isEmpty) return null;
     final clean = raw.trim();
     if (clean.startsWith('/')) {
+      if (kIsWeb) {
+        return clean;
+      }
       final base = ApiConstants.baseUrl.replaceAll('/api/v1', '');
       return '$base$clean';
     }
@@ -64,9 +68,10 @@ class NetworkImageBox extends StatelessWidget {
           return _renderLoadingState();
         },
         errorBuilder: (context, error, stack) {
-          if (fallbackUrl != null && fallbackUrl != effectiveUrl) {
+          final resolvedFallback = resolveUrl(fallbackUrl);
+          if (resolvedFallback != null && resolvedFallback != effectiveUrl) {
             return Image.network(
-              fallbackUrl!,
+              resolvedFallback,
               height: height,
               width: width,
               fit: fit,
