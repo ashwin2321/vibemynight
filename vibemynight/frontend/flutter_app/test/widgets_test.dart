@@ -8,6 +8,8 @@ import 'package:vibemynight/core/widgets/glass_card.dart';
 import 'package:vibemynight/core/widgets/gradient_button.dart';
 import 'package:vibemynight/core/widgets/loading_view.dart';
 import 'package:vibemynight/features/admin/widgets/status_badge.dart';
+import 'package:vibemynight/features/events/widgets/event_card.dart';
+import 'package:vibemynight/models/event_summary.dart';
 import 'package:vibemynight/models/settings.dart';
 
 void main() {
@@ -149,6 +151,44 @@ void main() {
       expect(find.text('VibeMyNight'), findsOneWidget);
       expect(find.text('Quick Links'), findsOneWidget);
       expect(find.text('Follow Us'), findsOneWidget);
+    });
+
+    testWidgets('EventCard renders title, price and passes button', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      const event = EventSummary(
+        id: 1,
+        name: 'Navratri Nights 2026',
+        slug: 'navratri-nights-2026',
+        city: 'Ahmedabad',
+        location: 'Grand Arena',
+        startDate: '10 Oct',
+        endDate: '19 Oct',
+        dayCount: 9,
+        startingPrice: 399.0,
+        status: 'PUBLISHED',
+        featured: true,
+        showInHero: true,
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 280,
+                child: EventCard(event: event),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Navratri Nights 2026'), findsOneWidget);
+      expect(find.text('₹399 onwards'), findsOneWidget);
+      expect(find.text('Passes'), findsOneWidget);
     });
   });
 }

@@ -55,6 +55,7 @@ class EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
+    final passesRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}/passes';
     final hasStartDate = event.startDate.isNotEmpty;
     final isCompact = MediaQuery.of(context).size.width < 600;
     final fallbackUrl = _curatedPosters[event.id.abs() % _curatedPosters.length];
@@ -252,34 +253,46 @@ class EventCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      event.startingPrice != null
-                          ? '₹${event.startingPrice!.toInt()} onwards'
-                          : '₹499 onwards',
-                      style: TextStyle(
-                        fontSize: isCompact ? 12.5 : 14,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        event.startingPrice != null
+                            ? '₹${event.startingPrice!.toInt()} onwards'
+                            : '₹499 onwards',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: isCompact ? 12.5 : 14,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Passes',
-                          style: TextStyle(
-                            color: const Color(0xFFC084FC),
-                            fontSize: isCompact ? 11 : 12,
-                            fontWeight: FontWeight.w700,
-                          ),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () => context.push(passesRoute),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Passes',
+                              style: TextStyle(
+                                color: const Color(0xFFC084FC),
+                                fontSize: isCompact ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              size: isCompact ? 12 : 13,
+                              color: const Color(0xFFC084FC),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          size: isCompact ? 12 : 13,
-                          color: const Color(0xFFC084FC),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

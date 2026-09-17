@@ -377,6 +377,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
     int activeIdx,
   ) {
     final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
+    final passesRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}/passes';
 
     final locParts = [
       if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
@@ -445,17 +446,23 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                   // Bold Event Title
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
-                    child: Text(
-                      activeEvent.name,
-                      key: ValueKey<int>(activeEvent.id),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        height: 1.2,
-                        letterSpacing: -0.4,
+                    child: GestureDetector(
+                      onTap: () => context.push(eventRoute),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Text(
+                          activeEvent.name,
+                          key: ValueKey<int>(activeEvent.id),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            height: 1.2,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -516,7 +523,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       InkWell(
-                        onTap: () => context.push(eventRoute),
+                        onTap: () => context.push(passesRoute),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 13),
@@ -688,6 +695,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
     int activeIdx,
   ) {
     final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
+    final passesRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}/passes';
 
     final locParts = [
       if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
@@ -855,6 +863,78 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 14),
+
+                // Mobile Hero CTA Buttons Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => context.push(passesRoute),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.neonPurple.withValues(alpha: 0.4),
+                                blurRadius: 14,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.confirmation_number_outlined, color: Colors.white, size: 15),
+                              SizedBox(width: 6),
+                              Text(
+                                'GET TICKETS',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    InkWell(
+                      onTap: _launchWhatsApp,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceGlass,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
+                            SizedBox(width: 6),
+                            Text(
+                              'VIP Chat',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
