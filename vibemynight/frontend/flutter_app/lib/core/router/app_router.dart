@@ -22,6 +22,7 @@ import '../../features/artists/artists_screen.dart';
 import '../../features/contact/contact_screen.dart';
 import '../../features/event_details/event_day_screen.dart';
 import '../../features/event_details/event_details_screen.dart';
+import '../../features/event_details/event_pass_selection_screen.dart';
 import '../../features/events/events_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/inquiry/inquiry_screen.dart';
@@ -55,6 +56,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/events/:slug',
         builder: (context, state) => EventDetailsScreen(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: '/events/:slug/passes',
+        builder: (context, state) {
+          final qParams = state.uri.queryParameters;
+          final dayId = int.tryParse(qParams['dayId'] ?? '');
+          return EventPassSelectionScreen(
+            slug: state.pathParameters['slug']!,
+            initialDayId: dayId,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/events/:slug/book',
+        builder: (context, state) {
+          final qParams = state.uri.queryParameters;
+          final dayId = int.tryParse(qParams['dayId'] ?? '');
+          return EventPassSelectionScreen(
+            slug: state.pathParameters['slug']!,
+            initialDayId: dayId,
+          );
+        },
       ),
       GoRoute(
         path: '/event-days/:dayId',
