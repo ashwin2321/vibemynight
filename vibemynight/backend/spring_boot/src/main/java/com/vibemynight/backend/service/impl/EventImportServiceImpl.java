@@ -192,6 +192,12 @@ public class EventImportServiceImpl implements EventImportService {
             } catch (Exception ignored) {}
         }
 
+        String resolvedMainImage = resolveDurableUrl(header.getMainImage(), preview.getArtworkCandidates(), "POSTER_3_4");
+        String resolvedBanner = resolveDurableUrl(header.getBanner(), preview.getArtworkCandidates(), "BANNER_16_9");
+        String resolvedThumbnail = resolveDurableUrl(header.getThumbnail(), preview.getArtworkCandidates(), "THUMBNAIL_1_1");
+        if (resolvedThumbnail == null || resolvedThumbnail.isBlank()) resolvedThumbnail = resolvedMainImage;
+        if (resolvedBanner == null || resolvedBanner.isBlank()) resolvedBanner = resolvedMainImage;
+
         // 2. Persist Event Header
         Event event = Event.builder()
                 .name(header.getName())
@@ -209,9 +215,9 @@ public class EventImportServiceImpl implements EventImportService {
                 .description(header.getDescription())
                 .featured(header.isFeatured())
                 .status(status)
-                .mainImage(header.getMainImage())
-                .banner(header.getBanner())
-                .thumbnail(header.getThumbnail())
+                .mainImage(resolvedMainImage)
+                .banner(resolvedBanner)
+                .thumbnail(resolvedThumbnail)
                 .build();
 
         Event savedEvent = eventRepository.save(event);
@@ -961,5 +967,31 @@ public class EventImportServiceImpl implements EventImportService {
             }
         }
         return true;
+    }
+
+    private String resolveDurableUrl(String candidateUrl, List<ScrapedImageCandidateDto> candidates, String preferredRole) {
+        if (candidateUrl != null && candidateUrl.startsWith("http")) {
+            return candidateUrl;
+        }
+        if (candidates != null && !candidates.isEmpty()) {
+            if (candidateUrl != null && !candidateUrl.isBlank()) {
+                for (ScrapedImageCandidateDto c : candidates) {
+                    if (candidateUrl.equals(c.getLocalUrl()) && c.getUrl() != null && c.getUrl().startsWith("http")) {
+                        return c.getUrl();
+                    }
+                }
+            }
+            for (ScrapedImageCandidateDto c : candidates) {
+                if (preferredRole.equals(c.getSuggestedRole()) && c.getUrl() != null && c.getUrl().startsWith("http")) {
+                    return c.getUrl();
+                }
+            }
+            for (ScrapedImageCandidateDto c : candidates) {
+                if (c.getUrl() != null && c.getUrl().startsWith("http")) {
+                    return c.getUrl();
+                }
+            }
+        }
+        return candidateUrl;
     }
 }

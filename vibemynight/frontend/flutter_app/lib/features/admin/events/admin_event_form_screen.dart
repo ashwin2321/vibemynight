@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/providers/data_providers.dart';
 import '../../../core/providers/dome_layout_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
@@ -174,6 +175,7 @@ class _AdminEventFormState extends ConsumerState<_AdminEventForm> {
         );
       }
       ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = e.toString());

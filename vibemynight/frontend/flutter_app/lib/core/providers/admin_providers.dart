@@ -5,6 +5,7 @@ import '../../models/event_detail.dart';
 import '../../models/event_summary.dart';
 import '../../models/facility.dart';
 import '../../models/inquiry_admin_summary.dart';
+import 'data_providers.dart';
 import 'service_providers.dart';
 
 export 'service_providers.dart';
@@ -14,18 +15,22 @@ export 'service_providers.dart';
 /// are the shared, invalidate-and-refetch backed lists and details.
 
 final adminEventsProvider = FutureProvider.autoDispose<List<EventSummary>>((ref) {
+  ref.cacheFor(const Duration(minutes: 3));
   return ref.watch(adminServiceProvider).getAllEvents();
 });
 
 final adminEventDetailProvider = FutureProvider.autoDispose.family<EventDetail, int>((ref, id) {
+  ref.cacheFor(const Duration(minutes: 3));
   return ref.watch(adminServiceProvider).getEventDetail(id);
 });
 
 final adminArtistsProvider = FutureProvider.autoDispose<List<Artist>>((ref) {
+  ref.cacheFor(const Duration(minutes: 3));
   return ref.watch(adminServiceProvider).getAllArtists();
 });
 
 final adminFacilitiesProvider = FutureProvider.autoDispose<List<Facility>>((ref) {
+  ref.cacheFor(const Duration(minutes: 3));
   return ref.watch(adminServiceProvider).getAllFacilities();
 });
 
@@ -46,5 +51,6 @@ class InquiryFilterParams {
 
 final adminInquiriesProvider =
     FutureProvider.autoDispose.family<List<InquiryAdminSummary>, InquiryFilterParams>((ref, params) {
+  ref.cacheFor(const Duration(minutes: 3));
   return ref.watch(adminServiceProvider).getInquiries(search: params.search, status: params.status);
 });

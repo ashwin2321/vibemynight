@@ -571,8 +571,8 @@ class _DayDetailCard extends ConsumerWidget {
                           runSpacing: 8,
                           children: day.artists.map((a) {
                             return Chip(
-                              avatar: a.photoUrl != null
-                                  ? ClipOval(child: Image.network(a.photoUrl!, width: 20, height: 20, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 16)))
+                              avatar: a.photoUrl != null && a.photoUrl!.isNotEmpty
+                                  ? NetworkImageBox(url: a.photoUrl, width: 20, height: 20, borderRadius: BorderRadius.circular(10))
                                   : const Icon(Icons.person, size: 16),
                               label: Text('${a.name}${a.isPrimary ? " (Headliner)" : ""}'),
                               backgroundColor: a.isPrimary ? AppColors.neonPurple.withValues(alpha: 0.2) : AppColors.surfaceGlass,

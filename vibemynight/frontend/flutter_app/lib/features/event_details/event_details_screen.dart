@@ -321,8 +321,10 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     // Blurred ambient backdrop for vertical/square posters
                     Positioned.fill(
                       child: Image.network(
-                        event.banner ?? event.mainImage ?? '',
+                        NetworkImageBox.resolveUrl(event.banner ?? event.mainImage) ?? '',
                         fit: BoxFit.cover,
+                        cacheWidth: 800,
+                        cacheHeight: 450,
                         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),
                     ),
@@ -333,7 +335,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     ),
                     // Centered crisp image without cropping faces/logos/dates
                     Image.network(
-                      event.banner ?? event.mainImage ?? '',
+                      NetworkImageBox.resolveUrl(event.banner ?? event.mainImage) ?? '',
                       fit: BoxFit.contain,
                       alignment: Alignment.center,
                       errorBuilder: (_, __, ___) => Container(

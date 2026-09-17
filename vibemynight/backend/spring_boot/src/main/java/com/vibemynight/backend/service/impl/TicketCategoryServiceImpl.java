@@ -7,6 +7,7 @@ import com.vibemynight.backend.repository.EventDayRepository;
 import com.vibemynight.backend.repository.TicketCategoryRepository;
 import com.vibemynight.backend.service.TicketCategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class TicketCategoryServiceImpl implements TicketCategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public TicketCategory create(Long eventDayId, TicketCategory ticket) {
         EventDay day = eventDayRepository.findById(eventDayId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event day not found: " + eventDayId));
@@ -43,6 +45,7 @@ public class TicketCategoryServiceImpl implements TicketCategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public TicketCategory update(Long id, TicketCategory updated) {
         TicketCategory existing = getById(id);
         existing.setName(updated.getName());
@@ -58,6 +61,7 @@ public class TicketCategoryServiceImpl implements TicketCategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public void delete(Long id) {
         ticketCategoryRepository.delete(getById(id));
     }

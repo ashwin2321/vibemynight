@@ -8,6 +8,7 @@ import com.vibemynight.backend.repository.EventDayRepository;
 import com.vibemynight.backend.repository.EventRepository;
 import com.vibemynight.backend.service.EventDayService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class EventDayServiceImpl implements EventDayService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public EventDay create(Long eventId, EventDay day) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
@@ -50,6 +52,7 @@ public class EventDayServiceImpl implements EventDayService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public EventDay update(Long id, EventDay updated) {
         EventDay existing = getById(id);
         existing.setDayNumber(updated.getDayNumber());
@@ -69,6 +72,7 @@ public class EventDayServiceImpl implements EventDayService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public void delete(Long id) {
         EventDay day = getById(id);
         eventDayRepository.delete(day);

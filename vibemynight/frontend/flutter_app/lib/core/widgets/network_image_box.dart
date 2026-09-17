@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/api_constants.dart';
@@ -35,9 +34,6 @@ class NetworkImageBox extends StatelessWidget {
     if (raw == null || raw.trim().isEmpty) return null;
     final clean = raw.trim();
     if (clean.startsWith('/')) {
-      if (kIsWeb) {
-        return clean;
-      }
       final base = ApiConstants.baseUrl.replaceAll('/api/v1', '');
       return '$base$clean';
     }
@@ -52,8 +48,28 @@ class NetworkImageBox extends StatelessWidget {
 
     final effectiveUrl = resolveUrl(rawUrl);
 
+    final targetCacheWidth = (width != null && width! > 0 && !width!.isInfinite)
+        ? (width! * 2.5).round().clamp(100, 2048)
+        : null;
+    final targetCacheHeight = (height != null && height! > 0 && !height!.isInfinite)
+        ? (height! * 2.5).round().clamp(100, 2048)
+        : null;
+
     if (effectiveUrl == null) {
-      return _renderStylizedFallback();
+      final safeFallback = resolveUrl(fallbackUrl) ?? defaultEventPosters[0];
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: Image.network(
+          safeFallback,
+          height: height,
+          width: width,
+          fit: fit,
+          cacheWidth: targetCacheWidth,
+          cacheHeight: targetCacheHeight,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (_, __, ___) => _renderStylizedFallback(),
+        ),
+      );
     }
 
     return ClipRRect(
@@ -63,18 +79,24 @@ class NetworkImageBox extends StatelessWidget {
         height: height,
         width: width,
         fit: fit,
+        cacheWidth: targetCacheWidth,
+        cacheHeight: targetCacheHeight,
+        filterQuality: FilterQuality.medium,
         loadingBuilder: (context, child, progress) {
           if (progress == null) return child;
           return _renderLoadingState();
         },
         errorBuilder: (context, error, stack) {
-          final resolvedFallback = resolveUrl(fallbackUrl);
-          if (resolvedFallback != null && resolvedFallback != effectiveUrl) {
+          final resolvedFallback = resolveUrl(fallbackUrl) ?? defaultEventPosters[0];
+          if (resolvedFallback != effectiveUrl) {
             return Image.network(
               resolvedFallback,
               height: height,
               width: width,
               fit: fit,
+              cacheWidth: targetCacheWidth,
+              cacheHeight: targetCacheHeight,
+              filterQuality: FilterQuality.medium,
               errorBuilder: (_, __, ___) => _renderStylizedFallback(),
             );
           }

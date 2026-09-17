@@ -63,7 +63,7 @@ class EventCard extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 3 / 4,
                   child: NetworkImageBox(
-                    url: event.thumbnail ?? event.mainImage,
+                    url: event.mainImage ?? event.thumbnail,
                     fallbackUrl: fallbackUrl,
                     width: double.infinity,
                     height: double.infinity,

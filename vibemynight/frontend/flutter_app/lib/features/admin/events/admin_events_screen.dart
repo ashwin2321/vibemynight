@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/providers/data_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -34,6 +35,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
     try {
       await ref.read(adminServiceProvider).changeEventStatus(event.id, status);
       ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -61,6 +63,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
     try {
       await ref.read(adminServiceProvider).deleteEvent(event.id);
       ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));

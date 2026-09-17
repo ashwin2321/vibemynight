@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/providers/data_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/gradient_button.dart';
@@ -155,6 +156,7 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
     try {
       final created = await ref.read(adminServiceProvider).confirmEventImport(_preview!);
       ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

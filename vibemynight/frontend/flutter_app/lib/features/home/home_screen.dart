@@ -263,8 +263,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     final safeIndex = _activeIndex.clamp(0, events.length - 1);
     final activeEvent = events[safeIndex];
 
-    final activeImage = activeEvent.mainImage ??
-        activeEvent.thumbnail ??
+    final activeImage = NetworkImageBox.resolveUrl(activeEvent.mainImage ?? activeEvent.thumbnail) ??
         'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&fit=crop&auto=format';
 
     return Container(
@@ -288,6 +287,8 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                   child: Image.network(
                     activeImage,
                     fit: BoxFit.cover,
+                    cacheWidth: 400,
+                    cacheHeight: 250,
                     errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0F0B1E)),
                   ),
                 ),
@@ -1718,8 +1719,7 @@ class _UpcomingEventsSection extends StatelessWidget {
                         spacing: 16,
                         runSpacing: 16,
                         children: events.take(6).map((ev) {
-                          final img = ev.thumbnail ??
-                              ev.mainImage ??
+                          final img = NetworkImageBox.resolveUrl(ev.thumbnail ?? ev.mainImage) ??
                               'https://images.unsplash.com/photo-1618176581836-9dcf475e2b4a?w=400&h=280&fit=crop&auto=format';
                           final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
 
@@ -1746,6 +1746,8 @@ class _UpcomingEventsSection extends StatelessWidget {
                                         width: 76,
                                         height: 76,
                                         fit: BoxFit.cover,
+                                        cacheWidth: 200,
+                                        cacheHeight: 200,
                                         errorBuilder: (_, __, ___) => Container(
                                           width: 76,
                                           height: 76,
@@ -2142,7 +2144,7 @@ class _CircularArtistCardState extends State<_CircularArtistCard> {
   @override
   Widget build(BuildContext context) {
     final a = widget.artist;
-    final img = a.photoUrl ??
+    final img = NetworkImageBox.resolveUrl(a.photoUrl) ??
         'https://images.unsplash.com/photo-1496337589254-7e19d01cec44?w=300&h=300&fit=crop&auto=format';
 
     return MouseRegion(
@@ -2189,6 +2191,8 @@ class _CircularArtistCardState extends State<_CircularArtistCard> {
                     child: Image.network(
                       img,
                       fit: BoxFit.cover,
+                      cacheWidth: 250,
+                      cacheHeight: 250,
                       errorBuilder: (_, __, ___) => Container(
                         color: const Color(0xFF1E1E38),
                         child: const Icon(Icons.person, color: Colors.white24, size: 40),
