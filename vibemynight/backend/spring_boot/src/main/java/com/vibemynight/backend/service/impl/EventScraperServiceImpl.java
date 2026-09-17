@@ -367,21 +367,22 @@ public class EventScraperServiceImpl implements EventScraperService {
 
         try {
             JsonNode root = objectMapper.readTree(nextScript.html().trim());
-            // 1. Deep recursive extraction of all image URLs across entire Next.js state tree
-            extractAllImagesFromJsonNode(root, data.images);
-
             JsonNode pageProps = root.path("props").path("pageProps");
-            if (pageProps.isMissingNode()) return;
 
-            // Showmates / District Next.js payload variations
-            JsonNode eventNode = pageProps.path("event");
-            if (eventNode.isMissingNode()) eventNode = pageProps.path("eventDetails");
-            if (eventNode.isMissingNode()) eventNode = pageProps.path("data");
-            if (eventNode.isMissingNode() && pageProps.has("name")) eventNode = pageProps;
+            if (!pageProps.isMissingNode()) {
+                // 1. Showmates / District Next.js event payload variations
+                JsonNode eventNode = pageProps.path("event");
+                if (eventNode.isMissingNode()) eventNode = pageProps.path("eventDetails");
+                if (eventNode.isMissingNode()) eventNode = pageProps.path("data");
+                if (eventNode.isMissingNode() && pageProps.has("name")) eventNode = pageProps;
 
-            if (!eventNode.isMissingNode()) {
-                parseNextJsEventNode(eventNode, data);
+                if (!eventNode.isMissingNode()) {
+                    parseNextJsEventNode(eventNode, data);
+                }
             }
+
+            // 2. Secondary supplement: extract remaining genuine event gallery images
+            extractAllImagesFromJsonNode(root, data.images);
         } catch (Exception e) {
             log.debug("Could not parse __NEXT_DATA__ JSON: {}", e.getMessage());
         }
@@ -412,7 +413,12 @@ public class EventScraperServiceImpl implements EventScraperService {
     private boolean isValidEventImageUrl(String url) {
         if (url == null || url.isBlank() || url.length() < 10) return false;
         String lower = url.toLowerCase();
-        if (lower.contains("favicon") || lower.contains("avatar") || lower.contains("icon-") || lower.contains("logo-small") || lower.endsWith(".svg")) {
+        if (lower.contains("favicon") || lower.contains("avatar") || lower.contains("icon-")
+                || lower.contains("logo-small") || lower.endsWith(".svg") || lower.contains("sponsor")
+                || lower.contains("badge") || lower.contains("placeholder") || lower.contains("user_")
+                || lower.contains("default-") || lower.contains("blank.") || lower.contains("pixel.")
+                || lower.contains("header_bg") || lower.contains("footer_") || lower.contains("app_store")
+                || lower.contains("play_store") || lower.contains("star-icon") || lower.contains("arrow")) {
             return false;
         }
         return lower.contains(".jpg") || lower.contains(".jpeg") || lower.contains(".png") || lower.contains(".webp") || lower.contains(".avif")
@@ -453,13 +459,27 @@ public class EventScraperServiceImpl implements EventScraperService {
             if (c.isTextual()) data.city = c.asText().trim();
         }
 
-        // Artwork images
-        List<String> imgKeys = List.of("verticalBanner", "horizontalBanner", "verticalImage", "bannerImage", "posterImage", "mainImage", "image", "coverImage");
-        for (String k : imgKeys) {
+        // 1. High Priority Artwork Images: Vertical Poster (Index 0) & Horizontal Banner (Index 1)
+        List<String> primaryPosterKeys = List.of("verticalBanner", "verticalImage", "posterImage", "cover_image_vertical", "portraitImage", "poster");
+        List<String> primaryBannerKeys = List.of("horizontalBanner", "bannerImage", "cover_image_horizontal", "coverImage", "banner", "mainImage", "image");
+
+        for (String k : primaryPosterKeys) {
             if (node.has(k) && node.path(k).isTextual()) {
                 String src = node.path(k).asText().trim();
-                if (!src.isEmpty() && !data.images.contains(src)) {
-                    data.images.add(src);
+                if (!src.isEmpty() && isValidEventImageUrl(src) && !data.images.contains(src)) {
+                    data.images.add(0, src); // Top priority for 3:4 Poster
+                    break;
+                }
+            }
+        }
+
+        for (String k : primaryBannerKeys) {
+            if (node.has(k) && node.path(k).isTextual()) {
+                String src = node.path(k).asText().trim();
+                if (!src.isEmpty() && isValidEventImageUrl(src) && !data.images.contains(src)) {
+                    if (data.images.isEmpty()) data.images.add(src);
+                    else data.images.add(1, src); // #2 priority for 16:9 Banner
+                    break;
                 }
             }
         }
