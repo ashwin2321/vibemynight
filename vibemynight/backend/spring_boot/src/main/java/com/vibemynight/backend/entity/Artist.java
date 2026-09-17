@@ -51,7 +51,16 @@ public class Artist extends BaseEntity {
     private String youtubeUrl;
 
     @Builder.Default
-    private boolean featured = false;
+    @Column(name = "featured")
+    private Boolean featured = Boolean.FALSE;
+
+    public boolean isFeatured() {
+        return featured != null && featured;
+    }
+
+    public void setFeatured(Boolean featured) {
+        this.featured = featured != null ? featured : Boolean.FALSE;
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

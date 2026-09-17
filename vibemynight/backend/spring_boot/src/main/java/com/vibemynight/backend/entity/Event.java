@@ -84,11 +84,28 @@ public class Event extends BaseEntity {
     private String email;
 
     @Builder.Default
-    private boolean featured = false;
+    @Column(name = "featured")
+    private Boolean featured = Boolean.FALSE;
 
     @Builder.Default
     @Column(name = "show_in_hero")
-    private boolean showInHero = false;
+    private Boolean showInHero = Boolean.FALSE;
+
+    public boolean isFeatured() {
+        return featured != null && featured;
+    }
+
+    public void setFeatured(Boolean featured) {
+        this.featured = featured != null ? featured : Boolean.FALSE;
+    }
+
+    public boolean isShowInHero() {
+        return showInHero != null && showInHero;
+    }
+
+    public void setShowInHero(Boolean showInHero) {
+        this.showInHero = showInHero != null ? showInHero : Boolean.FALSE;
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
