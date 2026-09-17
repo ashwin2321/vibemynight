@@ -32,6 +32,14 @@ public class EventServiceImpl implements EventService {
     @Cacheable(value = "event_details", key = "#slug")
     public Event getBySlug(String slug) {
         return eventRepository.findBySlug(slug)
+                .or(() -> {
+                    try {
+                        Long id = Long.parseLong(slug);
+                        return eventRepository.findById(id);
+                    } catch (NumberFormatException ignored) {
+                        return java.util.Optional.empty();
+                    }
+                })
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + slug));
     }
 

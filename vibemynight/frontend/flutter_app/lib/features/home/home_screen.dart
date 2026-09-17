@@ -139,63 +139,11 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
   late final PageController _pageController;
   late final PageController _mobilePageController;
 
-  static const List<EventSummary> _defaultEvents = [
-    EventSummary(
-      id: 1,
-      name: 'SANKALP NAGRI GARBA & MANDLI',
-      slug: 'sankalp-nagri-garba-mandli-2026',
-      startDate: 'Sun 11 Oct',
-      endDate: 'Tue 20 Oct',
-      location: 'Sankalp nagri ground',
-      city: 'Ahmedabad',
-      dayCount: 9,
-      startingPrice: 499,
-      featured: true,
-      status: 'PUBLISHED',
-      mainImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&h=900&fit=crop&auto=format',
-      thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=900&h=1200&fit=crop&auto=format',
-    ),
-    EventSummary(
-      id: 2,
-      name: 'The Rangeelo Garbo',
-      slug: 'the-rangeelo-garbo-2026',
-      startDate: 'Fri 09 Oct',
-      endDate: 'Sun 18 Oct',
-      location: 'Venue To Be Announced',
-      city: 'Ahmedabad',
-      dayCount: 10,
-      startingPrice: 799,
-      featured: true,
-      status: 'PUBLISHED',
-      mainImage: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1600&h=900&fit=crop&auto=format',
-      thumbnail: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&h=1200&fit=crop&auto=format',
-    ),
-    EventSummary(
-      id: 3,
-      name: 'MAA NI NAVRATRI',
-      slug: 'maa-ni-navratri-2026',
-      startDate: 'Sat 10 Oct',
-      endDate: 'Tue 20 Oct',
-      location: 'YASH FARM RESORT',
-      city: 'Ahmedabad',
-      dayCount: 10,
-      startingPrice: 599,
-      featured: true,
-      status: 'PUBLISHED',
-      mainImage: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&h=900&fit=crop&auto=format',
-      thumbnail: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&h=1200&fit=crop&auto=format',
-    ),
-  ];
-
   static const List<String> _heroFallbacks = [
     'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&h=900&fit=crop&auto=format',
     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1600&h=900&fit=crop&auto=format',
     'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&h=900&fit=crop&auto=format',
     'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1600&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=1600&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1600&h=900&fit=crop&auto=format',
   ];
 
   Timer? _autoScrollTimer;
@@ -240,7 +188,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
       }
       return liveEvents.take(8).toList();
     }
-    return _defaultEvents;
+    return const [];
   }
 
   void _nextPage(int total, {bool isAuto = false}) {
@@ -298,6 +246,30 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
     final isTablet = size.width >= 650 && size.width < 960;
 
     final events = _getDisplayEvents();
+    if (events.isEmpty) {
+      if (widget.eventsAsync.isLoading) {
+        return Container(
+          width: double.infinity,
+          height: isDesktop ? 340 : 220,
+          color: const Color(0xFF07070E),
+          child: const Center(
+            child: CircularProgressIndicator(color: AppColors.neonPurple),
+          ),
+        );
+      }
+      return Container(
+        width: double.infinity,
+        color: const Color(0xFF07070E),
+        padding: EdgeInsets.symmetric(horizontal: isDesktop ? 48 : 16, vertical: 16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1320),
+            child: _buildIntegratedCategoryChips(context, isDesktop),
+          ),
+        ),
+      );
+    }
+
     final safeIndex = _activeIndex.clamp(0, events.length - 1);
     final activeEvent = events[safeIndex];
 
