@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
@@ -202,8 +203,8 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.74);
-    _mobilePageController = PageController(viewportFraction: 0.78);
+    _pageController = PageController(viewportFraction: 1.0);
+    _mobilePageController = PageController(viewportFraction: 0.90);
     _startAutoScrollTimer();
   }
 
@@ -293,7 +294,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     final activeEvent = events[safeIndex];
 
     final activeImage = NetworkImageBox.resolveUrl(activeEvent.mainImage ?? activeEvent.thumbnail) ??
-        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&fit=crop&auto=format';
+        _heroFallbacks[safeIndex % _heroFallbacks.length];
 
     return Container(
       width: double.infinity,
@@ -384,7 +385,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // DESKTOP SPLIT LAYOUT (MATCHING SROLL.MP4)
+  // DESKTOP SPLIT LAYOUT (MATCHING APPROVED LUXURY MOCKUP)
   // ==========================================
   Widget _buildDesktopSplitLayout(
     List<EventSummary> events,
@@ -397,7 +398,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
       if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
       if (activeEvent.city != null && activeEvent.city!.isNotEmpty) activeEvent.city!,
     ].where((s) => s.isNotEmpty).join(', ');
-    final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
+    final displayLoc = locParts.isEmpty ? 'Ahmedabad, Gujarat' : locParts;
 
     final dateText = [
       if (activeEvent.startDate.isNotEmpty) activeEvent.startDate,
@@ -409,411 +410,422 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // LEFT COLUMN: Title, Dates, Venue, CTA & Arrow Controls
-        SizedBox(
-          width: 440,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Badge Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFC084FC),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFFC084FC),
-                            blurRadius: 6,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'FEATURED NIGHT',
-                      style: TextStyle(
-                        color: Color(0xFFC084FC),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11.5,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Large Bold Event Title (with smooth crossfade)
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, anim) => FadeTransition(
-                  opacity: anim,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.0, 0.08),
-                      end: Offset.zero,
-                    ).animate(anim),
-                    child: child,
-                  ),
-                ),
-                child: Text(
-                  activeEvent.name.toUpperCase(),
-                  key: ValueKey<int>(activeEvent.id),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1.15,
-                    letterSpacing: -0.6,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Date & Venue Subtitle
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Column(
-                  key: ValueKey<int>(activeEvent.id + 1000),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (dateText.isNotEmpty)
-                      Row(
-                        children: [
-                          const Icon(Icons.calendar_today_rounded, color: Color(0xFFC084FC), size: 15),
-                          const SizedBox(width: 8),
-                          Text(
-                            dateText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, color: Color(0xFF60A5FA), size: 16),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            displayLoc,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.78),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
+        Expanded(
+          flex: 6,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 36),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Glowing Category Pill Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.neonPurple.withValues(alpha: 0.25),
+                        AppColors.neonPink.withValues(alpha: 0.15),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Primary CTA Button + WhatsApp
-              Wrap(
-                spacing: 12,
-                runSpacing: 10,
-                children: [
-                  GradientButton(
-                    label: 'GET TICKETS',
-                    icon: Icons.confirmation_number_outlined,
-                    height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 26),
-                    onPressed: () => context.push(eventRoute),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: AppColors.neonPurple.withValues(alpha: 0.6),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.neonPurple.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                      ),
+                    ],
                   ),
-                  InkWell(
-                    onTap: _launchWhatsApp,
-                    borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.18),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFE9D5FF),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFC084FC),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
                         ),
                       ),
-                      alignment: Alignment.center,
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 16),
-                          SizedBox(width: 8),
-                          Text(
-                            'VIP Inquiries',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                      const SizedBox(width: 8),
+                      const Text(
+                        'FEATURED NIGHT',
+                        style: TextStyle(
+                          color: Color(0xFFE9D5FF),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11.5,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Large Bold Event Title (with smooth crossfade)
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 320),
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.05),
+                        end: Offset.zero,
+                      ).animate(anim),
+                      child: child,
+                    ),
+                  ),
+                  child: Text(
+                    activeEvent.name.toUpperCase(),
+                    key: ValueKey<int>(activeEvent.id),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 38,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 1.15,
+                      letterSpacing: -0.6,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // High-Contrast Metadata Chips: Date, Venue, Price
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Wrap(
+                    key: ValueKey<int>(activeEvent.id + 1000),
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      // Emerald Date Chip
+                      if (dateText.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4ADE80).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFF4ADE80).withValues(alpha: 0.5),
+                              width: 1,
                             ),
                           ),
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.calendar_today_rounded, color: Color(0xFF4ADE80), size: 14),
+                              const SizedBox(width: 6),
+                              Text(
+                                dateText,
+                                style: const TextStyle(
+                                  color: Color(0xFF86EFAC),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Location Chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.location_on_rounded, color: Color(0xFF60A5FA), size: 15),
+                            const SizedBox(width: 6),
+                            Text(
+                              displayLoc,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Starting Price Chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFA855F7).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          activeEvent.startingPrice != null
+                              ? 'From ₹${activeEvent.startingPrice!.toInt()}'
+                              : 'From ₹499',
+                          style: const TextStyle(
+                            color: Color(0xFFE9D5FF),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 26),
+
+                // Primary CTA Buttons: GET PASSES + VIP Inquiries
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 10,
+                  children: [
+                    GradientButton(
+                      label: 'GET PASSES',
+                      icon: Icons.confirmation_number_outlined,
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      onPressed: () => context.push(eventRoute),
+                    ),
+                    InkWell(
+                      onTap: _launchWhatsApp,
+                      borderRadius: BorderRadius.circular(25),
+                      child: Container(
+                        height: 50,
+                        padding: const EdgeInsets.symmetric(horizontal: 22),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 17),
+                            SizedBox(width: 8),
+                            Text(
+                              'VIP Inquiries',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
+                  ],
+                ),
+                const SizedBox(height: 32),
 
-              // Bottom-Left Navigation Arrows (As shown in sroll.mp4)
-              Row(
-                children: [
-                  _CarouselArrowButton(
-                    icon: Icons.arrow_back_rounded,
-                    onTap: () => _prevPage(events.length),
-                  ),
-                  const SizedBox(width: 12),
-                  _CarouselArrowButton(
-                    icon: Icons.arrow_forward_rounded,
-                    onTap: () => _nextPage(events.length),
-                  ),
-                  const SizedBox(width: 18),
-                  // Current slide counter (e.g. 01 / 05)
-                  Text(
-                    '${(activeIdx + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      letterSpacing: 1.5,
+                // Bottom Navigation Arrows + Dot Indicators
+                Row(
+                  children: [
+                    _CarouselArrowButton(
+                      icon: Icons.arrow_back_rounded,
+                      onTap: () => _prevPage(events.length),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    _CarouselArrowButton(
+                      icon: Icons.arrow_forward_rounded,
+                      onTap: () => _nextPage(events.length),
+                    ),
+                    const SizedBox(width: 20),
+                    // Slide dots
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(events.length, (i) {
+                        final isSel = i == activeIdx;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: isSel ? 22 : 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: isSel ? AppColors.neonPurple : Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(4),
+                            boxShadow: isSel
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.neonPurple.withValues(alpha: 0.5),
+                                      blurRadius: 6,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '${(activeIdx + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
 
-        const SizedBox(width: 36),
-
-        // RIGHT COLUMN: Horizontal PageView with Peeking Banner Card (True 16:9 Ratio)
+        // RIGHT COLUMN: Clean Single Master Luxury Poster Card Showcase
         Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth;
-              final itemWidth = availableWidth * 0.76;
-              final bannerHeight = itemWidth / (16 / 9);
+          flex: 5,
+          child: Center(
+            child: SizedBox(
+              height: 380,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: events.length,
+                onPageChanged: (idx) => setState(() => _activeIndex = idx),
+                itemBuilder: (context, index) {
+                  final ev = events[index];
+                  final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+                  final posterUrl = ev.mainImage ?? ev.thumbnail;
+                  final fallback = _heroFallbacks[index % _heroFallbacks.length];
 
-              return SizedBox(
-                height: bannerHeight.clamp(240.0, 360.0) + 16,
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: events.length,
-                  onPageChanged: (idx) => setState(() => _activeIndex = idx),
-                  itemBuilder: (context, index) {
-                    final ev = events[index];
-                    final isCurrent = index == activeIdx;
-                    final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+                  return Center(
+                    child: GestureDetector(
+                      onTap: () => context.push(targetRoute),
+                      child: Container(
+                        width: 520,
+                        height: 340,
+                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                            color: AppColors.neonPurple.withValues(alpha: 0.75),
+                            width: 2.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.neonPurple.withValues(alpha: 0.4),
+                              blurRadius: 32,
+                              offset: const Offset(0, 10),
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Master Poster Image with Verified Fallback
+                              NetworkImageBox(
+                                url: posterUrl,
+                                fallbackUrl: fallback,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
 
-                    return Center(
-                      child: AnimatedScale(
-                        scale: isCurrent ? 1.0 : 0.93,
-                        duration: const Duration(milliseconds: 320),
-                        curve: Curves.easeOutCubic,
-                        child: AnimatedOpacity(
-                          opacity: isCurrent ? 1.0 : 0.72,
-                          duration: const Duration(milliseconds: 320),
-                          child: GestureDetector(
-                            onTap: () {
-                              if (isCurrent) {
-                                context.push(targetRoute);
-                              } else {
-                                _pageController.animateToPage(
-                                  index,
-                                  duration: const Duration(milliseconds: 350),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            },
-                            child: AspectRatio(
-                              aspectRatio: 16 / 9,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              // Bottom gradient fade
+                              Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(
-                                    color: isCurrent
-                                        ? const Color(0xFF8B5CF6)
-                                        : Colors.white.withValues(alpha: 0.12),
-                                    width: isCurrent ? 2.0 : 1.0,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isCurrent
-                                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
-                                          : Colors.black.withValues(alpha: 0.6),
-                                      blurRadius: isCurrent ? 24 : 10,
-                                      offset: const Offset(0, 8),
-                                      spreadRadius: isCurrent ? 2 : 0,
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      // 16:9 Banner Image with Safe Fallback
-                                      NetworkImageBox(
-                                        url: ev.mainImage ?? ev.thumbnail,
-                                        fallbackUrl: _heroFallbacks[index % _heroFallbacks.length],
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-
-                                      // Bottom subtle gradient shadow for text contrast
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withValues(alpha: 0.25),
-                                              const Color(0xFF07070E).withValues(alpha: 0.85),
-                                            ],
-                                            stops: const [0.55, 0.8, 1.0],
-                                          ),
-                                        ),
-                                      ),
-
-                                      // Floating Top Date Pill & Price Pill
-                                      Positioned(
-                                        top: 14,
-                                        left: 14,
-                                        right: 14,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            if (ev.startDate.isNotEmpty)
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black.withValues(alpha: 0.75),
-                                                  borderRadius: BorderRadius.circular(16),
-                                                  border: Border.all(
-                                                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
-                                                    const SizedBox(width: 5),
-                                                    Text(
-                                                      ev.startDate,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 11.5,
-                                                        fontWeight: FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            if (ev.startingPrice != null)
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                                decoration: BoxDecoration(
-                                                  gradient: const LinearGradient(
-                                                    colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
-                                                  ),
-                                                  borderRadius: BorderRadius.circular(16),
-                                                ),
-                                                child: Text(
-                                                  'FROM ₹${ev.startingPrice!.toInt()}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w900,
-                                                    letterSpacing: 0.5,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // Bottom mini action pill on hover/focus
-                                      Positioned(
-                                        bottom: 14,
-                                        right: 14,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                                          decoration: BoxDecoration(
-                                            color: isCurrent
-                                                ? const Color(0xFFA855F7)
-                                                : Colors.black.withValues(alpha: 0.7),
-                                            borderRadius: BorderRadius.circular(20),
-                                            boxShadow: [
-                                              if (isCurrent)
-                                                BoxShadow(
-                                                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-                                                  blurRadius: 10,
-                                                ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                isCurrent ? 'BOOK PASS' : 'VIEW',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11.5,
-                                                  fontWeight: FontWeight.w800,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withValues(alpha: 0.2),
+                                      const Color(0xFF07070E).withValues(alpha: 0.85),
                                     ],
+                                    stops: const [0.5, 0.75, 1.0],
                                   ),
                                 ),
                               ),
-                            ),
+
+                              // Top Badges
+                              Positioned(
+                                top: 16,
+                                left: 16,
+                                right: 16,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    if (ev.startDate.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.75),
+                                          borderRadius: BorderRadius.circular(18),
+                                          border: Border.all(
+                                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              ev.startDate,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if (ev.startingPrice != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFA855F7).withValues(alpha: 0.85),
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: Text(
+                                          '₹${ev.startingPrice!.toInt()}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
-              );
-            },
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ],
