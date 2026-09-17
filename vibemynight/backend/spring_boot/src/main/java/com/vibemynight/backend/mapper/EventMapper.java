@@ -60,6 +60,7 @@ public class EventMapper {
                 .startingPrice(startingPrice)
                 .featuredArtistName(featuredArtistName)
                 .featured(event.isFeatured())
+                .showInHero(event.isShowInHero())
                 .status(event.getStatus().name())
                 .build();
     }

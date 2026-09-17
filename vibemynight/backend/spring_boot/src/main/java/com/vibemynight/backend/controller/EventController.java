@@ -117,6 +117,7 @@ public class EventController {
                 .contactNumber(request.getContactNumber())
                 .email(request.getEmail())
                 .featured(request.isFeatured())
+                .showInHero(request.isShowInHero())
                 .build();
         Event saved = eventService.update(id, event);
         return ApiResponse.ok(eventMapper.toSummaryDto(saved), "Event updated");
@@ -134,5 +135,13 @@ public class EventController {
         EventStatus status = EventStatus.valueOf(body.get("status").toUpperCase());
         Event saved = eventService.changeStatus(id, status);
         return ApiResponse.ok(eventMapper.toSummaryDto(saved), "Event status updated");
+    }
+
+    /** Body: { "showInHero": true | false } */
+    @PatchMapping("/api/v1/admin/events/{id}/hero")
+    public ApiResponse<EventSummaryDto> toggleHero(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        Boolean showInHero = body.getOrDefault("showInHero", false);
+        Event saved = eventService.toggleHero(id, showInHero);
+        return ApiResponse.ok(eventMapper.toSummaryDto(saved), "Hero status updated");
     }
 }

@@ -80,6 +80,7 @@ public class EventServiceImpl implements EventService {
         existing.setContactNumber(updated.getContactNumber());
         existing.setEmail(updated.getEmail());
         existing.setFeatured(updated.isFeatured());
+        existing.setShowInHero(updated.isShowInHero());
         return eventRepository.save(existing);
     }
 
@@ -97,6 +98,15 @@ public class EventServiceImpl implements EventService {
     public Event changeStatus(Long id, EventStatus status) {
         Event event = getById(id);
         event.setStatus(status);
+        return eventRepository.save(event);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {"events", "event_details"}, allEntries = true)
+    public Event toggleHero(Long id, boolean showInHero) {
+        Event event = getById(id);
+        event.setShowInHero(showInHero);
         return eventRepository.save(event);
     }
 }

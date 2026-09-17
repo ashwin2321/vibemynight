@@ -37,4 +37,5 @@ public class CreateEventRequest {
     private String contactNumber;
     private String email;
     private boolean featured;
+    private boolean showInHero;
 }

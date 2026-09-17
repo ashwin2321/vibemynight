@@ -37,6 +37,7 @@ class ApiConstants {
   static const String adminEvents = '/admin/events';
   static String adminEventById(int id) => '/admin/events/$id';
   static String adminEventStatus(int id) => '/admin/events/$id/status';
+  static String adminEventHero(int id) => '/admin/events/$id/hero';
   static String adminEventDays(int eventId) => '/admin/events/$eventId/days';
   static String adminEventDayById(int id) => '/admin/event-days/$id';
   static String adminEventDayArtists(int dayId) => '/admin/event-days/$dayId/artists';

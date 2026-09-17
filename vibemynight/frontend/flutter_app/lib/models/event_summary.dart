@@ -13,6 +13,7 @@ class EventSummary {
   final double? startingPrice;
   final String? featuredArtistName;
   final bool featured;
+  final bool showInHero;
   final String status;
 
   const EventSummary({
@@ -29,6 +30,7 @@ class EventSummary {
     this.startingPrice,
     this.featuredArtistName,
     required this.featured,
+    this.showInHero = false,
     required this.status,
   });
 
@@ -46,6 +48,7 @@ class EventSummary {
         startingPrice: (json['startingPrice'] as num?)?.toDouble(),
         featuredArtistName: json['featuredArtistName'] as String?,
         featured: json['featured'] as bool? ?? false,
+        showInHero: json['showInHero'] as bool? ?? false,
         status: json['status'] as String? ?? 'DRAFT',
       );
 }

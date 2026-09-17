@@ -42,6 +42,9 @@ class AdminService {
   Future<void> changeEventStatus(int id, String status) =>
       _client.patch(ApiConstants.adminEventStatus(id), body: {'status': status});
 
+  Future<void> toggleHero(int id, bool showInHero) =>
+      _client.patch(ApiConstants.adminEventHero(id), body: {'showInHero': showInHero});
+
   // ---------- Event days ----------
 
   Future<EventDayDetail> createEventDay(int eventId, Map<String, dynamic> body) async {

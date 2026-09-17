@@ -27,5 +27,6 @@ public class EventSummaryDto {
     private BigDecimal startingPrice;
     private String featuredArtistName;
     private boolean featured;
+    private boolean showInHero;
     private String status;
 }

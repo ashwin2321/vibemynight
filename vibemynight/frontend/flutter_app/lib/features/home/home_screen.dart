@@ -230,6 +230,14 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
   List<EventSummary> _getDisplayEvents() {
     final liveEvents = widget.eventsAsync.value;
     if (liveEvents != null && liveEvents.isNotEmpty) {
+      final heroOnly = liveEvents.where((e) => e.showInHero).toList();
+      if (heroOnly.isNotEmpty) {
+        return heroOnly;
+      }
+      final featured = liveEvents.where((e) => e.featured).toList();
+      if (featured.isNotEmpty) {
+        return featured.take(8).toList();
+      }
       return liveEvents.take(8).toList();
     }
     return _defaultEvents;

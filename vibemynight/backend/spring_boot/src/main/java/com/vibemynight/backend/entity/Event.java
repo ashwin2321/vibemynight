@@ -86,6 +86,10 @@ public class Event extends BaseEntity {
     @Builder.Default
     private boolean featured = false;
 
+    @Builder.Default
+    @Column(name = "show_in_hero")
+    private boolean showInHero = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

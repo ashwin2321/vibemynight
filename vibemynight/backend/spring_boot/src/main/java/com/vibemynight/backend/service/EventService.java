@@ -14,4 +14,5 @@ public interface EventService {
     Event update(Long id, Event event);
     void delete(Long id);
     Event changeStatus(Long id, EventStatus status);
+    Event toggleHero(Long id, boolean showInHero);
 }

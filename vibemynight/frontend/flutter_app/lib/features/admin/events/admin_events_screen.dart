@@ -33,6 +33,27 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
 
   static const _statusTabs = ['All', 'PUBLISHED', 'DRAFT', 'COMPLETED', 'CANCELLED', 'UNPUBLISHED'];
 
+  Future<void> _toggleHero(BuildContext context, WidgetRef ref, EventSummary event, bool value) async {
+    try {
+      await ref.read(adminServiceProvider).toggleHero(event.id, value);
+      ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(value ? '✨ "${event.name}" added to Hero Carousel!' : 'Removed "${event.name}" from Hero Carousel'),
+            backgroundColor: AppColors.neonPurple,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
   Future<void> _changeStatus(BuildContext context, WidgetRef ref, EventSummary event, String status) async {
     try {
       await ref.read(adminServiceProvider).changeEventStatus(event.id, status);
@@ -475,6 +496,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
                         dataRowMaxHeight: 72,
                         columns: const [
                           DataColumn(label: Text('Event', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(label: Text('Hero Banner', style: TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(label: Text('Dates', style: TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(label: Text('Days', style: TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(label: Text('Location', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -515,6 +537,20 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
                                       ],
                                     ),
                                   ],
+                                ),
+                              ),
+                              DataCell(
+                                Tooltip(
+                                  message: event.showInHero ? 'Showing in Hero Carousel (Click to disable)' : 'Click to show in Hero Carousel',
+                                  child: Transform.scale(
+                                    scale: 0.8,
+                                    child: Switch(
+                                      value: event.showInHero,
+                                      activeThumbColor: AppColors.neonPurple,
+                                      activeTrackColor: AppColors.neonPurple.withValues(alpha: 0.5),
+                                      onChanged: (val) => _toggleHero(context, ref, event, val),
+                                    ),
+                                  ),
                                 ),
                               ),
                               DataCell(Text('${event.startDate} → ${event.endDate}', style: const TextStyle(fontSize: 12))),

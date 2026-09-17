@@ -616,28 +616,36 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 final isSelected = idx == _selectedDayIndex;
 
                 return Padding(
-                  padding: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.only(right: 14),
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     onTap: () => setState(() {
                       _selectedDayIndex = idx;
                       _selectedPassId = null;
                       _quantity = 1;
                     }),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                       decoration: BoxDecoration(
-                        gradient: isSelected ? AppColors.primaryGradient : null,
-                        color: isSelected ? null : AppColors.surfaceGlass,
-                        borderRadius: BorderRadius.circular(14),
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: isSelected ? null : const Color(0xFF16102E),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected ? AppColors.neonPurple : AppColors.divider,
+                          color: isSelected ? const Color(0xFFF472B6) : const Color(0xFF2E2452),
+                          width: isSelected ? 1.8 : 1.0,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: AppColors.neonPurple.withValues(alpha: 0.4),
-                                  blurRadius: 16,
+                                  color: const Color(0xFFEC4899).withValues(alpha: 0.35),
+                                  blurRadius: 18,
                                   spreadRadius: 1,
                                 ),
                               ]
@@ -646,19 +654,27 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'DAY ${d.dayNumber}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: isSelected ? Colors.white70 : AppColors.textSecondary,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.white.withValues(alpha: 0.25) : AppColors.neonPurple.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'DAY ${d.dayNumber}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: isSelected ? Colors.white : AppColors.neonPink,
+                                letterSpacing: 0.6,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 6),
                           Text(
                             d.date,
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
                             ),
@@ -952,12 +968,12 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       } else if (lowerName.contains('ac') || lowerName.contains('air')) {
         icon = Icons.ac_unit_outlined;
         title = 'Comfort';
-      } else if (lowerName.contains('food') || lowerName.contains('beverage') || lowerName.contains('stall')) {
+      } else if (lowerName.contains('food') || lowerName.contains('stall')) {
         icon = Icons.restaurant_outlined;
-        title = 'Food & Beverage';
+        title = 'Food & Drinks';
       } else if (lowerName.contains('security') || lowerName.contains('cctv')) {
-        icon = Icons.security_outlined;
-        title = 'Security';
+        icon = Icons.shield_outlined;
+        title = 'Safety';
       } else if (lowerName.contains('medical') || lowerName.contains('first aid')) {
         icon = Icons.medical_services_outlined;
         title = 'Medical Aid';
@@ -966,11 +982,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         title = 'Accessibility';
       }
 
-      specs.add((
-        icon: icon,
-        title: title,
-        value: facility.name,
-      ));
+      specs.add((icon: icon, title: title, value: facility.name));
     }
 
     // 4. Verified Event Rules (Age policy, dress code, entry requirements)
@@ -1106,32 +1118,65 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Selected Day Info Banner
+            // Selected Day Info Banner with time & program
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.neonPurple.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                color: const Color(0xFF16102E),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF38296B)),
               ),
               child: Row(
                 children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'DAY ${day.dayNumber}',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('DAY ${day.dayNumber} · ${day.date}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                        Text(
+                          day.date,
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white),
+                        ),
                         if (day.programName != null && day.programName!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
-                            child: Text(day.programName!, style: const TextStyle(color: AppColors.neonPink, fontSize: 13, fontWeight: FontWeight.w600)),
+                            child: Text(day.programName!, style: const TextStyle(color: AppColors.neonPink, fontSize: 12, fontWeight: FontWeight.w600)),
                           ),
                       ],
                     ),
                   ),
                   if (day.startTime != null)
-                    Text('🕒 ${day.startTime} - ${day.endTime ?? ""}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF2E2452)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.access_time, size: 14, color: AppColors.neonBlue),
+                          const SizedBox(width: 5),
+                          Text(
+                            '${day.startTime} - ${day.endTime ?? ""}',
+                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1266,124 +1311,250 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ),
             ] else ...[
               // Standard Non-Dome Events (Lawn, Open Ground, Club Nights): Show standard Pass Category Cards
-              const Text('Pass Categories', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-              const SizedBox(height: 6),
-              const Text('Select your preferred entry tier with instant WhatsApp QR confirmation.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-              const SizedBox(height: 12),
+              const Text('Pass Categories', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, letterSpacing: -0.3)),
+              const SizedBox(height: 4),
+              const Text('Select your preferred pass tier with instant WhatsApp QR confirmation.', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              const SizedBox(height: 16),
 
               if (day.passes.isEmpty)
                 const Text('No pass categories released for this night yet.', style: TextStyle(color: AppColors.textSecondary))
               else ...[
-                // Grid of District.in Style Pass Cards
-                Wrap(
-                  spacing: 14,
-                  runSpacing: 14,
-                  children: day.passes.map((p) {
-                    final isSelected = (currentPass?.id == p.id);
-                    final isSoldOut = p.soldOut || p.availableQuantity == 0;
-                    final isLowStock = p.lowStock;
+                // Responsive Grid of High-Fidelity VMN Pass Tier Cards
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 580;
+                    final cardWidth = isWide ? (constraints.maxWidth - 16) / 2 : double.infinity;
 
-                    return InkWell(
-                      onTap: isSoldOut ? null : () => setState(() => _selectedPassId = p.id),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        width: 260,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.neonPurple.withValues(alpha: 0.15) : AppColors.surfaceGlass,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected ? AppColors.neonPurple : (isSoldOut ? Colors.transparent : AppColors.divider),
-                            width: isSelected ? 2 : 1,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.neonPurple.withValues(alpha: 0.25),
-                                    blurRadius: 16,
-                                    spreadRadius: 1,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    return Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: day.passes.map((p) {
+                        final isSelected = (currentPass?.id == p.id);
+                        final isSoldOut = p.soldOut || p.availableQuantity == 0;
+                        final isLowStock = p.lowStock;
+
+                        return InkWell(
+                          onTap: isSoldOut
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _selectedPassId = p.id;
+                                  });
+                                },
+                          borderRadius: BorderRadius.circular(18),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: cardWidth,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF1E153D) : const Color(0xFF130E26),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFFEC4899)
+                                    : (isSoldOut ? const Color(0xFF261D45) : const Color(0xFF2B2050)),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFFEC4899).withValues(alpha: 0.25),
+                                        blurRadius: 20,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    p.name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                // Top row: Title + Stock/Availability Badge
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            p.name,
+                                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          if (p.type.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 2),
+                                              child: Text(
+                                                p.type.toUpperCase(),
+                                                style: const TextStyle(color: AppColors.neonPurple, fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isSoldOut)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                                        child: const Text('SOLD OUT', style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      )
+                                    else if (isLowStock)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
+                                        child: Text('Only ${p.availableQuantity} left', style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      )
+                                    else
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3)),
+                                        ),
+                                        child: const Text('Fast Filling 🔥', style: TextStyle(color: Color(0xFF22C55E), fontSize: 10, fontWeight: FontWeight.bold)),
+                                      ),
+                                  ],
                                 ),
+
+                                const SizedBox(height: 12),
+
+                                // Price Row
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      '₹${p.price.toStringAsFixed(0)}',
+                                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFFF43F5E)),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Text('/ pass', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 12),
+                                const Divider(height: 1, color: Color(0xFF261D45)),
+                                const SizedBox(height: 12),
+
+                                // Benefits list
+                                if (p.benefits.isNotEmpty)
+                                  ...p.benefits.map((b) => Padding(
+                                        padding: const EdgeInsets.only(bottom: 5),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text('✓ ', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.bold)),
+                                            Expanded(child: Text(b, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.3))),
+                                          ],
+                                        ),
+                                      ))
+                                else ...[
+                                  const Row(
+                                    children: [
+                                      Text('✓ ', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.bold)),
+                                      Text('Guaranteed Entry to Arena', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Row(
+                                    children: [
+                                      Text('✓ ', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.bold)),
+                                      Text('Instant Digital QR Delivery', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    ],
+                                  ),
+                                ],
+
+                                const SizedBox(height: 14),
+
+                                // Card Bottom Action (Select vs Selected + Counter)
                                 if (isSoldOut)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
-                                    child: const Text('SOLD OUT', style: TextStyle(color: Colors.grey, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.05),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text('UNAVAILABLE', style: TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.bold)),
                                   )
-                                else if (isLowStock)
+                                else if (isSelected)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
-                                    child: Text('Only ${p.availableQuantity} left', style: const TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEC4899).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: const Color(0xFFEC4899).withValues(alpha: 0.4)),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Row(
+                                          children: [
+                                            Icon(Icons.check_circle, size: 16, color: Color(0xFFEC4899)),
+                                            SizedBox(width: 6),
+                                            Text('Selected Pass', style: TextStyle(color: Color(0xFFF472B6), fontWeight: FontWeight.w800, fontSize: 12)),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            InkWell(
+                                              onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(3),
+                                                decoration: BoxDecoration(
+                                                  color: _quantity > 1 ? Colors.white24 : Colors.transparent,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Icon(Icons.remove, size: 14, color: _quantity > 1 ? Colors.white : Colors.white30),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                                              child: Text(
+                                                '$_quantity',
+                                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.white),
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () => setState(() => _quantity++),
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(3),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white24,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: const Icon(Icons.add, size: 14, color: Colors.white),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   )
                                 else
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
-                                    child: const Text('Fast Filling 🔥', style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF261D45),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text('Select Pass', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700)),
                                   ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  '₹${p.price.toStringAsFixed(0)}',
-                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.neonPink),
-                                ),
-                                const SizedBox(width: 4),
-                                const Text('/ pass', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            if (p.benefits.isNotEmpty)
-                              ...p.benefits.map((b) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 4),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('✓ ', style: TextStyle(color: AppColors.neonBlue, fontSize: 11, fontWeight: FontWeight.bold)),
-                                        Expanded(child: Text(b, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.3))),
-                                      ],
-                                    ),
-                                  ))
-                            else ...[
-                              const Row(
-                                children: [
-                                  Text('✓ ', style: TextStyle(color: AppColors.neonBlue, fontSize: 11, fontWeight: FontWeight.bold)),
-                                  Text('Guaranteed Entry to Arena', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              const Row(
-                                children: [
-                                  Text('✓ ', style: TextStyle(color: AppColors.neonBlue, fontSize: 11, fontWeight: FontWeight.bold)),
-                                  Text('Instant Digital QR Delivery', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  },
                 ),
               ],
             ],
