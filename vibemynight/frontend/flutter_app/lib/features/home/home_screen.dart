@@ -75,40 +75,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. VIBEMYNIGHT HERO BANNER CAROUSEL
+              // 1. UNIFIED VIBEMYNIGHT HERO & CATEGORY FILTER SECTION
               _VmnHeroCarousel(
                 eventsAsync: eventsAsync,
                 whatsappNumber: whatsappNumber,
-              ),
-
-              // 2. CATEGORY FILTER CHIPS BAR
-              _CategoryFilterBar(
                 selectedCategory: _selectedCategory,
                 onCategorySelected: (cat) => setState(() => _selectedCategory = cat),
               ),
 
-              // 3. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS - 2 COLUMNS ON MOBILE)
+              // 2. FEATURED NIGHTS SECTION (DYNAMIC 3:4 POSTERS - 2 COLUMNS ON MOBILE)
               _FeaturedNightsSection(
                 eventsAsync: eventsAsync,
                 selectedCategory: _selectedCategory,
               ),
 
-              // 4. CIRCULAR FEATURED ARTISTS & DJS SLIDER
+              // 3. CIRCULAR FEATURED ARTISTS & DJS SLIDER
               _FeaturedArtistsSection(artistsAsync: artistsAsync),
 
-              // 5. UPCOMING EVENTS SECTION (DYNAMIC)
+              // 4. UPCOMING EVENTS SECTION (DYNAMIC)
               _UpcomingEventsSection(eventsAsync: eventsAsync),
 
-              // 6. WHY VIBEMYNIGHT SECTION
+              // 5. WHY VIBEMYNIGHT SECTION
               const _WhyVibeMyNightSection(),
 
-              // 7. EVENT EXPERIENCES SECTION
+              // 6. EVENT EXPERIENCES SECTION
               const _EventExperiencesSection(),
 
-              // 8. FINAL CTA SECTION
+              // 7. FINAL CTA SECTION
               const _FinalCtaSection(),
 
-              // 9. FOOTER
+              // 8. FOOTER
               const AppFooter(),
             ],
           ),
@@ -124,10 +120,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 class _VmnHeroCarousel extends StatefulWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
   final String whatsappNumber;
+  final String selectedCategory;
+  final ValueChanged<String>? onCategorySelected;
 
   const _VmnHeroCarousel({
     required this.eventsAsync,
     required this.whatsappNumber,
+    this.selectedCategory = 'All Events',
+    this.onCategorySelected,
   });
 
   @override
@@ -302,10 +302,12 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+          stops: [0.0, 0.4, 0.75, 1.0],
           colors: [
-            Color(0xFF160A2C),
-            Color(0xFF0F071E),
-            AppColors.background,
+            Color(0xFF180A2C),
+            Color(0xFF110722),
+            Color(0xFF0D0618),
+            Color(0xFF07070E),
           ],
         ),
       ),
@@ -321,7 +323,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                 width: double.infinity,
                 height: double.infinity,
                 child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+                  imageFilter: ImageFilter.blur(sigmaX: 65, sigmaY: 65),
                   child: Image.network(
                     activeImage,
                     fit: BoxFit.cover,
@@ -334,7 +336,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
             ),
           ),
 
-          // 2. VMN Deep Nightlife Vignette Overlay for crisp readability
+          // 2. VMN Deep Nightlife Vignette Overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -342,10 +344,10 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                   begin: isDesktop ? Alignment.centerLeft : Alignment.topCenter,
                   end: isDesktop ? Alignment.centerRight : Alignment.bottomCenter,
                   colors: [
-                    AppColors.background.withValues(alpha: 0.92),
-                    AppColors.background.withValues(alpha: 0.75),
-                    AppColors.background.withValues(alpha: 0.65),
-                    AppColors.background.withValues(alpha: 0.95),
+                    const Color(0xFF07070E).withValues(alpha: 0.90),
+                    const Color(0xFF07070E).withValues(alpha: 0.70),
+                    const Color(0xFF07070E).withValues(alpha: 0.60),
+                    const Color(0xFF07070E).withValues(alpha: 0.92),
                   ],
                   stops: const [0.0, 0.35, 0.70, 1.0],
                 ),
@@ -353,22 +355,118 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
             ),
           ),
 
-          // 3. Hero Content: Split Layout on Desktop, 3:4 Vertical Spotlight on Mobile
+          // 3. Smooth bottom seamless fade so it dissolves 100% into the page (zero sharp lines)
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [0.0, 0.45, 0.75, 1.0],
+                  colors: [
+                    Colors.transparent,
+                    Colors.transparent,
+                    Color(0x9907070E),
+                    Color(0xFF07070E),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 4. Hero Content: Split Layout on Desktop, 3:4 Vertical Spotlight on Mobile + Integrated Category Chips Bar
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 48 : (isTablet ? 24 : 16),
-              vertical: isDesktop ? 40 : 20,
+            padding: EdgeInsets.fromLTRB(
+              isDesktop ? 48 : (isTablet ? 24 : 16),
+              isDesktop ? 36 : 18,
+              isDesktop ? 48 : (isTablet ? 24 : 16),
+              isDesktop ? 20 : 12,
             ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1320),
-                child: isDesktop
-                    ? _buildDesktopSplitLayout(events, activeEvent, safeIndex)
-                    : _buildMobileLayout(events, activeEvent, safeIndex),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    isDesktop
+                        ? _buildDesktopSplitLayout(events, activeEvent, safeIndex)
+                        : _buildMobileLayout(events, activeEvent, safeIndex),
+                    SizedBox(height: isDesktop ? 28 : 16),
+                    _buildIntegratedCategoryChips(context, isDesktop),
+                  ],
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  static const _categories = [
+    {'label': 'All Events', 'icon': '🔥'},
+    {'label': 'Navratri 2026', 'icon': '💃'},
+    {'label': 'DJ & EDM', 'icon': '🎧'},
+    {'label': 'Live Concerts', 'icon': '🎤'},
+    {'label': 'Club Nights', 'icon': '🍸'},
+    {'label': 'VIP Exclusives', 'icon': '🎟️'},
+  ];
+
+  Widget _buildIntegratedCategoryChips(BuildContext context, bool isDesktop) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _categories.map((cat) {
+          final isSelected = widget.selectedCategory == cat['label'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: InkWell(
+              onTap: () => widget.onCategorySelected?.call(cat['label']!),
+              borderRadius: BorderRadius.circular(30),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppColors.primaryGradient : null,
+                  color: isSelected ? null : AppColors.surfaceGlass,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.neonPurple
+                        : Colors.white.withValues(alpha: 0.12),
+                    width: isSelected ? 1.5 : 1.0,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.neonPurple.withValues(alpha: 0.4),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(cat['icon']!, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(width: 8),
+                    Text(
+                      cat['label']!,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -929,130 +1027,7 @@ class _VmnArrowButtonState extends State<_VmnArrowButton> {
   }
 }
 
-// ==========================================
-// 2. CATEGORY FILTER CHIPS BAR (SHOWMATES STYLE)
-// ==========================================
-class _CategoryFilterBar extends StatefulWidget {
-  final ValueChanged<String>? onCategorySelected;
-  final String selectedCategory;
 
-  const _CategoryFilterBar({
-    this.onCategorySelected,
-    this.selectedCategory = 'All Events',
-  });
-
-  @override
-  State<_CategoryFilterBar> createState() => _CategoryFilterBarState();
-}
-
-class _CategoryFilterBarState extends State<_CategoryFilterBar> {
-  late String _selected;
-
-  static const _categories = [
-    {'label': 'All Events', 'icon': '🔥'},
-    {'label': 'Navratri 2026', 'icon': '💃'},
-    {'label': 'DJ & EDM', 'icon': '🎧'},
-    {'label': 'Live Concerts', 'icon': '🎤'},
-    {'label': 'Club Nights', 'icon': '🍸'},
-    {'label': 'VIP Exclusives', 'icon': '🎟️'},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = widget.selectedCategory;
-  }
-
-  @override
-  void didUpdateWidget(covariant _CategoryFilterBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedCategory != widget.selectedCategory) {
-      _selected = widget.selectedCategory;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width >= 768;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        isDesktop ? 48 : 16,
-        isDesktop ? 28 : 14,
-        isDesktop ? 48 : 16,
-        isDesktop ? 12 : 8,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1320),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: _categories.map((cat) {
-                final isSelected = _selected == cat['label'];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() => _selected = cat['label']!);
-                      widget.onCategorySelected?.call(cat['label']!);
-                    },
-                    borderRadius: BorderRadius.circular(30),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: isSelected
-                            ? const LinearGradient(
-                                colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
-                              )
-                            : null,
-                        color: isSelected ? null : Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: isSelected
-                              ? const Color(0xFFA855F7)
-                              : Colors.white.withValues(alpha: 0.12),
-                          width: isSelected ? 1.5 : 1.0,
-                        ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: const Color(0xFFA855F7).withValues(alpha: 0.35),
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(cat['icon']!, style: const TextStyle(fontSize: 14)),
-                          const SizedBox(width: 8),
-                          Text(
-                            cat['label']!,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ==========================================
 // 3. FEATURED NIGHTS SECTION (DISTRICT BY ZOMATO STYLE HORIZONTAL SIDE-SCROLLING CAROUSEL)
