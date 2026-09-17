@@ -38,14 +38,28 @@ class ArtistsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'FEATURED TALENT',
-                        style: TextStyle(color: AppColors.neonPurple, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.neonPurple.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.35)),
+                        ),
+                        child: const Text(
+                          'FEATURED TALENT',
+                          style: TextStyle(color: Color(0xFFC084FC), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 2),
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      const Text('Artists & Performers', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white)),
-                      const SizedBox(height: 6),
-                      const Text('Discover the top artists and performers headlining upcoming nights.', style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Artists & Performers',
+                        style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Discover the top artists, international DJs, and headlining performers upcoming in Dubai & beyond.',
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15, height: 1.4),
+                      ),
                       const SizedBox(height: 32),
                       artistsAsync.when(
                         loading: () => const Center(child: Padding(padding: EdgeInsets.all(40), child: LoadingView())),
@@ -58,14 +72,15 @@ class ArtistsScreen extends ConsumerWidget {
                             builder: (context, constraints) {
                               final width = constraints.maxWidth;
                               final crossAxisCount = width > 900 ? 4 : (width > 600 ? 3 : 2);
+                              final childAspectRatio = width > 900 ? 0.72 : (width > 600 ? 0.74 : 0.70);
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: crossAxisCount,
-                                  mainAxisSpacing: 16,
-                                  crossAxisSpacing: 16,
-                                  childAspectRatio: 0.78,
+                                  mainAxisSpacing: 20,
+                                  crossAxisSpacing: 20,
+                                  childAspectRatio: childAspectRatio,
                                 ),
                                 itemCount: artists.length,
                                 itemBuilder: (context, index) => FadeIn(
