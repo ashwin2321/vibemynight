@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_bottom_nav.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
@@ -74,8 +75,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. SHOWMATES HERO BANNER CAROUSEL (AS SEEN IN SROLL.MP4)
-              _ShowmatesHeroCarousel(
+              // 1. VIBEMYNIGHT HERO BANNER CAROUSEL
+              _VmnHeroCarousel(
                 eventsAsync: eventsAsync,
                 whatsappNumber: whatsappNumber,
               ),
@@ -92,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 selectedCategory: _selectedCategory,
               ),
 
-              // 4. CIRCULAR FEATURED ARTISTS & DJS SLIDER (SHOWMATES STYLE)
+              // 4. CIRCULAR FEATURED ARTISTS & DJS SLIDER
               _FeaturedArtistsSection(artistsAsync: artistsAsync),
 
               // 5. UPCOMING EVENTS SECTION (DYNAMIC)
@@ -118,22 +119,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 // ==========================================
-// 1. SHOWMATES HERO BANNER CAROUSEL (AS SEEN IN SROLL.MP4)
+// 1. VIBEMYNIGHT HERO BANNER CAROUSEL
 // ==========================================
-class _ShowmatesHeroCarousel extends StatefulWidget {
+class _VmnHeroCarousel extends StatefulWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
   final String whatsappNumber;
 
-  const _ShowmatesHeroCarousel({
+  const _VmnHeroCarousel({
     required this.eventsAsync,
     required this.whatsappNumber,
   });
 
   @override
-  State<_ShowmatesHeroCarousel> createState() => _ShowmatesHeroCarouselState();
+  State<_VmnHeroCarousel> createState() => _VmnHeroCarouselState();
 }
 
-class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
+class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
   int _activeIndex = 0;
   late final PageController _pageController;
   late final PageController _mobilePageController;
@@ -302,16 +303,16 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1C0A38),
-            Color(0xFF130626),
-            Color(0xFF07070E),
+            Color(0xFF160A2C),
+            Color(0xFF0F071E),
+            AppColors.background,
           ],
         ),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. Ambient Blurred Backdrop Image (Smooth Cross-fade effect from sroll.mp4)
+          // 1. Ambient Blurred Backdrop Image
           Positioned.fill(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 450),
@@ -320,39 +321,39 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                 width: double.infinity,
                 height: double.infinity,
                 child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 55, sigmaY: 55),
+                  imageFilter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
                   child: Image.network(
                     activeImage,
                     fit: BoxFit.cover,
                     cacheWidth: 400,
                     cacheHeight: 250,
-                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A0A33)),
+                    errorBuilder: (_, __, ___) => Container(color: AppColors.surface),
                   ),
                 ),
               ),
             ),
           ),
 
-          // 2. Deep Violet Overlay for contrast
+          // 2. VMN Deep Nightlife Vignette Overlay for crisp readability
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+                  begin: isDesktop ? Alignment.centerLeft : Alignment.topCenter,
+                  end: isDesktop ? Alignment.centerRight : Alignment.bottomCenter,
                   colors: [
-                    Color(0xEA16072B),
-                    Color(0xB316072B),
-                    Color(0x8016072B),
-                    Color(0xE016072B),
+                    AppColors.background.withValues(alpha: 0.92),
+                    AppColors.background.withValues(alpha: 0.75),
+                    AppColors.background.withValues(alpha: 0.65),
+                    AppColors.background.withValues(alpha: 0.95),
                   ],
-                  stops: [0.0, 0.35, 0.70, 1.0],
+                  stops: const [0.0, 0.35, 0.70, 1.0],
                 ),
               ),
             ),
           ),
 
-          // 3. Hero Content: Split Layout on Desktop, Vertical Layout on Mobile (Matching sroll.mp4 & media_1789632733320.png)
+          // 3. Hero Content: Split Layout on Desktop, 3:4 Vertical Spotlight on Mobile
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: isDesktop ? 48 : (isTablet ? 24 : 16),
@@ -373,7 +374,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // DESKTOP SPLIT LAYOUT (EXACT REPLICA OF SROLL.MP4)
+  // DESKTOP SPLIT LAYOUT (VMN NIGHTLIFE THEME)
   // ==========================================
   Widget _buildDesktopSplitLayout(
     List<EventSummary> events,
@@ -385,7 +386,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     final locParts = [
       if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
       if (activeEvent.city != null && activeEvent.city!.isNotEmpty) activeEvent.city!,
-    ].where((s) => s.isNotEmpty).join(' ');
+    ].where((s) => s.isNotEmpty).join(' • ');
     final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
 
     final dateText = [
@@ -404,7 +405,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // LEFT COLUMN: Title, Date & Venue, Lime Green Button & Arrows (sroll.mp4)
+            // LEFT COLUMN: Title, Date & Venue, VMN Primary Gradient Button & Chevrons
             SizedBox(
               width: 370,
               child: Column(
@@ -412,6 +413,40 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Event Category Tag (VMN Neon Pill)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.neonPurple.withValues(alpha: 0.3),
+                          AppColors.neonPink.withValues(alpha: 0.2),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.neonPurple.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded, color: AppColors.neonPink, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          'FEATURED EVENT',
+                          style: TextStyle(
+                            color: AppColors.textPrimary.withValues(alpha: 0.9),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
                   // Bold Event Title
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
@@ -423,7 +458,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         height: 1.2,
                         letterSpacing: -0.4,
                       ),
@@ -434,25 +469,52 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                   // Date & Venue Subtitle
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
-                    child: Text(
-                      [
-                        if (dateText.isNotEmpty) dateText,
-                        displayLoc,
-                      ].where((s) => s.isNotEmpty).join('  '),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       key: ValueKey<int>(activeEvent.id + 1000),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.9),
-                        height: 1.35,
-                      ),
+                      children: [
+                        if (dateText.isNotEmpty)
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.neonPink),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  dateText,
+                                  style: const TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 15, color: AppColors.neonPurple),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                displayLoc,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Lime Green [ GET TICKETS ] Button
+                  // VMN Signature Primary Gradient [ GET TICKETS ] Button
                   Wrap(
                     spacing: 12,
                     runSpacing: 10,
@@ -460,40 +522,47 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                     children: [
                       InkWell(
                         onTap: () => context.push(eventRoute),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 13),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFC6F432),
-                            borderRadius: BorderRadius.circular(10),
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFC6F432).withValues(alpha: 0.35),
-                                blurRadius: 14,
+                                color: AppColors.neonPurple.withValues(alpha: 0.45),
+                                blurRadius: 16,
                                 offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                          child: const Text(
-                            'GET TICKETS',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 13.5,
-                              letterSpacing: 0.6,
-                            ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.confirmation_number_outlined, color: Colors.white, size: 16),
+                              SizedBox(width: 8),
+                              Text(
+                                'GET TICKETS',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13.5,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                       InkWell(
                         onTap: _launchWhatsApp,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                            color: AppColors.surfaceGlass,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.divider),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
@@ -503,7 +572,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                               Text(
                                 'VIP Inquiries',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
                                 ),
@@ -516,15 +585,15 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Clean Arrow Buttons (←  →)
+                  // Clean Arrow Buttons (←  →) with VMN Neon Hover Glow
                   Row(
                     children: [
-                      _CleanArrowButton(
+                      _VmnArrowButton(
                         icon: Icons.arrow_back_rounded,
                         onTap: () => _prevPage(events.length),
                       ),
                       const SizedBox(width: 14),
-                      _CleanArrowButton(
+                      _VmnArrowButton(
                         icon: Icons.arrow_forward_rounded,
                         onTap: () => _nextPage(events.length),
                       ),
@@ -574,10 +643,18 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
+                                border: isCurrent
+                                    ? Border.all(
+                                        color: AppColors.neonPurple.withValues(alpha: 0.5),
+                                        width: 1.5,
+                                      )
+                                    : Border.all(color: Colors.white.withValues(alpha: 0.08)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: isCurrent ? 0.55 : 0.25),
-                                    blurRadius: isCurrent ? 20 : 10,
+                                    color: isCurrent
+                                        ? AppColors.neonPurple.withValues(alpha: 0.3)
+                                        : Colors.black.withValues(alpha: 0.35),
+                                    blurRadius: isCurrent ? 24 : 10,
                                     offset: const Offset(0, 8),
                                   ),
                                 ],
@@ -608,7 +685,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // MOBILE HERO LAYOUT (EXACT REPLICA OF USER UPLOADED IMAGE)
+  // MOBILE HERO LAYOUT (VMN NIGHTLIFE THEME)
   // ==========================================
   Widget _buildMobileLayout(
     List<EventSummary> events,
@@ -634,7 +711,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Exact Showmates Vertical 3:4 Poster Carousel from user screenshot
+        // 3:4 Poster Carousel with Spotlight peek
         LayoutBuilder(
           builder: (context, constraints) {
             final cardWidth = constraints.maxWidth * 0.72;
@@ -676,10 +753,18 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                             margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
+                              border: isCurrent
+                                  ? Border.all(
+                                      color: AppColors.neonPurple.withValues(alpha: 0.6),
+                                      width: 1.5,
+                                    )
+                                  : Border.all(color: Colors.white.withValues(alpha: 0.08)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: isCurrent ? 0.6 : 0.3),
-                                  blurRadius: isCurrent ? 16 : 8,
+                                  color: isCurrent
+                                      ? AppColors.neonPurple.withValues(alpha: 0.35)
+                                      : Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: isCurrent ? 20 : 8,
                                   offset: const Offset(0, 8),
                                 ),
                               ],
@@ -706,7 +791,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
         ),
         const SizedBox(height: 14),
 
-        // Event Metadata below card (Exact copy of user screenshot)
+        // Event Metadata below card (VMN Brand Style)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: GestureDetector(
@@ -722,51 +807,59 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     letterSpacing: -0.3,
                     height: 1.25,
                   ),
                 ),
                 const SizedBox(height: 6),
 
-                // Date Range • Category • Location
+                // Date Range • Location Subtitle
                 Text(
                   [
                     if (dateText.isNotEmpty) dateText,
-                    'Navratri',
                     displayLoc,
                   ].where((s) => s.isNotEmpty).join(' • '),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.75),
-                    fontSize: 12,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
 
-                // Views (e.g. 👁️ Views (37.2K))
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.remove_red_eye_outlined,
-                      color: Colors.white.withValues(alpha: 0.6),
-                      size: 13,
+                // Sleek VMN Views Pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGlass,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.neonPurple.withValues(alpha: 0.25),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Views ($viewsCount)',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.65),
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.remove_red_eye_outlined,
+                        color: AppColors.neonPink,
+                        size: 13,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 5),
+                      Text(
+                        'Views ($viewsCount)',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -778,22 +871,22 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
 }
 
 // ==========================================
-// CLEAN ARROW BUTTON (AS SEEN IN SROLL.MP4)
+// VMN ARROW BUTTON
 // ==========================================
-class _CleanArrowButton extends StatefulWidget {
+class _VmnArrowButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _CleanArrowButton({
+  const _VmnArrowButton({
     required this.icon,
     required this.onTap,
   });
 
   @override
-  State<_CleanArrowButton> createState() => _CleanArrowButtonState();
+  State<_VmnArrowButton> createState() => _VmnArrowButtonState();
 }
 
-class _CleanArrowButtonState extends State<_CleanArrowButton> {
+class _VmnArrowButtonState extends State<_VmnArrowButton> {
   bool _isHovered = false;
 
   @override
@@ -805,15 +898,30 @@ class _CleanArrowButtonState extends State<_CleanArrowButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: _isHovered ? Colors.white.withValues(alpha: 0.15) : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            color: _isHovered
+                ? AppColors.neonPurple.withValues(alpha: 0.3)
+                : AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: _isHovered
+                  ? AppColors.neonPink.withValues(alpha: 0.6)
+                  : AppColors.divider,
+            ),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: AppColors.neonPurple.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                    ),
+                  ]
+                : null,
           ),
           child: Icon(
             widget.icon,
-            color: _isHovered ? const Color(0xFFC6F432) : Colors.white.withValues(alpha: 0.9),
-            size: 24,
+            color: _isHovered ? AppColors.neonPink : AppColors.textPrimary,
+            size: 22,
           ),
         ),
       ),
