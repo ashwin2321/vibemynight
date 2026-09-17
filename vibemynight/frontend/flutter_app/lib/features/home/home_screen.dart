@@ -144,7 +144,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
       slug: 'sankalp-nagri-garba-mandli-2026',
       startDate: 'Sun 11 Oct',
       endDate: 'Tue 20 Oct',
-      location: 'Sankalp Nagri Ground',
+      location: 'Sankalp nagri ground',
       city: 'Ahmedabad',
       dayCount: 9,
       startingPrice: 499,
@@ -155,11 +155,11 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     ),
     EventSummary(
       id: 2,
-      name: 'AFTER 11:59 GARBA NIGHT',
-      slug: 'after-11-59-garba-night-2026',
-      startDate: 'Fri 16 Oct',
-      endDate: 'Sun 25 Oct',
-      location: 'The Grand Bhagwati Lawn',
+      name: 'The Rangeelo Garbo',
+      slug: 'the-rangeelo-garbo-2026',
+      startDate: 'Fri 09 Oct',
+      endDate: 'Sun 18 Oct',
+      location: 'Venue To Be Announced',
       city: 'Ahmedabad',
       dayCount: 10,
       startingPrice: 799,
@@ -170,13 +170,13 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     ),
     EventSummary(
       id: 3,
-      name: 'SWARNIM NAGARI AC DOME GARBA 2026',
-      slug: 'swarnim-nagari-ac-dome-garba-2026',
-      startDate: 'Wed 14 Oct',
-      endDate: 'Fri 23 Oct',
-      location: 'Swarnim AC Dome Complex',
-      city: 'Gandhinagar',
-      dayCount: 9,
+      name: 'MAA NI NAVRATRI',
+      slug: 'maa-ni-navratri-2026',
+      startDate: 'Sat 10 Oct',
+      endDate: 'Tue 20 Oct',
+      location: 'YASH FARM RESORT',
+      city: 'Ahmedabad',
+      dayCount: 10,
       startingPrice: 599,
       featured: true,
       status: 'PUBLISHED',
@@ -201,7 +201,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.92);
+    _pageController = PageController(viewportFraction: 0.78);
     _startAutoScrollTimer();
   }
 
@@ -280,13 +280,21 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        vertical: isDesktop ? 24 : 14,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF1C0A38),
+            Color(0xFF130626),
+            Color(0xFF07070E),
+          ],
+        ),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. Ambient Blurred Backdrop Image (Smooth Cross-fade effect)
+          // 1. Ambient Blurred Backdrop Image (Smooth Cross-fade effect from sroll.mp4)
           Positioned.fill(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 450),
@@ -295,196 +303,50 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                 width: double.infinity,
                 height: double.infinity,
                 child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 45),
+                  imageFilter: ImageFilter.blur(sigmaX: 55, sigmaY: 55),
                   child: Image.network(
                     activeImage,
                     fit: BoxFit.cover,
                     cacheWidth: 400,
                     cacheHeight: 250,
-                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0F0B1E)),
+                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A0A33)),
                   ),
                 ),
               ),
             ),
           ),
 
-          // 2. Luxury Dark Gradient Overlay & Vignette
+          // 2. Deep Violet Overlay for contrast
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                   colors: [
-                    Color(0xD907070E),
-                    Color(0x8A07070E),
-                    Color(0xF207070E),
+                    Color(0xEA16072B),
+                    Color(0xB316072B),
+                    Color(0x8016072B),
+                    Color(0xE016072B),
                   ],
-                  stops: [0.0, 0.5, 1.0],
+                  stops: [0.0, 0.35, 0.70, 1.0],
                 ),
               ),
             ),
           ),
 
-          // 3. Top-left Neon Glow Blob
-          Positioned(
-            top: -40,
-            left: isDesktop ? 60 : 10,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF8B5CF6).withValues(alpha: 0.22),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 4. 16:9 Widescreen Banner Carousel (Edge-to-Edge Uncropped 16:9 BookMyShow Format)
+          // 3. Hero Content: Split Layout on Desktop, Vertical Layout on Mobile (Matching sroll.mp4)
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 32 : (isTablet ? 16 : 8),
+              horizontal: isDesktop ? 48 : (isTablet ? 24 : 16),
+              vertical: isDesktop ? 40 : 20,
             ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1320),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 16:9 Aspect Ratio Widescreen Slider
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: PageView.builder(
-                            controller: _pageController,
-                            itemCount: events.length,
-                            onPageChanged: (idx) => setState(() => _activeIndex = idx),
-                            itemBuilder: (context, index) {
-                              final ev = events[index];
-                              final isCurrent = index == safeIndex;
-                              final fallback = _heroFallbacks[index % _heroFallbacks.length];
-                              return _buildBannerSlide(
-                                context: context,
-                                ev: ev,
-                                index: index,
-                                isCurrent: isCurrent,
-                                isDesktop: isDesktop,
-                                isTablet: isTablet,
-                                fallback: fallback,
-                              );
-                            },
-                          ),
-                        ),
-
-                        // Floating Left/Right Chevrons (Desktop & Tablet)
-                        if (isDesktop || isTablet) ...[
-                          Positioned(
-                            left: 12,
-                            child: _CarouselArrowButton(
-                              icon: Icons.arrow_back_ios_new_rounded,
-                              onTap: () => _prevPage(events.length),
-                            ),
-                          ),
-                          Positioned(
-                            right: 12,
-                            child: _CarouselArrowButton(
-                              icon: Icons.arrow_forward_ios_rounded,
-                              onTap: () => _nextPage(events.length),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // Modern Slide Indicator & Navigation Bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Slide Counter
-                          Text(
-                            '${(safeIndex + 1).toString().padLeft(2, '0')} / ${events.length.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              color: Color(0xFFC084FC),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-
-                          // Expanding Pill Indicators
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(events.length, (idx) {
-                              final isCur = idx == safeIndex;
-                              return GestureDetector(
-                                onTap: () {
-                                  _startAutoScrollTimer();
-                                  _pageController.animateToPage(
-                                    idx,
-                                    duration: const Duration(milliseconds: 350),
-                                    curve: Curves.easeOutCubic,
-                                  );
-                                },
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 250),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  width: isCur ? 26 : 7,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: isCur ? const Color(0xFFA855F7) : Colors.white24,
-                                    borderRadius: BorderRadius.circular(4),
-                                    boxShadow: isCur
-                                        ? [
-                                            BoxShadow(
-                                              color: const Color(0xFFA855F7).withValues(alpha: 0.6),
-                                              blurRadius: 6,
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-
-                          // Mobile mini arrow controls or empty spacer on desktop
-                          if (!isDesktop && !isTablet)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _CarouselArrowButton(
-                                  icon: Icons.arrow_back_rounded,
-                                  size: 32,
-                                  iconSize: 15,
-                                  onTap: () => _prevPage(events.length),
-                                ),
-                                const SizedBox(width: 8),
-                                _CarouselArrowButton(
-                                  icon: Icons.arrow_forward_rounded,
-                                  size: 32,
-                                  iconSize: 15,
-                                  onTap: () => _nextPage(events.length),
-                                ),
-                              ],
-                            )
-                          else
-                            const SizedBox(width: 48),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                child: isDesktop
+                    ? _buildDesktopSplitLayout(events, activeEvent, safeIndex)
+                    : _buildMobileLayout(events, activeEvent, safeIndex),
               ),
             ),
           ),
@@ -494,452 +356,427 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // 16:9 WIDESCREEN BANNER SLIDE BUILDER
+  // DESKTOP SPLIT LAYOUT (EXACT REPLICA OF SROLL.MP4)
   // ==========================================
-  Widget _buildBannerSlide({
-    required BuildContext context,
-    required EventSummary ev,
-    required int index,
-    required bool isCurrent,
-    required bool isDesktop,
-    required bool isTablet,
-    required String fallback,
-  }) {
-    final eventRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
-    final posterUrl = ev.mainImage ?? ev.thumbnail;
+  Widget _buildDesktopSplitLayout(
+    List<EventSummary> events,
+    EventSummary activeEvent,
+    int activeIdx,
+  ) {
+    final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
 
     final locParts = [
-      if (ev.location != null && ev.location!.isNotEmpty) ev.location!,
-      if (ev.city != null && ev.city!.isNotEmpty) ev.city!,
-    ].where((s) => s.isNotEmpty).join(', ');
+      if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
+      if (activeEvent.city != null && activeEvent.city!.isNotEmpty) activeEvent.city!,
+    ].where((s) => s.isNotEmpty).join(' ');
     final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
 
     final dateText = [
-      if (ev.startDate.isNotEmpty) ev.startDate,
-      if (ev.endDate.isNotEmpty && ev.endDate != ev.startDate) '- ${ev.endDate}',
+      if (activeEvent.startDate.isNotEmpty) activeEvent.startDate,
+      if (activeEvent.endDate.isNotEmpty && activeEvent.endDate != activeEvent.startDate)
+        '- ${activeEvent.endDate}',
     ].join(' ');
 
-    return AnimatedScale(
-      scale: isCurrent ? 1.0 : 0.94,
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-      child: AnimatedOpacity(
-        opacity: isCurrent ? 1.0 : 0.70,
-        duration: const Duration(milliseconds: 320),
-        child: GestureDetector(
-          onTap: () {
-            if (isCurrent) {
-              context.push(eventRoute);
-            } else {
-              _startAutoScrollTimer();
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 380),
-                curve: Curves.easeOutCubic,
-              );
-            }
-          },
-          child: Container(
-            margin: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 10 : 5,
-              vertical: 4,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(isDesktop ? 22 : 14),
-              border: Border.all(
-                color: isCurrent
-                    ? const Color(0xFF8B5CF6)
-                    : Colors.white.withValues(alpha: 0.12),
-                width: isCurrent ? 2.0 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isCurrent
-                      ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
-                      : Colors.black.withValues(alpha: 0.5),
-                  blurRadius: isCurrent ? 24 : 10,
-                  offset: const Offset(0, 8),
-                  spreadRadius: isCurrent ? 2 : 0,
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(isDesktop ? 20 : 12),
-              child: Stack(
-                fit: StackFit.expand,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        final rightWidth = (totalWidth - 390).clamp(420.0, 900.0);
+        final cardWidth = rightWidth * 0.78;
+        final carouselHeight = cardWidth / (16 / 9);
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // LEFT COLUMN: Title, Date & Venue, Lime Green Button & Arrows (sroll.mp4)
+            SizedBox(
+              width: 370,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 1. 16:9 Widescreen Image (Maps 100% 16:9 uncropped)
-                  NetworkImageBox(
-                    url: posterUrl,
-                    fallbackUrl: fallback,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-
-                  // 2. Top subtle gradient for badges
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.6),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.35],
+                  // Bold Event Title (e.g. SANKALP NAGRI GARBA & MANDLI / The Rangeelo Garbo)
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: Text(
+                      activeEvent.name,
+                      key: ValueKey<int>(activeEvent.id),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
+                        letterSpacing: -0.4,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 14),
 
-                  // 3. Bottom gradient for text readability while leaving center artist clear
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.25),
-                          const Color(0xFF07070E).withValues(alpha: 0.92),
-                        ],
-                        stops: const [0.42, 0.68, 1.0],
+                  // Date & Venue Subtitle
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: Text(
+                      [
+                        if (dateText.isNotEmpty) dateText,
+                        displayLoc,
+                      ].where((s) => s.isNotEmpty).join('  '),
+                      key: ValueKey<int>(activeEvent.id + 1000),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        height: 1.35,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
 
-                  // 4. Floating Top Badges
-                  Positioned(
-                    top: isDesktop ? 18 : 10,
-                    left: isDesktop ? 18 : 10,
-                    right: isDesktop ? 18 : 10,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Wrap(
-                          spacing: 8,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isDesktop ? 12 : 8,
-                                vertical: isDesktop ? 6 : 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.75),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                                    blurRadius: 8,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0xFFC084FC),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color(0xFFC084FC),
-                                          blurRadius: 6,
-                                          spreadRadius: 1,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'FEATURED NIGHT',
-                                    style: TextStyle(
-                                      color: const Color(0xFFC084FC),
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: isDesktop ? 11 : 9.5,
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (ev.startDate.isNotEmpty)
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: isDesktop ? 12 : 8,
-                                  vertical: isDesktop ? 6 : 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.75),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.calendar_month, color: Color(0xFF60A5FA), size: 12),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      ev.startDate,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: isDesktop ? 11.5 : 9.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                        if (ev.startingPrice != null)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isDesktop ? 14 : 9,
-                              vertical: isDesktop ? 6 : 3,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFEC4899).withValues(alpha: 0.35),
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              'FROM ₹${ev.startingPrice!.toInt()}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: isDesktop ? 12 : 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // 5. Bottom Overlay Content
-                  Positioned(
-                    bottom: isDesktop ? 18 : 8,
-                    left: isDesktop ? 22 : 10,
-                    right: isDesktop ? 22 : 10,
-                    child: isDesktop
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      ev.name.toUpperCase(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        letterSpacing: -0.4,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.location_on_rounded, color: Color(0xFF60A5FA), size: 15),
-                                        const SizedBox(width: 5),
-                                        Flexible(
-                                          child: Text(
-                                            displayLoc,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: Colors.white.withValues(alpha: 0.8),
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                        if (dateText.isNotEmpty) ...[
-                                          const SizedBox(width: 10),
-                                          Text('•', style: TextStyle(color: Colors.white.withValues(alpha: 0.5))),
-                                          const SizedBox(width: 10),
-                                          const Icon(Icons.calendar_today_rounded, color: Color(0xFFC084FC), size: 14),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            dateText,
-                                            style: TextStyle(
-                                              color: Colors.white.withValues(alpha: 0.9),
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Wrap(
-                                spacing: 10,
-                                children: [
-                                  GradientButton(
-                                    label: 'GET TICKETS',
-                                    icon: Icons.confirmation_number_outlined,
-                                    height: 44,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    onPressed: () => context.push(eventRoute),
-                                  ),
-                                  InkWell(
-                                    onTap: _launchWhatsApp,
-                                    borderRadius: BorderRadius.circular(22),
-                                    child: Container(
-                                      height: 44,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(22),
-                                        border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.22),
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'VIP Inquiries',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                  // Lime Green [ GET TICKETS ] Button (Exact match to sroll.mp4)
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () => context.push(eventRoute),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFC6F432),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFC6F432).withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
                               ),
                             ],
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                          child: const Text(
+                            'GET TICKETS',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13.5,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: _launchWhatsApp,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                          ),
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 15),
+                              SizedBox(width: 6),
                               Text(
-                                ev.name.toUpperCase(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                [displayLoc, if (dateText.isNotEmpty) dateText].join(' • '),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                'VIP Inquiries',
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 10.5,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
                                 ),
-                              ),
-                              const SizedBox(height: 5),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: GradientButton(
-                                      label: 'GET TICKETS',
-                                      icon: Icons.confirmation_number_outlined,
-                                      height: 32,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                      onPressed: () => context.push(eventRoute),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  InkWell(
-                                    onTap: _launchWhatsApp,
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Container(
-                                      height: 32,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: Colors.white24),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 12),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            'VIP',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 10.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Clean Arrow Buttons (←  → from sroll.mp4)
+                  Row(
+                    children: [
+                      _CleanArrowButton(
+                        icon: Icons.arrow_back_rounded,
+                        onTap: () => _prevPage(events.length),
+                      ),
+                      const SizedBox(width: 14),
+                      _CleanArrowButton(
+                        icon: Icons.arrow_forward_rounded,
+                        onTap: () => _nextPage(events.length),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+
+            const SizedBox(width: 20),
+
+            // RIGHT COLUMN: 16:9 Landscape Banner Cards with next card peeking
+            Expanded(
+              child: SizedBox(
+                height: carouselHeight + 16,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: events.length,
+                  onPageChanged: (idx) => setState(() => _activeIndex = idx),
+                  itemBuilder: (context, index) {
+                    final ev = events[index];
+                    final isCurrent = index == activeIdx;
+                    final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+                    final posterUrl = ev.mainImage ?? ev.thumbnail;
+                    final fallback = _heroFallbacks[index % _heroFallbacks.length];
+
+                    return Center(
+                      child: AnimatedScale(
+                        scale: isCurrent ? 1.0 : 0.94,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOutCubic,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (isCurrent) {
+                              context.push(targetRoute);
+                            } else {
+                              _pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          },
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isCurrent ? 0.55 : 0.25),
+                                    blurRadius: isCurrent ? 20 : 10,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: NetworkImageBox(
+                                  url: posterUrl,
+                                  fallbackUrl: fallback,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  // MOBILE HERO LAYOUT (EXACT REPLICA OF IMGS.MP4)
+  // ==========================================
+  Widget _buildMobileLayout(
+    List<EventSummary> events,
+    EventSummary activeEvent,
+    int activeIdx,
+  ) {
+    final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
+
+    final locParts = [
+      if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
+      if (activeEvent.city != null && activeEvent.city!.isNotEmpty) activeEvent.city!,
+    ].where((s) => s.isNotEmpty).join(', ');
+    final displayLoc = locParts.isEmpty ? 'Venue To Be Announced' : locParts;
+
+    final dateText = [
+      if (activeEvent.startDate.isNotEmpty) activeEvent.startDate,
+      if (activeEvent.endDate.isNotEmpty && activeEvent.endDate != activeEvent.startDate)
+        '- ${activeEvent.endDate}',
+    ].join(' ');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // 16:9 Peeking Carousel
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final cardWidth = constraints.maxWidth * 0.84;
+            final cardHeight = cardWidth / (16 / 9);
+
+            return SizedBox(
+              height: cardHeight + 12,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: events.length,
+                onPageChanged: (idx) => setState(() => _activeIndex = idx),
+                itemBuilder: (context, index) {
+                  final ev = events[index];
+                  final isCurrent = index == activeIdx;
+                  final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+                  final posterUrl = ev.mainImage ?? ev.thumbnail;
+                  final fallback = _heroFallbacks[index % _heroFallbacks.length];
+
+                  return Center(
+                    child: AnimatedScale(
+                      scale: isCurrent ? 1.0 : 0.92,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (isCurrent) {
+                            context.push(targetRoute);
+                          } else {
+                            _pageController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: NetworkImageBox(
+                                url: posterUrl,
+                                fallbackUrl: fallback,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 14),
+
+        // Event Metadata below card (Matching imgs.mp4)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              Text(
+                activeEvent.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                [if (dateText.isNotEmpty) dateText, displayLoc].join(' • '),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  InkWell(
+                    onTap: () => context.push(eventRoute),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC6F432),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'GET TICKETS',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  _CleanArrowButton(
+                    icon: Icons.arrow_back_rounded,
+                    onTap: () => _prevPage(events.length),
+                  ),
+                  const SizedBox(width: 8),
+                  _CleanArrowButton(
+                    icon: Icons.arrow_forward_rounded,
+                    onTap: () => _nextPage(events.length),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 // ==========================================
-// CAROUSEL ARROW BUTTON (FROSTED GLASS WITH PURPLE HOVER)
+// CLEAN ARROW BUTTON (AS SEEN IN SROLL.MP4)
 // ==========================================
-class _CarouselArrowButton extends StatefulWidget {
+class _CleanArrowButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
-  final double size;
-  final double iconSize;
 
-  const _CarouselArrowButton({
+  const _CleanArrowButton({
     required this.icon,
     required this.onTap,
-    this.size = 46,
-    this.iconSize = 20,
   });
 
   @override
-  State<_CarouselArrowButton> createState() => _CarouselArrowButtonState();
+  State<_CleanArrowButton> createState() => _CleanArrowButtonState();
 }
 
-class _CarouselArrowButtonState extends State<_CarouselArrowButton> {
+class _CleanArrowButtonState extends State<_CleanArrowButton> {
   bool _isHovered = false;
 
   @override
@@ -950,35 +787,16 @@ class _CarouselArrowButtonState extends State<_CarouselArrowButton> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: widget.size,
-          height: widget.size,
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _isHovered
-                ? const Color(0xFFA855F7).withValues(alpha: 0.35)
-                : Colors.white.withValues(alpha: 0.08),
-            border: Border.all(
-              color: _isHovered
-                  ? const Color(0xFFA855F7)
-                  : Colors.white.withValues(alpha: 0.2),
-              width: 1.2,
-            ),
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-                      blurRadius: 12,
-                    ),
-                  ]
-                : null,
+            color: _isHovered ? Colors.white.withValues(alpha: 0.15) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Center(
-            child: Icon(
-              widget.icon,
-              color: _isHovered ? Colors.white : Colors.white70,
-              size: widget.iconSize,
-            ),
+          child: Icon(
+            widget.icon,
+            color: _isHovered ? const Color(0xFFC6F432) : Colors.white.withValues(alpha: 0.9),
+            size: 24,
           ),
         ),
       ),
