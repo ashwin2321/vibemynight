@@ -723,14 +723,191 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         totalArtists: _preview!.totalArtists,
       );
     });
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Updated $role image!'),
-        duration: const Duration(seconds: 1),
-        backgroundColor: AppColors.neonPurple,
+  Future<void> _showEditHeaderDialog(EventHeaderImport event) async {
+    final nameCtrl = TextEditingController(text: event.name);
+    final cityCtrl = TextEditingController(text: event.city ?? 'Ahmedabad');
+    final venueCtrl = TextEditingController(text: event.venue ?? '');
+    final descCtrl = TextEditingController(text: event.description ?? '');
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Edit Event Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Event Title / Name'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: cityCtrl,
+                decoration: const InputDecoration(labelText: 'City / Region'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: venueCtrl,
+                decoration: const InputDecoration(labelText: 'Venue / Location'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Event Description'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonPurple),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
+
+    if (result == true && _preview != null) {
+      final updatedName = nameCtrl.text.trim().isEmpty ? event.name : nameCtrl.text.trim();
+      final updatedSlug = updatedName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]+'), '-').replaceAll(RegExp(r'^-+|-+$'), '');
+      final updated = EventHeaderImport(
+        name: updatedName,
+        slug: updatedSlug,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        venue: venueCtrl.text.trim(),
+        address: venueCtrl.text.trim(),
+        city: cityCtrl.text.trim(),
+        location: venueCtrl.text.trim(),
+        googleMapsUrl: event.googleMapsUrl,
+        organizer: event.organizer,
+        contactNumber: event.contactNumber,
+        email: event.email,
+        description: descCtrl.text.trim(),
+        featured: event.featured,
+        status: event.status,
+        mainImage: event.mainImage,
+        banner: event.banner,
+        thumbnail: event.thumbnail,
+      );
+
+      setState(() {
+        _preview = EventImportPreview(
+          event: updated,
+          days: _preview!.days,
+          eventFacilities: _preview!.eventFacilities,
+          highlights: _preview!.highlights,
+          rules: _preview!.rules,
+          galleryImageUrls: _preview!.galleryImageUrls,
+          artworkCandidates: _preview!.artworkCandidates,
+          validationMessages: _preview!.validationMessages,
+          hasBlockingErrors: _preview!.hasBlockingErrors,
+          totalDays: _preview!.totalDays,
+          totalPasses: _preview!.totalPasses,
+          totalArtists: _preview!.totalArtists,
+        );
+      });
+    }
+  }
+
+  Future<void> _showAddCustomArtworkDialog() async {
+    final urlCtrl = TextEditingController();
+    String role = 'POSTER_3_4';
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: const Text('Add Custom Image URL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Paste any HTTPS image URL (e.g. from Google Drive, Cloudinary, AWS S3, or any website).',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: urlCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'https://images.example.com/poster.jpg',
+                  prefixIcon: Icon(Icons.link),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: role,
+                decoration: const InputDecoration(labelText: 'Assign as'),
+                dropdownColor: AppColors.surface,
+                items: const [
+                  DropdownMenuItem(value: 'POSTER_3_4', child: Text('3:4 Main Poster')),
+                  DropdownMenuItem(value: 'BANNER_16_9', child: Text('16:9 Header Banner')),
+                  DropdownMenuItem(value: 'THUMBNAIL_1_1', child: Text('1:1 Square Thumbnail')),
+                ],
+                onChanged: (v) {
+                  if (v != null) setDlgState(() => role = v);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonPurple),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Add & Apply', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true && _preview != null && urlCtrl.text.trim().isNotEmpty) {
+      final customUrl = urlCtrl.text.trim();
+      final newCandidate = ScrapedImageCandidate(
+        url: customUrl,
+        localUrl: customUrl,
+        suggestedRole: role,
+        label: 'Custom Artwork',
+        source: 'ADMIN_CUSTOM',
+      );
+
+      final updatedCandidates = List<ScrapedImageCandidate>.from(_preview!.artworkCandidates)..insert(0, newCandidate);
+
+      setState(() {
+        _preview = EventImportPreview(
+          event: _preview!.event,
+          days: _preview!.days,
+          eventFacilities: _preview!.eventFacilities,
+          highlights: _preview!.highlights,
+          rules: _preview!.rules,
+          galleryImageUrls: _preview!.galleryImageUrls,
+          artworkCandidates: updatedCandidates,
+          validationMessages: _preview!.validationMessages,
+          hasBlockingErrors: _preview!.hasBlockingErrors,
+          totalDays: _preview!.totalDays,
+          totalPasses: _preview!.totalPasses,
+          totalArtists: _preview!.totalArtists,
+        );
+      });
+
+      if (role == 'POSTER_3_4') {
+        _setArtwork(customUrl, 'POSTER');
+      } else if (role == 'BANNER_16_9') {
+        _setArtwork(customUrl, 'BANNER');
+      } else {
+        _setArtwork(customUrl, 'THUMBNAIL');
+      }
+    }
   }
 
   Widget _buildEventTab(EventHeaderImport? event) {
@@ -740,6 +917,23 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Event Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.edit, size: 14),
+              label: const Text('Edit Event Details', style: TextStyle(fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.neonPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              onPressed: () => _showEditHeaderDialog(event),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         _buildInfoRow('Event Name', event.name),
         _buildInfoRow('Slug', event.slug ?? 'auto-generated'),
         _buildInfoRow('Dates', '${event.startDate ?? "TBD"} to ${event.endDate ?? "TBD"}'),
@@ -767,40 +961,51 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
         ),
 
         // Scraped Artwork Candidates Gallery
-        if (candidates.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceGlass,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.photo_library_outlined, color: AppColors.neonPurple, size: 18),
-                    const SizedBox(width: 8),
-                    const Text(
-                      '🎨 Scraped Artwork Candidates (1-Click Selector)',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.photo_library_outlined, color: AppColors.neonPurple, size: 18),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '🎨 Scraped Artwork Candidates (1-Click Selector)',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                  ),
+                  const Spacer(),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.add_photo_alternate_outlined, size: 14),
+                    label: const Text('Custom Image URL', style: TextStyle(fontSize: 11)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.neonBlue,
+                      side: const BorderSide(color: AppColors.neonBlue),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
                     ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.neonPurple.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${candidates.length} images found',
-                        style: const TextStyle(color: AppColors.neonPurple, fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
+                    onPressed: _showAddCustomArtworkDialog,
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonPurple.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ],
-                ),
+                    child: Text(
+                      '${candidates.length} images found',
+                      style: const TextStyle(color: AppColors.neonPurple, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
                 const SizedBox(height: 6),
                 const Text(
                   'Auto-downloaded & cached to local storage. Click any button below an image to assign it as the 3:4 Poster, 16:9 Banner, or Thumbnail.',
@@ -911,9 +1116,8 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
             ),
           ),
         ],
-      ],
-    );
-  }
+      );
+    }
 
   Widget _buildThumbCard(String label, String? url, {double width = 140, double height = 80}) {
     String? fallback;
