@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -185,15 +186,41 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     ),
   ];
 
+  static const List<String> _heroFallbacks = [
+    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1600&fit=crop&auto=format',
+  ];
+
+  Timer? _autoScrollTimer;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.74);
     _mobilePageController = PageController(viewportFraction: 0.78);
+    _startAutoScrollTimer();
+  }
+
+  void _startAutoScrollTimer() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 4500), (_) {
+      if (!mounted) return;
+      final events = _getDisplayEvents();
+      if (events.length > 1) {
+        _nextPage(events.length, isAuto: true);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _autoScrollTimer?.cancel();
     _pageController.dispose();
     _mobilePageController.dispose();
     super.dispose();
@@ -207,20 +234,21 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
     return _defaultEvents;
   }
 
-  void _nextPage(int total) {
+  void _nextPage(int total, {bool isAuto = false}) {
     if (total <= 1) return;
+    if (!isAuto) _startAutoScrollTimer();
     final next = (_activeIndex + 1) % total;
     if (_pageController.hasClients) {
       _pageController.animateToPage(
         next,
-        duration: const Duration(milliseconds: 380),
+        duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
       );
     }
     if (_mobilePageController.hasClients) {
       _mobilePageController.animateToPage(
         next,
-        duration: const Duration(milliseconds: 380),
+        duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
       );
     }
@@ -228,18 +256,19 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
 
   void _prevPage(int total) {
     if (total <= 1) return;
+    _startAutoScrollTimer();
     final prev = (_activeIndex - 1 + total) % total;
     if (_pageController.hasClients) {
       _pageController.animateToPage(
         prev,
-        duration: const Duration(milliseconds: 380),
+        duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
       );
     }
     if (_mobilePageController.hasClients) {
       _mobilePageController.animateToPage(
         prev,
-        duration: const Duration(milliseconds: 380),
+        duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
       );
     }
@@ -657,7 +686,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                                       // 16:9 Banner Image with Safe Fallback
                                       NetworkImageBox(
                                         url: ev.mainImage ?? ev.thumbnail,
-                                        fallbackUrl: HomeScreen._heroImg,
+                                        fallbackUrl: _heroFallbacks[index % _heroFallbacks.length],
                                         width: double.infinity,
                                         height: double.infinity,
                                         fit: BoxFit.cover,
@@ -925,7 +954,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                                   // 3:4 Poster Image with Fallback
                                   NetworkImageBox(
                                     url: ev.thumbnail ?? ev.mainImage,
-                                    fallbackUrl: HomeScreen._heroImg,
+                                    fallbackUrl: _heroFallbacks[index % _heroFallbacks.length],
                                     width: double.infinity,
                                     height: double.infinity,
                                     fit: BoxFit.cover,

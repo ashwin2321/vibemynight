@@ -24,10 +24,12 @@ class NetworkImageBox extends StatelessWidget {
   });
 
   static const List<String> defaultEventPosters = [
-    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1200&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=1200&fit=crop&auto=format',
   ];
 
   static String? resolveUrl(String? raw) {
@@ -67,7 +69,13 @@ class NetworkImageBox extends StatelessWidget {
           cacheWidth: targetCacheWidth,
           cacheHeight: targetCacheHeight,
           filterQuality: FilterQuality.medium,
-          errorBuilder: (_, __, ___) => _renderStylizedFallback(),
+          errorBuilder: (_, __, ___) => Image.network(
+            defaultEventPosters[0],
+            height: height,
+            width: width,
+            fit: fit,
+            errorBuilder: (_, __, ___) => _renderStylizedFallback(),
+          ),
         ),
       );
     }
@@ -88,19 +96,22 @@ class NetworkImageBox extends StatelessWidget {
         },
         errorBuilder: (context, error, stack) {
           final resolvedFallback = resolveUrl(fallbackUrl) ?? defaultEventPosters[0];
-          if (resolvedFallback != effectiveUrl) {
-            return Image.network(
-              resolvedFallback,
+          return Image.network(
+            resolvedFallback != effectiveUrl ? resolvedFallback : defaultEventPosters[0],
+            height: height,
+            width: width,
+            fit: fit,
+            cacheWidth: targetCacheWidth,
+            cacheHeight: targetCacheHeight,
+            filterQuality: FilterQuality.medium,
+            errorBuilder: (_, __, ___) => Image.network(
+              defaultEventPosters[0],
               height: height,
               width: width,
               fit: fit,
-              cacheWidth: targetCacheWidth,
-              cacheHeight: targetCacheHeight,
-              filterQuality: FilterQuality.medium,
               errorBuilder: (_, __, ___) => _renderStylizedFallback(),
-            );
-          }
-          return _renderStylizedFallback();
+            ),
+          );
         },
       ),
     );
