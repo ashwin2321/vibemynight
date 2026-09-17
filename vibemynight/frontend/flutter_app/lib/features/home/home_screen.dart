@@ -293,112 +293,29 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
     final safeIndex = _activeIndex.clamp(0, events.length - 1);
     final activeEvent = events[safeIndex];
 
-    final activeImage = NetworkImageBox.resolveUrl(activeEvent.mainImage ?? activeEvent.thumbnail) ??
-        _heroFallbacks[safeIndex % _heroFallbacks.length];
-
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: [0.0, 0.4, 0.75, 1.0],
-          colors: [
-            Color(0xFF180A2C),
-            Color(0xFF110722),
-            Color(0xFF0D0618),
-            Color(0xFF07070E),
-          ],
-        ),
+      color: const Color(0xFF07070E),
+      padding: EdgeInsets.fromLTRB(
+        isDesktop ? 48 : (isTablet ? 24 : 16),
+        isDesktop ? 36 : 18,
+        isDesktop ? 48 : (isTablet ? 24 : 16),
+        isDesktop ? 20 : 12,
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 1. Ambient Blurred Backdrop Image
-          Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 450),
-              child: SizedBox(
-                key: ValueKey<String>(activeImage),
-                width: double.infinity,
-                height: double.infinity,
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 65, sigmaY: 65),
-                  child: Image.network(
-                    activeImage,
-                    fit: BoxFit.cover,
-                    cacheWidth: 400,
-                    cacheHeight: 250,
-                    errorBuilder: (_, __, ___) => Container(color: AppColors.surface),
-                  ),
-                ),
-              ),
-            ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1320),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isDesktop
+                  ? _buildDesktopSplitLayout(events, activeEvent, safeIndex)
+                  : _buildMobileLayout(events, activeEvent, safeIndex),
+              SizedBox(height: isDesktop ? 28 : 16),
+              _buildIntegratedCategoryChips(context, isDesktop),
+            ],
           ),
-
-          // 2. VMN Deep Nightlife Vignette Overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: isDesktop ? Alignment.centerLeft : Alignment.topCenter,
-                  end: isDesktop ? Alignment.centerRight : Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF07070E).withValues(alpha: 0.90),
-                    const Color(0xFF07070E).withValues(alpha: 0.70),
-                    const Color(0xFF07070E).withValues(alpha: 0.60),
-                    const Color(0xFF07070E).withValues(alpha: 0.92),
-                  ],
-                  stops: const [0.0, 0.35, 0.70, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // 3. Smooth bottom seamless fade so it dissolves 100% into the page (zero sharp lines)
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [0.0, 0.45, 0.75, 1.0],
-                  colors: [
-                    Colors.transparent,
-                    Colors.transparent,
-                    Color(0x9907070E),
-                    Color(0xFF07070E),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 4. Hero Content: Split Layout on Desktop, 3:4 Vertical Spotlight on Mobile + Integrated Category Chips Bar
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              isDesktop ? 48 : (isTablet ? 24 : 16),
-              isDesktop ? 36 : 18,
-              isDesktop ? 48 : (isTablet ? 24 : 16),
-              isDesktop ? 20 : 12,
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1320),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    isDesktop
-                        ? _buildDesktopSplitLayout(events, activeEvent, safeIndex)
-                        : _buildMobileLayout(events, activeEvent, safeIndex),
-                    SizedBox(height: isDesktop ? 28 : 16),
-                    _buildIntegratedCategoryChips(context, isDesktop),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
