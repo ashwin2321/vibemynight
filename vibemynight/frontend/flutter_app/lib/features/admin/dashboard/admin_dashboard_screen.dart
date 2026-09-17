@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/admin_providers.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -159,7 +160,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
-                              onPressed: () => context.go('/admin/login'),
+                              onPressed: () async {
+                                await ref.read(authControllerProvider.notifier).logout();
+                                if (context.mounted) {
+                                  context.go('/admin/login');
+                                }
+                              },
                             ),
                           ],
                         ),

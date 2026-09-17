@@ -44,7 +44,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       final goingToLogin = state.matchedLocation == '/admin/login';
 
       if (goingToAdmin && !goingToLogin && !loggedIn) return '/admin/login';
-      if (goingToLogin && loggedIn) return '/admin/dashboard';
       return null;
     },
     routes: [
