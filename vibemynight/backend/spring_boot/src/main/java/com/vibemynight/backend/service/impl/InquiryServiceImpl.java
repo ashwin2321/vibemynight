@@ -132,7 +132,8 @@ public class InquiryServiceImpl implements InquiryService {
         String whatsappNumber = settingsRepository.findAll().stream()
                 .findFirst().map(Settings::getWhatsappNumber).orElse(null);
 
-        return toResponse(inquiry, artistId, artistName, whatsappNumber);
+        // Mask PII on public unauthenticated lookup to prevent enumeration attacks
+        return toMaskedResponse(inquiry, artistId, artistName, whatsappNumber);
     }
 
     @Override
@@ -182,10 +183,58 @@ public class InquiryServiceImpl implements InquiryService {
         inquiryRepository.delete(getById(id));
     }
 
-    /** Format: VMN-000001, sequential based on current row count. */
+    private static final String ALPHANUMERIC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    private static final java.security.SecureRandom RANDOM = new java.security.SecureRandom();
+
+    /** Concurrency-safe, collision-free inquiry number (e.g. VMN-2609-K8F2P4). */
     private String generateInquiryNumber() {
-        long next = inquiryRepository.countAllInquiries() + 1;
-        return String.format("VMN-%06d", next);
+        java.time.LocalDate now = java.time.LocalDate.now();
+        String prefix = String.format("VMN-%02d%02d-", now.getYear() % 100, now.getMonthValue());
+        for (int attempt = 0; attempt < 10; attempt++) {
+            StringBuilder sb = new StringBuilder(prefix);
+            for (int i = 0; i < 6; i++) {
+                sb.append(ALPHANUMERIC.charAt(RANDOM.nextInt(ALPHANUMERIC.length())));
+            }
+            String candidate = sb.toString();
+            if (!inquiryRepository.existsByInquiryNumber(candidate)) {
+                return candidate;
+            }
+        }
+        return "VMN-" + System.currentTimeMillis();
+    }
+
+    private InquiryResponse toMaskedResponse(Inquiry inquiry, Long artistId, String artistName, String whatsappNumber) {
+        InquiryResponse resp = toResponse(inquiry, artistId, artistName, whatsappNumber);
+        resp.setCustomerName(maskName(inquiry.getCustomerName()));
+        resp.setCustomerMobile(maskMobile(inquiry.getCustomerMobile()));
+        resp.setCustomerEmail(maskEmail(inquiry.getCustomerEmail()));
+        return resp;
+    }
+
+    private String maskName(String name) {
+        if (name == null || name.isBlank()) return "Customer";
+        String[] parts = name.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.length() <= 1) {
+                sb.append(part).append(" ");
+            } else {
+                sb.append(part.charAt(0)).append("*".repeat(Math.max(1, part.length() - 1))).append(" ");
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    private String maskMobile(String mobile) {
+        if (mobile == null || mobile.length() < 4) return "****";
+        return mobile.substring(0, 2) + "******" + mobile.substring(mobile.length() - 2);
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return null;
+        int atIdx = email.indexOf("@");
+        if (atIdx <= 2) return "***" + email.substring(atIdx);
+        return email.substring(0, 2) + "***" + email.substring(atIdx);
     }
 
     private InquiryResponse toResponse(Inquiry inquiry, Long artistId, String artistName, String whatsappNumber) {

@@ -51,6 +51,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
     }
 
+    private static final int INQUIRY_LOOKUP_LIMIT_PER_MINUTE = 30;
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -68,11 +70,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             } else if (path.equals("/api/v1/inquiries")) {
                 limit = INQUIRY_LIMIT_PER_MINUTE;
             }
+        } else if ("GET".equalsIgnoreCase(method)) {
+            if (path.startsWith("/api/v1/inquiries/")) {
+                limit = INQUIRY_LOOKUP_LIMIT_PER_MINUTE;
+            }
         }
 
         if (limit > 0) {
             String clientIp = getClientIp(request);
-            String bucketKey = path + ":" + clientIp;
+            String bucketKey = (path.startsWith("/api/v1/inquiries/") ? "/api/v1/inquiries/*" : path) + ":" + clientIp;
             long now = System.currentTimeMillis();
 
             // Self-cleaning periodically if map grows large
@@ -102,14 +108,23 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private static final java.util.regex.Pattern IP_PATTERN =
+            java.util.regex.Pattern.compile("^[0-9a-fA-F:.]+$");
+
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            return xForwardedFor.split(",")[0].trim();
+            String candidate = xForwardedFor.split(",")[0].trim();
+            if (IP_PATTERN.matcher(candidate).matches() && candidate.length() <= 45) {
+                return candidate;
+            }
         }
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isBlank()) {
-            return xRealIp.trim();
+            String candidate = xRealIp.trim();
+            if (IP_PATTERN.matcher(candidate).matches() && candidate.length() <= 45) {
+                return candidate;
+            }
         }
         return request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
     }

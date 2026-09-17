@@ -191,19 +191,28 @@
   </div>
 
   <script>
-    // 1. Completely purge all stale CacheStorage & ServiceWorkers on mobile
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (var name of names) {
-          caches.delete(name);
+    // Versioned cache invalidation: purge caches & service workers only on new deployment version
+    (function() {
+      var currentBuildVer = '20260917-v1';
+      try {
+        var storedVer = localStorage.getItem('vmn_app_build_version');
+        if (storedVer !== currentBuildVer) {
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              for (var name of names) { caches.delete(name); }
+            });
+          }
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              for (var r of regs) { r.unregister(); }
+            });
+          }
+          localStorage.setItem('vmn_app_build_version', currentBuildVer);
         }
-      });
-    }
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var r of regs) { r.unregister(); }
-      });
-    }
+      } catch (e) {
+        // Fallback for private browsing/storage disabled
+      }
+    })();
 
     window.dismissVmnLoader = function() {
       var loader = document.getElementById('vmn-apple-loader');

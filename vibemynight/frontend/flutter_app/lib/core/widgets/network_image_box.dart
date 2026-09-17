@@ -50,7 +50,7 @@ class NetworkImageBox extends StatelessWidget {
 
     final targetCacheWidth = (width != null && width! > 0 && !width!.isInfinite)
         ? (width! * 2.5).round().clamp(100, 2048)
-        : null;
+        : 1200;
     final targetCacheHeight = (height != null && height! > 0 && !height!.isInfinite)
         ? (height! * 2.5).round().clamp(100, 2048)
         : null;

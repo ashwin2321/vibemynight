@@ -20,6 +20,16 @@ public class JwtService {
     @Value("${app.jwt.expiration-ms}")
     private long expirationMs;
 
+    @jakarta.annotation.PostConstruct
+    public void validateKey() {
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret must not be blank.");
+        }
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 bytes (256 bits) for HS256.");
+        }
+    }
+
     private SecretKey key() {
         // HS256 needs a key of at least 256 bits (32 bytes). app.jwt.secret must satisfy
         // this in every environment - the application.yml default is dev-only.

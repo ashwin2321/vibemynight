@@ -1,0 +1,44 @@
+﻿# Environment & Secret files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Java / Maven build artifacts
+target/
+backend/spring_boot/target/
+*.class
+*.jar
+*.war
+*.ear
+*.logs
+*.log
+
+# Flutter / Dart build artifacts
+.dart_tool/
+frontend/flutter_app/.dart_tool/
+build/
+frontend/flutter_app/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+.pub-cache/
+
+# IDE & Editor artifacts
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.sublime-project
+*.sublime-workspace
+
+# OS & Temp files
+.DS_Store
+Thumbs.db
+~$*.xlsx
+*.tmp
+*.bak

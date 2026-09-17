@@ -13,6 +13,7 @@ import java.util.Optional;
 
 public interface InquiryRepository extends JpaRepository<Inquiry, Long>, JpaSpecificationExecutor<Inquiry> {
     Optional<Inquiry> findByInquiryNumber(String inquiryNumber);
+    boolean existsByInquiryNumber(String inquiryNumber);
     List<Inquiry> findByStatus(InquiryStatus status);
     Page<Inquiry> findByStatus(InquiryStatus status, Pageable pageable);
     long countByStatus(InquiryStatus status);
