@@ -14,10 +14,10 @@ class Facility {
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) => Facility(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        icon: json['icon'] as String?,
-        description: json['description'] as String?,
-        status: json['status'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        name: json['name']?.toString() ?? '',
+        icon: json['icon']?.toString(),
+        description: json['description']?.toString(),
+        status: json['status']?.toString() ?? 'ACTIVE',
       );
 }

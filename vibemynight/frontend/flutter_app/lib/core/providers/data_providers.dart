@@ -25,11 +25,7 @@ extension CacheForExtension on Ref {
 
 final publishedEventsProvider = FutureProvider<List<EventSummary>>((ref) async {
   ref.cacheFor(const Duration(minutes: 5));
-  try {
-    return await ref.watch(eventServiceProvider).getPublishedEvents();
-  } catch (_) {
-    return <EventSummary>[];
-  }
+  return ref.watch(eventServiceProvider).getPublishedEvents();
 });
 
 final eventDetailProvider =
@@ -46,11 +42,7 @@ final eventDayDetailProvider =
 
 final artistsProvider = FutureProvider<List<Artist>>((ref) async {
   ref.cacheFor(const Duration(minutes: 5));
-  try {
-    return await ref.watch(artistServiceProvider).getArtists();
-  } catch (_) {
-    return <Artist>[];
-  }
+  return ref.watch(artistServiceProvider).getArtists();
 });
 
 final artistByIdProvider = FutureProvider.family<Artist, int>((ref, id) {
@@ -60,11 +52,7 @@ final artistByIdProvider = FutureProvider.family<Artist, int>((ref, id) {
 
 final facilitiesProvider = FutureProvider<List<Facility>>((ref) async {
   ref.cacheFor(const Duration(minutes: 5));
-  try {
-    return await ref.watch(facilityServiceProvider).getFacilities();
-  } catch (_) {
-    return <Facility>[];
-  }
+  return ref.watch(facilityServiceProvider).getFacilities();
 });
 
 /// WhatsApp number and other site settings - fetched once, never hardcoded.

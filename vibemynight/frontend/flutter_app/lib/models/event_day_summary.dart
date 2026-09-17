@@ -26,15 +26,15 @@ class EventDaySummary {
   });
 
   factory EventDaySummary.fromJson(Map<String, dynamic> json) => EventDaySummary(
-        id: json['id'] as int,
-        dayNumber: json['dayNumber'] as int,
-        date: json['date'] as String,
-        dayName: json['dayName'] as String?,
-        programName: json['programName'] as String?,
-        startTime: json['startTime'] as String?,
-        endTime: json['endTime'] as String?,
-        primaryArtistName: json['primaryArtistName'] as String?,
-        primaryArtistPhotoUrl: json['primaryArtistPhotoUrl'] as String?,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        dayNumber: (json['dayNumber'] as num?)?.toInt() ?? 0,
+        date: json['date']?.toString() ?? '',
+        dayName: json['dayName']?.toString(),
+        programName: json['programName']?.toString(),
+        startTime: json['startTime']?.toString(),
+        endTime: json['endTime']?.toString(),
+        primaryArtistName: json['primaryArtistName']?.toString(),
+        primaryArtistPhotoUrl: json['primaryArtistPhotoUrl']?.toString(),
         startingPrice: (json['startingPrice'] as num?)?.toDouble(),
       );
 }

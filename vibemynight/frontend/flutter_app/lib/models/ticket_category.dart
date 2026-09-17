@@ -26,17 +26,21 @@ class TicketCategory {
   });
 
   factory TicketCategory.fromJson(Map<String, dynamic> json) => TicketCategory(
-        id: json['id'] as int,
-        eventDayId: json['eventDayId'] as int,
-        name: json['name'] as String,
-        type: json['type'] as String,
-        price: (json['price'] as num).toDouble(),
-        availableQuantity: json['availableQuantity'] as int,
-        maxPerCustomer: json['maxPerCustomer'] as int,
-        description: json['description'] as String?,
-        benefits: (json['benefits'] as List?)?.cast<String>() ?? const [],
-        status: json['status'] as String,
-        soldOut: json['soldOut'] as bool? ?? false,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        eventDayId: (json['eventDayId'] as num?)?.toInt() ?? 0,
+        name: json['name']?.toString() ?? '',
+        type: json['type']?.toString() ?? 'REGULAR',
+        price: (json['price'] as num?)?.toDouble() ?? 0.0,
+        availableQuantity: (json['availableQuantity'] as num?)?.toInt() ?? 0,
+        maxPerCustomer: (json['maxPerCustomer'] as num?)?.toInt() ?? 10,
+        description: json['description']?.toString(),
+        benefits: (json['benefits'] as List?)
+                ?.map((e) => e.toString())
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            const [],
+        status: json['status']?.toString() ?? 'AVAILABLE',
+        soldOut: json['soldOut'] == true,
       );
 
   bool get lowStock => !soldOut && availableQuantity <= 10;

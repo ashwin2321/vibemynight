@@ -20,13 +20,13 @@ class EventDayArtist {
   });
 
   factory EventDayArtist.fromJson(Map<String, dynamic> json) => EventDayArtist(
-        artistId: json['artistId'] as int,
-        name: json['name'] as String,
-        photoUrl: json['photoUrl'] as String?,
-        type: json['type'] as String,
-        isPrimary: json['isPrimary'] as bool? ?? false,
-        performanceOrder: json['performanceOrder'] as int?,
-        performanceStartTime: json['performanceStartTime'] as String?,
-        performanceEndTime: json['performanceEndTime'] as String?,
+        artistId: (json['artistId'] as num?)?.toInt() ?? 0,
+        name: json['name']?.toString() ?? '',
+        photoUrl: json['photoUrl']?.toString(),
+        type: json['type']?.toString() ?? 'ARTIST',
+        isPrimary: json['isPrimary'] == true,
+        performanceOrder: (json['performanceOrder'] as num?)?.toInt(),
+        performanceStartTime: json['performanceStartTime']?.toString(),
+        performanceEndTime: json['performanceEndTime']?.toString(),
       );
 }

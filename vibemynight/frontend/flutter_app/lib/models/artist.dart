@@ -28,17 +28,17 @@ class Artist {
   });
 
   factory Artist.fromJson(Map<String, dynamic> json) => Artist(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        slug: json['slug'] as String,
-        photoUrl: json['photoUrl'] as String?,
-        type: json['type'] as String,
-        shortBio: json['shortBio'] as String?,
-        fullBio: json['fullBio'] as String?,
-        instagramUrl: json['instagramUrl'] as String?,
-        facebookUrl: json['facebookUrl'] as String?,
-        youtubeUrl: json['youtubeUrl'] as String?,
-        featured: json['featured'] as bool? ?? false,
-        status: json['status'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        name: json['name']?.toString() ?? '',
+        slug: json['slug']?.toString() ?? '',
+        photoUrl: json['photoUrl']?.toString(),
+        type: json['type']?.toString() ?? 'ARTIST',
+        shortBio: json['shortBio']?.toString(),
+        fullBio: json['fullBio']?.toString(),
+        instagramUrl: json['instagramUrl']?.toString(),
+        facebookUrl: json['facebookUrl']?.toString(),
+        youtubeUrl: json['youtubeUrl']?.toString(),
+        featured: json['featured'] == true,
+        status: json['status']?.toString() ?? 'ACTIVE',
       );
 }

@@ -55,28 +55,40 @@ class EventDetail {
   });
 
   factory EventDetail.fromJson(Map<String, dynamic> json) => EventDetail(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        slug: json['slug'] as String,
-        mainImage: json['mainImage'] as String?,
-        banner: json['banner'] as String?,
-        thumbnail: json['thumbnail'] as String?,
-        description: json['description'] as String?,
-        startDate: json['startDate'] as String,
-        endDate: json['endDate'] as String,
-        venue: json['venue'] as String?,
-        address: json['address'] as String?,
-        city: json['city'] as String?,
-        location: json['location'] as String?,
-        googleMapsUrl: json['googleMapsUrl'] as String?,
-        organizer: json['organizer'] as String?,
-        contactNumber: json['contactNumber'] as String?,
-        email: json['email'] as String?,
-        featured: json['featured'] as bool? ?? false,
-        status: json['status'] as String,
-        galleryImageUrls: (json['galleryImageUrls'] as List?)?.cast<String>() ?? const [],
-        highlights: (json['highlights'] as List?)?.cast<String>() ?? const [],
-        rules: (json['rules'] as List?)?.cast<String>() ?? const [],
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        name: json['name']?.toString() ?? '',
+        slug: json['slug']?.toString() ?? '',
+        mainImage: json['mainImage']?.toString(),
+        banner: json['banner']?.toString(),
+        thumbnail: json['thumbnail']?.toString(),
+        description: json['description']?.toString(),
+        startDate: json['startDate']?.toString() ?? '',
+        endDate: json['endDate']?.toString() ?? '',
+        venue: json['venue']?.toString(),
+        address: json['address']?.toString(),
+        city: json['city']?.toString(),
+        location: json['location']?.toString(),
+        googleMapsUrl: json['googleMapsUrl']?.toString(),
+        organizer: json['organizer']?.toString(),
+        contactNumber: json['contactNumber']?.toString(),
+        email: json['email']?.toString(),
+        featured: json['featured'] == true,
+        status: json['status']?.toString() ?? 'PUBLISHED',
+        galleryImageUrls: (json['galleryImageUrls'] as List?)
+                ?.map((e) => e.toString())
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            const [],
+        highlights: (json['highlights'] as List?)
+                ?.map((e) => e.toString())
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            const [],
+        rules: (json['rules'] as List?)
+                ?.map((e) => e.toString())
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            const [],
         facilities: (json['facilities'] as List? ?? [])
             .map((e) => Facility.fromJson(e as Map<String, dynamic>))
             .toList(),
