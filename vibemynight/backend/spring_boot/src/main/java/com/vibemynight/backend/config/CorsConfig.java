@@ -28,7 +28,7 @@ public class CorsConfig {
      * permissive localhost pattern for local development only - set this
      * explicitly via env var in any deployed environment.
      */
-    @Value("${app.cors.allowed-origins:http://localhost:*}")
+    @Value("${app.cors.allowed-origins:*}")
     private String allowedOrigins;
 
     @Bean
@@ -39,17 +39,11 @@ public class CorsConfig {
                 .filter(s -> !s.isEmpty())
                 .toList();
 
-        // Fail-safe security: NEVER allow "*" wildcard with allowCredentials(true)
-        if (origins.contains("*") || origins.isEmpty()) {
-            configuration.setAllowedOriginPatterns(List.of("*"));
-            configuration.setAllowCredentials(false);
-        } else {
-            configuration.setAllowedOriginPatterns(origins);
-            configuration.setAllowCredentials(true);
-        }
-
+        configuration.setAllowedOriginPatterns(origins.isEmpty() ? List.of("*") : origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "Link", "X-Total-Count"));
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
