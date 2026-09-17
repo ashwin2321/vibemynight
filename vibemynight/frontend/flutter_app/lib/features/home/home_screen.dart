@@ -203,8 +203,8 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 1.0);
-    _mobilePageController = PageController(viewportFraction: 0.90);
+    _pageController = PageController(viewportFraction: 0.76);
+    _mobilePageController = PageController(viewportFraction: 0.88);
     _startAutoScrollTimer();
   }
 
@@ -696,136 +696,169 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
           ),
         ),
 
-        // RIGHT COLUMN: Clean Single Master Luxury Poster Card Showcase
+        // RIGHT COLUMN: Horizontal PageView with Peeking Banner Card (True 16:9 Ratio)
         Expanded(
-          flex: 5,
-          child: Center(
-            child: SizedBox(
-              height: 380,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: events.length,
-                onPageChanged: (idx) => setState(() => _activeIndex = idx),
-                itemBuilder: (context, index) {
-                  final ev = events[index];
-                  final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
-                  final posterUrl = ev.mainImage ?? ev.thumbnail;
-                  final fallback = _heroFallbacks[index % _heroFallbacks.length];
+          flex: 6,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final itemWidth = availableWidth * 0.78;
+              final bannerHeight = itemWidth / (16 / 9);
 
-                  return Center(
-                    child: GestureDetector(
-                      onTap: () => context.push(targetRoute),
-                      child: Container(
-                        width: 520,
-                        height: 340,
-                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(26),
-                          border: Border.all(
-                            color: AppColors.neonPurple.withValues(alpha: 0.75),
-                            width: 2.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.neonPurple.withValues(alpha: 0.4),
-                              blurRadius: 32,
-                              offset: const Offset(0, 10),
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              // Master Poster Image with Verified Fallback
-                              NetworkImageBox(
-                                url: posterUrl,
-                                fallbackUrl: fallback,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+              return SizedBox(
+                height: bannerHeight.clamp(240.0, 380.0) + 20,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: events.length,
+                  onPageChanged: (idx) => setState(() => _activeIndex = idx),
+                  itemBuilder: (context, index) {
+                    final ev = events[index];
+                    final isCurrent = index == activeIdx;
+                    final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+                    final posterUrl = ev.mainImage ?? ev.thumbnail;
+                    final fallback = _heroFallbacks[index % _heroFallbacks.length];
 
-                              // Bottom gradient fade
-                              Container(
+                    return Center(
+                      child: AnimatedScale(
+                        scale: isCurrent ? 1.0 : 0.93,
+                        duration: const Duration(milliseconds: 320),
+                        curve: Curves.easeOutCubic,
+                        child: AnimatedOpacity(
+                          opacity: isCurrent ? 1.0 : 0.65,
+                          duration: const Duration(milliseconds: 320),
+                          child: GestureDetector(
+                            onTap: () {
+                              if (isCurrent) {
+                                context.push(targetRoute);
+                              } else {
+                                _pageController.animateToPage(
+                                  index,
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withValues(alpha: 0.2),
-                                      const Color(0xFF07070E).withValues(alpha: 0.85),
-                                    ],
-                                    stops: const [0.5, 0.75, 1.0],
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: isCurrent
+                                        ? AppColors.neonPurple
+                                        : Colors.white.withValues(alpha: 0.12),
+                                    width: isCurrent ? 2.0 : 1.0,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isCurrent
+                                          ? AppColors.neonPurple.withValues(alpha: 0.45)
+                                          : Colors.black.withValues(alpha: 0.6),
+                                      blurRadius: isCurrent ? 24 : 10,
+                                      offset: const Offset(0, 8),
+                                      spreadRadius: isCurrent ? 2 : 0,
+                                    ),
+                                  ],
                                 ),
-                              ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      // 16:9 Banner Image with Safe Fallback
+                                      NetworkImageBox(
+                                        url: posterUrl,
+                                        fallbackUrl: fallback,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
 
-                              // Top Badges
-                              Positioned(
-                                top: 16,
-                                left: 16,
-                                right: 16,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    if (ev.startDate.isNotEmpty)
+                                      // Bottom subtle gradient shadow for text contrast
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.75),
-                                          borderRadius: BorderRadius.circular(18),
-                                          border: Border.all(
-                                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withValues(alpha: 0.15),
+                                              const Color(0xFF07070E).withValues(alpha: 0.85),
+                                            ],
+                                            stops: const [0.55, 0.8, 1.0],
                                           ),
                                         ),
+                                      ),
+
+                                      // Top Badges
+                                      Positioned(
+                                        top: 14,
+                                        left: 14,
+                                        right: 14,
                                         child: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 13),
-                                            const SizedBox(width: 5),
-                                            Text(
-                                              ev.startDate,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 12,
+                                            if (ev.startDate.isNotEmpty)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black.withValues(alpha: 0.75),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  border: Border.all(
+                                                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.6),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 12),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      ev.startDate,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w700,
+                                                        fontSize: 11.5,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
+                                            if (ev.startingPrice != null)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  gradient: const LinearGradient(
+                                                    colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                                child: Text(
+                                                  '₹${ev.startingPrice!.toInt()}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: 11.5,
+                                                  ),
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       ),
-                                    if (ev.startingPrice != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFA855F7).withValues(alpha: 0.85),
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: Text(
-                                          '₹${ev.startingPrice!.toInt()}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -833,7 +866,7 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
   }
 
   // ==========================================
-  // MOBILE & TABLET RESPONSIVE HERO LAYOUT (SHOWMATES 3:4 CENTERED CAROUSEL)
+  // MOBILE & TABLET RESPONSIVE HERO LAYOUT (16:9 CENTERED CAROUSEL)
   // ==========================================
   Widget _buildMobileLayout(
     List<EventSummary> events,
@@ -901,15 +934,15 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
         ),
         const SizedBox(height: 16),
 
-        // Showmates Centered 3:4 Vertical Poster Carousel with Peeking Sides (viewportFraction: 0.78)
+        // Showmates Centered 16:9 Banner Carousel with Peeking Sides (viewportFraction: 0.88)
         LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth;
-            final cardWidth = availableWidth * 0.78;
-            final cardHeight = cardWidth / (3 / 4);
+            final cardWidth = availableWidth * 0.88;
+            final cardHeight = cardWidth / (16 / 9);
 
             return SizedBox(
-              height: cardHeight.clamp(260.0, 420.0) + 12,
+              height: cardHeight.clamp(180.0, 320.0) + 16,
               child: PageView.builder(
                 controller: _mobilePageController,
                 itemCount: events.length,
@@ -918,10 +951,12 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                   final ev = events[index];
                   final isCurrent = index == activeIdx;
                   final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
+                  final posterUrl = ev.mainImage ?? ev.thumbnail;
+                  final fallback = _heroFallbacks[index % _heroFallbacks.length];
 
                   return Center(
                     child: AnimatedScale(
-                      scale: isCurrent ? 1.0 : 0.90,
+                      scale: isCurrent ? 1.0 : 0.92,
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeOutCubic,
                       child: GestureDetector(
@@ -937,21 +972,21 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                           }
                         },
                         child: AspectRatio(
-                          aspectRatio: 3 / 4,
+                          aspectRatio: 16 / 9,
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isCurrent
-                                    ? const Color(0xFF8B5CF6)
+                                    ? AppColors.neonPurple
                                     : Colors.white.withValues(alpha: 0.12),
                                 width: isCurrent ? 2.0 : 1.0,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: isCurrent
-                                      ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
+                                      ? AppColors.neonPurple.withValues(alpha: 0.45)
                                       : Colors.black.withValues(alpha: 0.5),
                                   blurRadius: isCurrent ? 20 : 8,
                                   offset: const Offset(0, 8),
@@ -963,10 +998,10 @@ class _ShowmatesHeroCarouselState extends State<_ShowmatesHeroCarousel> {
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  // 3:4 Poster Image with Fallback
+                                  // 16:9 Banner Image with Fallback
                                   NetworkImageBox(
-                                    url: ev.thumbnail ?? ev.mainImage,
-                                    fallbackUrl: _heroFallbacks[index % _heroFallbacks.length],
+                                    url: posterUrl,
+                                    fallbackUrl: fallback,
                                     width: double.infinity,
                                     height: double.infinity,
                                     fit: BoxFit.cover,
