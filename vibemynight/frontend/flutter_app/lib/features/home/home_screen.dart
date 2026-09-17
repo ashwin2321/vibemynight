@@ -377,7 +377,6 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
     int activeIdx,
   ) {
     final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
-    final passesRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}/passes';
 
     final locParts = [
       if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
@@ -523,7 +522,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       InkWell(
-                        onTap: () => context.push(passesRoute),
+                        onTap: () => context.push(eventRoute),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 13),
@@ -695,7 +694,6 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
     int activeIdx,
   ) {
     final eventRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}';
-    final passesRoute = '/events/${activeEvent.slug.isNotEmpty ? activeEvent.slug : activeEvent.id}/passes';
 
     final locParts = [
       if (activeEvent.location != null && activeEvent.location!.isNotEmpty) activeEvent.location!,
@@ -872,7 +870,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
                   children: [
                     Expanded(
                       child: InkWell(
-                        onTap: () => context.push(passesRoute),
+                        onTap: () => context.push(eventRoute),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 11),

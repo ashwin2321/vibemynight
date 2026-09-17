@@ -55,7 +55,6 @@ class EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}';
-    final passesRoute = '/events/${event.slug.isNotEmpty ? event.slug : event.id}/passes';
     final hasStartDate = event.startDate.isNotEmpty;
     final isCompact = MediaQuery.of(context).size.width < 600;
     final fallbackUrl = _curatedPosters[event.id.abs() % _curatedPosters.length];
@@ -269,7 +268,7 @@ class EventCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     InkWell(
-                      onTap: () => context.push(passesRoute),
+                      onTap: () => context.push(targetRoute),
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
