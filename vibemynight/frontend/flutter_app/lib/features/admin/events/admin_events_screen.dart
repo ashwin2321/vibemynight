@@ -28,6 +28,8 @@ class AdminEventsScreen extends ConsumerStatefulWidget {
 class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
   String _search = '';
   String _statusFilter = 'All';
+  final Set<int> _selectedIds = {};
+  bool _isBulkOperating = false;
 
   static const _statusTabs = ['All', 'PUBLISHED', 'DRAFT', 'COMPLETED', 'CANCELLED', 'UNPUBLISHED'];
 
@@ -40,6 +42,87 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
       }
+    }
+  }
+
+  Future<void> _bulkChangeStatus(String targetStatus, List<EventSummary> allEvents) async {
+    final selectedEvents = allEvents.where((e) => _selectedIds.contains(e.id)).toList();
+    if (selectedEvents.isEmpty) return;
+
+    setState(() => _isBulkOperating = true);
+    int successCount = 0;
+    try {
+      for (final event in selectedEvents) {
+        try {
+          await ref.read(adminServiceProvider).changeEventStatus(event.id, targetStatus);
+          successCount++;
+        } catch (err) {
+          debugPrint('Error updating event ${event.id}: $err');
+        }
+      }
+      ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚡ Updated $successCount events to $targetStatus!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        setState(() => _selectedIds.clear());
+      }
+    } finally {
+      if (mounted) setState(() => _isBulkOperating = false);
+    }
+  }
+
+  Future<void> _bulkDelete(List<EventSummary> allEvents) async {
+    final selectedEvents = allEvents.where((e) => _selectedIds.contains(e.id)).toList();
+    if (selectedEvents.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete ${selectedEvents.length} Events?'),
+        content: Text(
+          'Are you sure you want to permanently delete ${selectedEvents.length} selected events and all their days/passes? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text('Delete ${selectedEvents.length} Events'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _isBulkOperating = true);
+    int deletedCount = 0;
+    try {
+      for (final event in selectedEvents) {
+        try {
+          await ref.read(adminServiceProvider).deleteEvent(event.id);
+          deletedCount++;
+        } catch (err) {
+          debugPrint('Error deleting event ${event.id}: $err');
+        }
+      }
+      ref.invalidate(adminEventsProvider);
+      ref.invalidate(publishedEventsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('🗑️ Successfully deleted $deletedCount events!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        setState(() => _selectedIds.clear());
+      }
+    } finally {
+      if (mounted) setState(() => _isBulkOperating = false);
     }
   }
 
@@ -266,6 +349,95 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
             ),
           ),
 
+          // Bulk Action Bar (Visible when 1+ events are selected)
+          if (_selectedIds.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.neonPurple.withValues(alpha: 0.25),
+                    AppColors.neonPink.withValues(alpha: 0.15),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.6), width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonPurple,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_selectedIds.length} Selected',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  if (_isBulkOperating)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  else ...[
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.check_circle_outline, size: 16),
+                      label: const Text('Publish Selected'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.success,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      onPressed: () {
+                        final events = eventsAsync.valueOrNull ?? [];
+                        _bulkChangeStatus('PUBLISHED', events);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.pause_circle_outline, size: 16),
+                      label: const Text('Unpublish / Draft'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF59E0B),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      onPressed: () {
+                        final events = eventsAsync.valueOrNull ?? [];
+                        _bulkChangeStatus('UNPUBLISHED', events);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.delete_sweep_outlined, size: 16),
+                      label: const Text('Delete Selected'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      onPressed: () {
+                        final events = eventsAsync.valueOrNull ?? [];
+                        _bulkDelete(events);
+                      },
+                    ),
+                  ],
+                  const Spacer(),
+                  TextButton.icon(
+                    icon: const Icon(Icons.close, size: 16),
+                    label: const Text('Clear Selection'),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                    onPressed: () => setState(() => _selectedIds.clear()),
+                  ),
+                ],
+              ),
+            ),
+
           // Events Table
           Expanded(
             child: eventsAsync.when(
@@ -297,6 +469,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
                         border: Border.all(color: AppColors.divider),
                       ),
                       child: DataTable(
+                        showCheckboxColumn: true,
                         headingRowColor: WidgetStateProperty.all(AppColors.surfaceGlass),
                         dataRowMinHeight: 64,
                         dataRowMaxHeight: 72,
@@ -309,7 +482,18 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
                           DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
                         ],
                         rows: filtered.map((event) {
+                          final isSelected = _selectedIds.contains(event.id);
                           return DataRow(
+                            selected: isSelected,
+                            onSelectChanged: (selected) {
+                              setState(() {
+                                if (selected == true) {
+                                  _selectedIds.add(event.id);
+                                } else {
+                                  _selectedIds.remove(event.id);
+                                }
+                              });
+                            },
                             cells: [
                               DataCell(
                                 Row(

@@ -13,10 +13,11 @@ import '../../core/widgets/loading_view.dart';
 import '../../models/event_summary.dart';
 import 'widgets/event_card.dart';
 
-enum _EventFilter { all, featured, upcoming }
+enum _DateFilter { all, tonight, weekend, thisWeek, navratri2026 }
+enum _VibeFilter { all, featured, garba, edm, concert }
 
-/// Dynamic event listing (GET /events) matching Figma EventsPage.tsx.
-/// Client-side search and filter tabs, responsive grid of EventCards, and AppFooter.
+/// Dynamic event listing (GET /events) with Smart City & Date-Range Filter Bar.
+/// Client-side search and filter chips, responsive grid of EventCards, and AppFooter.
 class EventsScreen extends ConsumerStatefulWidget {
   const EventsScreen({super.key});
 
@@ -27,7 +28,9 @@ class EventsScreen extends ConsumerStatefulWidget {
 class _EventsScreenState extends ConsumerState<EventsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  _EventFilter _filter = _EventFilter.all;
+  String _selectedCity = 'All';
+  _DateFilter _dateFilter = _DateFilter.all;
+  _VibeFilter _vibeFilter = _VibeFilter.all;
 
   @override
   void dispose() {
@@ -35,17 +38,91 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
     super.dispose();
   }
 
+  void _resetFilters() {
+    setState(() {
+      _searchController.clear();
+      _query = '';
+      _selectedCity = 'All';
+      _dateFilter = _DateFilter.all;
+      _vibeFilter = _VibeFilter.all;
+    });
+  }
+
+  bool get _hasActiveFilters =>
+      _query.isNotEmpty ||
+      _selectedCity != 'All' ||
+      _dateFilter != _DateFilter.all ||
+      _vibeFilter != _VibeFilter.all;
+
   List<EventSummary> _apply(List<EventSummary> events) {
     var result = events;
-    if (_filter == _EventFilter.featured) {
-      result = result.where((e) => e.featured).toList();
-    } else if (_filter == _EventFilter.upcoming) {
-      final today = DateTime.now();
+
+    // 1. City Filter
+    if (_selectedCity != 'All') {
+      final cityLower = _selectedCity.toLowerCase();
       result = result.where((e) {
-        final start = DateTime.tryParse(e.startDate);
-        return start == null || !start.isBefore(DateTime(today.year, today.month, today.day));
+        final c = e.city?.toLowerCase() ?? '';
+        final loc = e.location?.toLowerCase() ?? '';
+        return c.contains(cityLower) || loc.contains(cityLower);
       }).toList();
     }
+
+    // 2. Date Filter
+    if (_dateFilter != _DateFilter.all) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      result = result.where((e) {
+        final start = DateTime.tryParse(e.startDate);
+        if (start == null) return true;
+        final eventDate = DateTime(start.year, start.month, start.day);
+
+        switch (_dateFilter) {
+          case _DateFilter.tonight:
+            return eventDate.isAtSameMomentAs(today);
+          case _DateFilter.weekend:
+            // Calculate upcoming Friday to Sunday
+            final daysUntilFriday = (DateTime.friday - now.weekday) % 7;
+            final friday = today.add(Duration(days: daysUntilFriday));
+            final sunday = friday.add(const Duration(days: 2));
+            return !eventDate.isBefore(friday) && !eventDate.isAfter(sunday);
+          case _DateFilter.thisWeek:
+            final endOfWeek = today.add(const Duration(days: 7));
+            return !eventDate.isBefore(today) && !eventDate.isAfter(endOfWeek);
+          case _DateFilter.navratri2026:
+            final isNavratriMonth = start.year == 2026 && (start.month == 9 || start.month == 10 || start.month == 11);
+            final nameLower = e.name.toLowerCase();
+            return isNavratriMonth || nameLower.contains('garba') || nameLower.contains('navratri') || nameLower.contains('dandiya');
+          case _DateFilter.all:
+            return true;
+        }
+      }).toList();
+    }
+
+    // 3. Vibe / Category Filter
+    if (_vibeFilter != _VibeFilter.all) {
+      result = result.where((e) {
+        final name = e.name.toLowerCase();
+        final artist = e.featuredArtistName?.toLowerCase() ?? '';
+        final slug = e.slug.toLowerCase();
+        final loc = e.location?.toLowerCase() ?? '';
+
+        switch (_vibeFilter) {
+          case _VibeFilter.featured:
+            return e.featured;
+          case _VibeFilter.garba:
+            return name.contains('garba') || name.contains('navratri') || name.contains('dandiya') || slug.contains('garba') || loc.contains('garba');
+          case _VibeFilter.edm:
+            return name.contains('edm') || name.contains('dj') || name.contains('club') || name.contains('nightlife') || slug.contains('edm') || slug.contains('dj');
+          case _VibeFilter.concert:
+            return name.contains('concert') || name.contains('live') || artist.isNotEmpty || slug.contains('concert') || slug.contains('live');
+          case _VibeFilter.all:
+            return true;
+        }
+      }).toList();
+    }
+
+    // 4. Search Query Filter
     if (_query.trim().isNotEmpty) {
       final q = _query.trim().toLowerCase();
       result = result.where((e) {
@@ -55,7 +132,18 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             (e.city?.toLowerCase().contains(q) ?? false);
       }).toList();
     }
+
     return result;
+  }
+
+  Set<String> _extractCities(List<EventSummary> events) {
+    final cities = <String>{'All', 'Ahmedabad', 'Surat', 'Vadodara', 'Mumbai'};
+    for (final e in events) {
+      if (e.city != null && e.city!.trim().isNotEmpty) {
+        cities.add(e.city!.trim());
+      }
+    }
+    return cities;
   }
 
   @override
@@ -97,33 +185,183 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Category and Status Chips
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
+                      // Smart Filter Bar Container
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _FilterChip(
-                              label: '🔥 All Events',
-                              selected: _filter == _EventFilter.all,
-                              onSelected: () => setState(() => _filter = _EventFilter.all),
+                            // 1. City Chips Row
+                            eventsAsync.maybeWhen(
+                              data: (events) {
+                                final cities = _extractCities(events).toList();
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(Icons.location_on_outlined, size: 14, color: AppColors.neonPurple),
+                                        SizedBox(width: 4),
+                                        Text('CITY / REGION', style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      physics: const BouncingScrollPhysics(),
+                                      child: Row(
+                                        children: cities.map((city) {
+                                          final isSelected = _selectedCity == city;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(right: 6),
+                                            child: _FilterChip(
+                                              label: city == 'All' ? '🌐 All Cities' : '📍 $city',
+                                              selected: isSelected,
+                                              onSelected: () => setState(() => _selectedCity = city),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Divider(color: AppColors.divider, height: 1),
+                                    const SizedBox(height: 12),
+                                  ],
+                                );
+                              },
+                              orElse: () => const SizedBox.shrink(),
                             ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: '⭐ Featured',
-                              selected: _filter == _EventFilter.featured,
-                              onSelected: () => setState(() => _filter = _EventFilter.featured),
+
+                            // 2. Date-Range & Vibe Pills
+                            const Row(
+                              children: [
+                                Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.neonBlue),
+                                SizedBox(width: 4),
+                                Text('TIMING & DATES', style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: '📅 Upcoming',
-                              selected: _filter == _EventFilter.upcoming,
-                              onSelected: () => setState(() => _filter = _EventFilter.upcoming),
+                            const SizedBox(height: 6),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Row(
+                                children: [
+                                  _FilterChip(
+                                    label: '🗓️ All Dates',
+                                    selected: _dateFilter == _DateFilter.all,
+                                    onSelected: () => setState(() => _dateFilter = _DateFilter.all),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '🔥 Tonight',
+                                    selected: _dateFilter == _DateFilter.tonight,
+                                    onSelected: () => setState(() => _dateFilter = _DateFilter.tonight),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '🎉 This Weekend',
+                                    selected: _dateFilter == _DateFilter.weekend,
+                                    onSelected: () => setState(() => _dateFilter = _DateFilter.weekend),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '📅 This Week',
+                                    selected: _dateFilter == _DateFilter.thisWeek,
+                                    onSelected: () => setState(() => _dateFilter = _DateFilter.thisWeek),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '💃 Navratri 2026',
+                                    selected: _dateFilter == _DateFilter.navratri2026,
+                                    onSelected: () => setState(() => _dateFilter = _DateFilter.navratri2026),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(height: 12),
+                            const Divider(color: AppColors.divider, height: 1),
+                            const SizedBox(height: 12),
+
+                            // 3. Vibe / Category Filter
+                            const Row(
+                              children: [
+                                Icon(Icons.music_note_outlined, size: 14, color: AppColors.neonPink),
+                                SizedBox(width: 4),
+                                Text('VIBE & CATEGORY', style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Row(
+                                children: [
+                                  _FilterChip(
+                                    label: '⚡ All Vibes',
+                                    selected: _vibeFilter == _VibeFilter.all,
+                                    onSelected: () => setState(() => _vibeFilter = _VibeFilter.all),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '⭐ Featured',
+                                    selected: _vibeFilter == _VibeFilter.featured,
+                                    onSelected: () => setState(() => _vibeFilter = _VibeFilter.featured),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '💃 Garba & Dandiya',
+                                    selected: _vibeFilter == _VibeFilter.garba,
+                                    onSelected: () => setState(() => _vibeFilter = _VibeFilter.garba),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '🎧 EDM & Club',
+                                    selected: _vibeFilter == _VibeFilter.edm,
+                                    onSelected: () => setState(() => _vibeFilter = _VibeFilter.edm),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _FilterChip(
+                                    label: '🎤 Live Concert',
+                                    selected: _vibeFilter == _VibeFilter.concert,
+                                    onSelected: () => setState(() => _vibeFilter = _VibeFilter.concert),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // 4. Live Active Filters summary & Reset button
+                            if (_hasActiveFilters) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Filters applied',
+                                    style: TextStyle(color: AppColors.neonPurple, fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.restart_alt_rounded, size: 14),
+                                    label: const Text('Reset All', style: TextStyle(fontSize: 12)),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: AppColors.error,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: _resetFilters,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
                       eventsAsync.when(
                         loading: () => const ShimmerCardGrid(count: 6, cardHeight: 380),
                         error: (err, _) => ErrorView(
