@@ -694,7 +694,7 @@ public class EventScraperServiceImpl implements EventScraperService {
                     .build());
         }
 
-        // 2. If no direct images could be scraped (e.g. Cloudflare bot block on source), generate curated theme-matched candidates
+        // 2. If no candidates were extracted, generate curated theme-matched candidates
         if (artworkCandidates.isEmpty()) {
             String combined = ((header.getName() != null ? header.getName() : "") + " " + (data.sourceUrl != null ? data.sourceUrl : "")).toLowerCase();
             boolean isGarba = combined.contains("garba") || combined.contains("navratri") || combined.contains("dandiya") || combined.contains("fadiyu") || combined.contains("raas") || combined.contains("dome");
@@ -762,34 +762,68 @@ public class EventScraperServiceImpl implements EventScraperService {
                     "Assigned verified high-res artwork matching event theme. You can also customize or replace images below."));
         }
 
-        // Assign best candidates to header
+        // Sort / Prioritize candidates: put verified downloaded local images first
+        artworkCandidates.sort((a, b) -> {
+            boolean aHasLocal = a.getLocalUrl() != null && !a.getLocalUrl().isBlank();
+            boolean bHasLocal = b.getLocalUrl() != null && !b.getLocalUrl().isBlank();
+            if (aHasLocal && !bHasLocal) return -1;
+            if (!aHasLocal && bHasLocal) return 1;
+            return 0;
+        });
+
+        // Assign best candidates to header (prioritizing verified local downloads)
         Optional<ScrapedImageCandidateDto> bestPoster = artworkCandidates.stream()
-                .filter(c -> "POSTER_3_4".equals(c.getSuggestedRole()))
+                .filter(c -> c.getLocalUrl() != null && !c.getLocalUrl().isBlank() && "POSTER_3_4".equals(c.getSuggestedRole()))
                 .findFirst();
-        if (bestPoster.isEmpty()) bestPoster = Optional.of(artworkCandidates.get(0));
+        if (bestPoster.isEmpty()) {
+            bestPoster = artworkCandidates.stream()
+                    .filter(c -> c.getLocalUrl() != null && !c.getLocalUrl().isBlank())
+                    .findFirst();
+        }
+        if (bestPoster.isEmpty()) {
+            bestPoster = artworkCandidates.stream()
+                    .filter(c -> "POSTER_3_4".equals(c.getSuggestedRole()))
+                    .findFirst();
+        }
+        if (bestPoster.isEmpty() && !artworkCandidates.isEmpty()) {
+            bestPoster = Optional.of(artworkCandidates.get(0));
+        }
 
         Optional<ScrapedImageCandidateDto> bestBanner = artworkCandidates.stream()
-                .filter(c -> "BANNER_16_9".equals(c.getSuggestedRole()))
+                .filter(c -> c.getLocalUrl() != null && !c.getLocalUrl().isBlank() && "BANNER_16_9".equals(c.getSuggestedRole()))
                 .findFirst();
-        if (bestBanner.isEmpty() && artworkCandidates.size() > 1) {
-            bestBanner = Optional.of(artworkCandidates.get(1));
-        } else if (bestBanner.isEmpty()) {
+        if (bestBanner.isEmpty()) {
+            final var finalPoster = bestPoster;
+            bestBanner = artworkCandidates.stream()
+                    .filter(c -> c.getLocalUrl() != null && !c.getLocalUrl().isBlank() && finalPoster.map(p -> !Objects.equals(p.getUrl(), c.getUrl())).orElse(true))
+                    .findFirst();
+        }
+        if (bestBanner.isEmpty()) {
+            bestBanner = artworkCandidates.stream()
+                    .filter(c -> "BANNER_16_9".equals(c.getSuggestedRole()))
+                    .findFirst();
+        }
+        if (bestBanner.isEmpty()) {
             bestBanner = bestPoster;
         }
 
-        // Prioritize durable, high-res remote CDN URL so it works 100% across all frontend & admin screens permanently
-        String posterUrl = (bestPoster.get().getUrl() != null && !bestPoster.get().getUrl().isBlank())
-                ? bestPoster.get().getUrl()
-                : bestPoster.get().getLocalUrl();
-        String bannerUrl = (bestBanner.get().getUrl() != null && !bestBanner.get().getUrl().isBlank())
-                ? bestBanner.get().getUrl()
-                : bestBanner.get().getLocalUrl();
+        Optional<ScrapedImageCandidateDto> bestThumb = artworkCandidates.stream()
+                .filter(c -> c.getLocalUrl() != null && !c.getLocalUrl().isBlank() && "THUMBNAIL_1_1".equals(c.getSuggestedRole()))
+                .findFirst();
+        if (bestThumb.isEmpty()) {
+            bestThumb = bestPoster;
+        }
+
+        // Prioritize localUrl (server-hosted, CORS-safe, permanent) over external hotlinks
+        String posterUrl = bestPoster.map(c -> (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) ? c.getLocalUrl() : c.getUrl()).orElse(null);
+        String bannerUrl = bestBanner.map(c -> (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) ? c.getLocalUrl() : c.getUrl()).orElse(posterUrl);
+        String thumbUrl = bestThumb.map(c -> (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) ? c.getLocalUrl() : c.getUrl()).orElse(posterUrl);
 
         header.setMainImage(posterUrl);
         header.setBanner(bannerUrl);
-        header.setThumbnail(posterUrl);
+        header.setThumbnail(thumbUrl);
 
-        if (!"CURATED_FALLBACK".equals(bestPoster.get().getSource())) {
+        if (bestPoster.isPresent() && !"CURATED_FALLBACK".equals(bestPoster.get().getSource())) {
             messages.add(ValidationMessageDto.info("SCRAPER", 1, "artwork",
                     "Event artwork successfully extracted and linked from high-speed CDN."));
         }

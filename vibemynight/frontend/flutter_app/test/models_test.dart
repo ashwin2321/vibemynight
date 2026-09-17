@@ -345,5 +345,28 @@ void main() {
       expect(encodedJson['totalDays'], 1);
       expect((encodedJson['event'] as Map)['name'], 'Navratri Grand 2026');
     });
+
+    test('ScrapedImageCandidate.effectiveUrl prioritizes localUrl over external url', () {
+      const candidateWithBoth = ScrapedImageCandidate(
+        url: 'https://b.zmtcdn.com/data/district_events/poster.jpg',
+        localUrl: '/uploads/events/artwork-123.jpg',
+        suggestedRole: 'POSTER_3_4',
+      );
+      expect(candidateWithBoth.effectiveUrl, '/uploads/events/artwork-123.jpg');
+
+      const candidateOnlyExternal = ScrapedImageCandidate(
+        url: 'https://images.unsplash.com/poster.jpg',
+        localUrl: null,
+        suggestedRole: 'POSTER_3_4',
+      );
+      expect(candidateOnlyExternal.effectiveUrl, 'https://images.unsplash.com/poster.jpg');
+
+      const candidateEmptyLocal = ScrapedImageCandidate(
+        url: 'https://images.unsplash.com/poster.jpg',
+        localUrl: '   ',
+        suggestedRole: 'POSTER_3_4',
+      );
+      expect(candidateEmptyLocal.effectiveUrl, 'https://images.unsplash.com/poster.jpg');
+    });
   });
 }

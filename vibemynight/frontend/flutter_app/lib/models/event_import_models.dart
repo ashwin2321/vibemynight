@@ -357,10 +357,16 @@ class ScrapedImageCandidate extends Equatable {
     this.source,
   });
 
-  /// The effective URL to display (prefers remote CDN URL for permanent, universal availability)
-  String get effectiveUrl => (url.isNotEmpty && url.startsWith('http'))
-      ? url
-      : ((localUrl != null && localUrl!.isNotEmpty) ? localUrl! : url);
+  /// The effective URL to display (prefers verified local backend URL to prevent CORS/hotlink failure)
+  String get effectiveUrl {
+    if (localUrl != null && localUrl!.trim().isNotEmpty) {
+      return localUrl!.trim();
+    }
+    if (url.isNotEmpty && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))) {
+      return url.trim();
+    }
+    return '';
+  }
 
   factory ScrapedImageCandidate.fromJson(Map<String, dynamic> json) {
     return ScrapedImageCandidate(

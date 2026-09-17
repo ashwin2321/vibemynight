@@ -1123,8 +1123,11 @@ class _AdminEventImportScreenState extends ConsumerState<AdminEventImportScreen>
     String? fallback;
     if (url != null && _preview?.artworkCandidates != null) {
       for (final c in _preview!.artworkCandidates) {
-        if (c.localUrl == url || c.url == url) {
+        if (c.localUrl == url) {
           fallback = c.url;
+          break;
+        } else if (c.url == url) {
+          fallback = c.localUrl;
           break;
         }
       }
