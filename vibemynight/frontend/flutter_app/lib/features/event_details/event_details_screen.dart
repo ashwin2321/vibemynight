@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/providers/dome_layout_provider.dart';
-import '../../core/providers/service_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
@@ -17,7 +16,6 @@ import '../../core/widgets/loading_view.dart';
 import '../../core/widgets/network_image_box.dart';
 import '../../models/event_day_detail.dart';
 import '../../models/event_detail.dart';
-import '../../models/settings.dart';
 import '../../models/ticket_category.dart';
 import 'widgets/interactive_venue_layout_map.dart';
 
@@ -46,44 +44,11 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   final GlobalKey _daySectionKey = GlobalKey();
 
   int _selectedDayIndex = 0;
-  final Map<int, int> _selectedQuantities = {}; // passId -> quantity
-  int? _selectedPassId; // Fallback for single stand / dome view
+  int? _selectedPassId;
+  int _quantity = 1;
   int _activeGalleryIndex = 0;
   bool _rulesExpanded = false;
   int? _openFaqIndex;
-
-  int _getQuantity(int passId) => _selectedQuantities[passId] ?? 0;
-
-  void _setQuantity(int passId, int qty, {int maxPerCustomer = 10, int availableQuantity = 100}) {
-    setState(() {
-      final maxLimit = (maxPerCustomer > 0 && maxPerCustomer < availableQuantity)
-          ? maxPerCustomer
-          : (availableQuantity > 0 ? availableQuantity : 100);
-      final validQty = qty.clamp(0, maxLimit);
-      if (validQty > 0) {
-        _selectedQuantities[passId] = validQty;
-        _selectedPassId = passId;
-      } else {
-        _selectedQuantities.remove(passId);
-        if (_selectedPassId == passId) {
-          _selectedPassId = _selectedQuantities.isNotEmpty ? _selectedQuantities.keys.first : null;
-        }
-      }
-    });
-  }
-
-  int get _totalPassesCount => _selectedQuantities.values.fold(0, (sum, q) => sum + q);
-
-  double _calculateTotal(List<TicketCategory> passes) {
-    double total = 0.0;
-    for (final p in passes) {
-      final q = _getQuantity(p.id);
-      if (q > 0) {
-        total += p.price * q;
-      }
-    }
-    return total;
-  }
 
   static const _faqs = [
     {
@@ -125,299 +90,29 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  void _openWhatsApp(String? number, EventDetail event, EventDayDetail? day, List<TicketCategory> passes) {
+  void _openWhatsApp(String? number, EventDetail event, EventDayDetail? day, TicketCategory? pass) {
     final num = number ?? '917041615131';
     final cleanNum = num.length == 10 ? '91$num' : num;
     final dayText = day != null ? 'Day ${day.dayNumber} (${day.date})' : '';
-
-    final selectedLines = <String>[];
-    double total = 0.0;
-    if (day != null) {
-      for (final p in passes) {
-        final q = _getQuantity(p.id);
-        if (q > 0) {
-          final itemTotal = p.price * q;
-          total += itemTotal;
-          selectedLines.add('- ${p.name} x $q (₹${itemTotal.toInt()})');
-        }
-      }
-    }
-
-    String passText = '';
-    if (selectedLines.isNotEmpty) {
-      passText = ':\n${selectedLines.join('\n')}\n*Estimated Total: ₹${total.toInt()}*';
-    } else if (day != null && day.passes.isNotEmpty) {
-      passText = ' (Pass: ${day.passes.first.name})';
-    }
-
-    final text = 'Hi VibeMyNight team, I want to book passes for *${event.name}* $dayText$passText.\nPlease confirm availability and share payment details!';
+    final passText = pass != null ? '${pass.name} x $_quantity' : '';
+    final text = 'Hi VibeMyNight team, I want to book passes for *${event.name}* $dayText $passText. Please share availability!';
     final url = 'https://api.whatsapp.com/send?phone=$cleanNum&text=${Uri.encodeComponent(text)}';
     launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
-  void _proceedToInquiry(EventDetail event, EventDayDetail day, List<TicketCategory> passes) {
-    if (_totalPassesCount == 0) {
-      if (passes.isNotEmpty) {
-        // Auto-select 1 pass of the first available tier
-        _setQuantity(passes.first.id, 1, maxPerCustomer: passes.first.maxPerCustomer, availableQuantity: passes.first.availableQuantity);
-      } else {
-        _scrollToDaySection();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select at least 1 pass first!'),
-            backgroundColor: AppColors.neonPink,
-          ),
-        );
-        return;
-      }
+  void _proceedToInquiry(EventDetail event, EventDayDetail day, TicketCategory? pass) {
+    if (pass == null) {
+      _scrollToDaySection();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a pass category first!'),
+          backgroundColor: AppColors.neonPink,
+        ),
+      );
+      return;
     }
-
-    // Find the first selected pass ID and total quantity for route parameter backwards compatibility
-    int primaryPassId = passes.isNotEmpty ? passes.first.id : 1;
-    int primaryQty = 1;
-    for (final p in passes) {
-      final q = _getQuantity(p.id);
-      if (q > 0) {
-        primaryPassId = p.id;
-        primaryQty = q;
-        break;
-      }
-    }
-
     context.push(
-      '/inquiry?eventDayId=${day.id}&ticketCategoryId=$primaryPassId&quantity=$primaryQty',
-    );
-  }
-
-  Future<void> _showUpiPaymentDialog(EventDetail event, EventDayDetail day, List<TicketCategory> passes, AppSettings settings) async {
-    if (_totalPassesCount == 0) {
-      if (passes.isNotEmpty) {
-        _setQuantity(passes.first.id, 1, maxPerCustomer: passes.first.maxPerCustomer, availableQuantity: passes.first.availableQuantity);
-      } else {
-        _scrollToDaySection();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select at least 1 pass first!'),
-            backgroundColor: AppColors.neonPink,
-          ),
-        );
-        return;
-      }
-    }
-
-    final totalAmount = _calculateTotal(passes);
-    final nameController = TextEditingController();
-    final mobileController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F0B1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        bool isInitiating = false;
-        String? initError;
-
-        return StatefulBuilder(
-          builder: (_, setModalState) {
-            return Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 24),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.account_balance_wallet_outlined, color: Color(0xFF10B981), size: 22),
-                            SizedBox(width: 10),
-                            Text(
-                              'Instant Online UPI Payment',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1336),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFF38296B)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${event.name} (Day ${day.dayNumber})',
-                                style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                '₹${totalAmount.toInt()}',
-                                style: const TextStyle(color: Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.w900),
-                              ),
-                            ],
-                          ),
-                          const Divider(color: Color(0xFF2E2452), height: 16),
-                          ...passes.where((p) => _getQuantity(p.id) > 0).map((p) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('${p.name} × ${_getQuantity(p.id)}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                                    Text('₹${(p.price * _getQuantity(p.id)).toInt()}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              )),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name *',
-                        prefixIcon: Icon(Icons.person_outline, size: 20),
-                      ),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: mobileController,
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                      decoration: const InputDecoration(
-                        labelText: 'Mobile Number *',
-                        prefixIcon: Icon(Icons.phone_android_outlined, size: 20),
-                        prefixText: '+91 ',
-                      ),
-                      validator: (v) => (v == null || v.trim().length != 10) ? 'Enter valid 10-digit mobile' : null,
-                    ),
-                    if (initError != null) ...[
-                      const SizedBox(height: 12),
-                      Text(initError!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
-                    ],
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        onPressed: isInitiating
-                            ? null
-                            : () async {
-                                if (!formKey.currentState!.validate()) return;
-                                setModalState(() {
-                                  isInitiating = true;
-                                  initError = null;
-                                });
-                                try {
-                                  final res = await ref.read(paymentServiceProvider).initiateUpi(
-                                    eventId: event.id,
-                                    eventDayId: day.id,
-                                    selectedQuantities: _selectedQuantities,
-                                    customerName: nameController.text.trim(),
-                                    customerMobile: mobileController.text.trim(),
-                                  );
-
-                                  if (ctx.mounted) {
-                                    Navigator.pop(ctx);
-                                  }
-                                  // Launch UPI URL on device
-                                  final uri = Uri.parse(res.upiUrl);
-                                  if (await canLaunchUrl(uri)) {
-                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                  }
-
-                                  // Show post-initiation confirmation & WhatsApp delivery dialog
-                                  if (!mounted) return;
-                                  showDialog(
-                                    context: context,
-                                    builder: (dCtx) => AlertDialog(
-                                          backgroundColor: const Color(0xFF130E26),
-                                          title: const Row(
-                                            children: [
-                                              Icon(Icons.check_circle_outline, color: Color(0xFF10B981)),
-                                              SizedBox(width: 10),
-                                              Text('Payment Initiated', style: TextStyle(color: Colors.white, fontSize: 16)),
-                                            ],
-                                          ),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Txn Ref: ${res.transactionReference}',
-                                                style: const TextStyle(color: Color(0xFFF472B6), fontWeight: FontWeight.bold, fontSize: 13),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                'Total: ₹${res.totalAmount.toInt()} to ${res.upiVpa}',
-                                                style: const TextStyle(color: Colors.white, fontSize: 13),
-                                              ),
-                                              const SizedBox(height: 12),
-                                              const Text(
-                                                'Status: INITIATED. Please complete payment in your UPI app and share confirmation on WhatsApp for instant QR delivery.',
-                                                style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
-                                              ),
-                                            ],
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(dCtx),
-                                              child: const Text('Close'),
-                                            ),
-                                            ElevatedButton(
-                                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF22C55E)),
-                                              onPressed: () {
-                                                Navigator.pop(dCtx);
-                                                _openWhatsApp(settings.whatsappNumber, event, day, passes);
-                                              },
-                                              child: const Text('Open WhatsApp'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                } catch (e) {
-                                  setModalState(() {
-                                    initError = e.toString();
-                                    isInitiating = false;
-                                  });
-                                }
-                              },
-                        child: isInitiating
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Text('PAY VIA UPI APP (GPAY / PHONEPE)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+      '/inquiry?eventDayId=${day.id}&ticketCategoryId=${pass.id}&quantity=$_quantity',
     );
   }
 
@@ -563,76 +258,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   Widget _buildBreadcrumb(BuildContext context, EventDetail event) {
-    final isDesktop = MediaQuery.of(context).size.width >= 992;
-    if (isDesktop) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(4, 12, 4, 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                InkWell(
-                  onTap: () => context.go('/events'),
-                  borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.arrow_back_ios_new, size: 13, color: AppColors.textSecondary),
-                        SizedBox(width: 6),
-                        Text('Events', style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ),
-                ),
-                const Text('  /  ', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                Text(
-                  event.name,
-                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-            // Step Indicators Matching Mockup
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF130E26),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF2B2050)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('VibeMyNight (VMN)', style: TextStyle(color: AppColors.neonPink, fontWeight: FontWeight.w900, fontSize: 11)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.white38),
-                  const SizedBox(width: 8),
-                  const Text('1. Select Night', style: TextStyle(color: Color(0xFFD8B4FE), fontWeight: FontWeight.bold, fontSize: 11)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.white38),
-                  const SizedBox(width: 8),
-                  Text(
-                    '2. Choose Passes',
-                    style: TextStyle(
-                      color: _totalPassesCount > 0 ? AppColors.neonPink : Colors.white60,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.white38),
-                  const SizedBox(width: 8),
-                  const Text('3. Confirm', style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 11)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
       child: Row(
@@ -659,11 +284,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.share_outlined, size: 18, color: AppColors.neonPink),
-            onPressed: () => _shareEvent(event),
-            tooltip: 'Share Event',
           ),
         ],
       ),
@@ -1002,7 +622,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     onTap: () => setState(() {
                       _selectedDayIndex = idx;
                       _selectedPassId = null;
-                      _selectedQuantities.clear();
+                      _quantity = 1;
                     }),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -1709,18 +1329,17 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       spacing: 16,
                       runSpacing: 16,
                       children: day.passes.map((p) {
-                        final qty = _getQuantity(p.id);
+                        final isSelected = (currentPass?.id == p.id);
                         final isSoldOut = p.soldOut || p.availableQuantity == 0;
                         final isLowStock = p.lowStock;
-                        final isSelected = qty > 0;
 
                         return InkWell(
                           onTap: isSoldOut
                               ? null
                               : () {
-                                  if (qty == 0) {
-                                    _setQuantity(p.id, 1, maxPerCustomer: p.maxPerCustomer, availableQuantity: p.availableQuantity);
-                                  }
+                                  setState(() {
+                                    _selectedPassId = p.id;
+                                  });
                                 },
                           borderRadius: BorderRadius.circular(18),
                           child: AnimatedContainer(
@@ -1864,7 +1483,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                 else if (isSelected)
                                   Container(
                                     width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFEC4899).withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(10),
@@ -1873,36 +1492,36 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
+                                        const Row(
                                           children: [
-                                            const Icon(Icons.check_circle, size: 15, color: Color(0xFFEC4899)),
-                                            const SizedBox(width: 6),
-                                            Text('Added ($qty)', style: const TextStyle(color: Color(0xFFF472B6), fontWeight: FontWeight.w800, fontSize: 12)),
+                                            Icon(Icons.check_circle, size: 16, color: Color(0xFFEC4899)),
+                                            SizedBox(width: 6),
+                                            Text('Selected Pass', style: TextStyle(color: Color(0xFFF472B6), fontWeight: FontWeight.w800, fontSize: 12)),
                                           ],
                                         ),
                                         Row(
                                           children: [
                                             InkWell(
-                                              onTap: () => _setQuantity(p.id, -1, maxPerCustomer: p.maxPerCustomer, availableQuantity: p.availableQuantity),
+                                              onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
                                               borderRadius: BorderRadius.circular(4),
                                               child: Container(
                                                 padding: const EdgeInsets.all(3),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white24,
+                                                  color: _quantity > 1 ? Colors.white24 : Colors.transparent,
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
-                                                child: const Icon(Icons.remove, size: 14, color: Colors.white),
+                                                child: Icon(Icons.remove, size: 14, color: _quantity > 1 ? Colors.white : Colors.white30),
                                               ),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10),
                                               child: Text(
-                                                '$qty',
-                                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
+                                                '$_quantity',
+                                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.white),
                                               ),
                                             ),
                                             InkWell(
-                                              onTap: () => _setQuantity(p.id, 1, maxPerCustomer: p.maxPerCustomer, availableQuantity: p.availableQuantity),
+                                              onTap: () => setState(() => _quantity++),
                                               borderRadius: BorderRadius.circular(4),
                                               child: Container(
                                                 padding: const EdgeInsets.all(3),
@@ -1919,27 +1538,15 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                     ),
                                   )
                                 else
-                                  InkWell(
-                                    onTap: () => _setQuantity(p.id, 1, maxPerCustomer: p.maxPerCustomer, availableQuantity: p.availableQuantity),
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF261D45),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: const Color(0xFF38296B)),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.add, size: 14, color: Color(0xFFD8B4FE)),
-                                          SizedBox(width: 4),
-                                          Text('Add Pass', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                                        ],
-                                      ),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF261D45),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
+                                    child: const Text('Select Pass', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700)),
                                   ),
                               ],
                             ),
@@ -1980,7 +1587,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             ),
             const SizedBox(height: 18),
             InkWell(
-              onTap: () => _openWhatsApp(whatsappNumber, event, null, const []),
+              onTap: () => _openWhatsApp(whatsappNumber, event, null, null),
               borderRadius: BorderRadius.circular(14),
               child: Container(
                 height: 48,
@@ -2008,7 +1615,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     }
 
     final dayAsync = ref.watch(eventDayDetailProvider(currentDayId));
-    final settings = ref.watch(appSettingsProvider).value;
 
     return dayAsync.when(
       loading: () => Container(
@@ -2022,9 +1628,20 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (day) {
-        final selectedPasses = day.passes.where((p) => _getQuantity(p.id) > 0).toList();
-        final total = _calculateTotal(day.passes);
-        final totalCount = _totalPassesCount;
+        TicketCategory? currentPass;
+        if (_selectedPassId != null) {
+          for (final p in day.passes) {
+            if (p.id == _selectedPassId) {
+              currentPass = p;
+              break;
+            }
+          }
+        }
+        if (currentPass == null && day.passes.isNotEmpty) {
+          currentPass = day.passes.first;
+        }
+
+        final total = currentPass != null ? currentPass.price * _quantity : 0.0;
 
         return Container(
           padding: const EdgeInsets.all(22),
@@ -2065,8 +1682,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               ),
               const SizedBox(height: 16),
 
-              if (selectedPasses.isNotEmpty) ...[
-                // Selected Pass Inner Container with itemized line items
+              if (currentPass != null) ...[
+                // Selected Pass Inner Container (matching screenshot)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -2098,42 +1715,33 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      // Itemized List of Selected Passes
-                      ...selectedPasses.map((p) {
-                        final q = _getQuantity(p.id);
-                        final itemTotal = p.price * q;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${p.name} × $q',
-                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                '₹${itemTotal.toInt()}',
-                                style: const TextStyle(color: Color(0xFFF472B6), fontSize: 13, fontWeight: FontWeight.w800),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                      const Divider(height: 20, color: Color(0xFF2A204E)),
-                      // Total calculation row
+                      const SizedBox(height: 10),
+                      // Pass Name
+                      Text(
+                        currentPass.name,
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white),
+                      ),
+                      const SizedBox(height: 2),
+                      // Event / Program Name
+                      Text(
+                        day.programName != null && day.programName!.isNotEmpty
+                            ? day.programName!
+                            : event.name,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Divider(height: 22, color: Color(0xFF2A204E)),
+                      // Quantity x Rate and Total Price
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Total ($totalCount passes)',
+                            '₹${currentPass.price.toStringAsFixed(0)} × $_quantity passes',
                             style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
                           ),
                           Text(
-                            '₹${total.toInt()}',
+                            '₹${total.toStringAsFixed(0)}',
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.neonPink),
                           ),
                         ],
@@ -2142,105 +1750,44 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 14),
+
+                // Compact Quantity Stepper with Direct Number Input
+                if (!currentPass.soldOut)
+                  _PassQuantityStepper(
+                    quantity: _quantity,
+                    maxQuantity: currentPass.availableQuantity > 0 ? currentPass.availableQuantity : 100,
+                    onChanged: (newQty) => setState(() => _quantity = newQty),
+                  ),
+
                 const SizedBox(height: 18),
 
-                // PROCEED TO BOOK PASS CTA Button (Gradient)
+                // PROCEED TO INQUIRY CTA Button (Gradient)
                 GradientButton(
-                  label: 'PROCEED TO BOOK PASS',
+                  label: 'PROCEED TO INQUIRY',
                   height: 48,
-                  onPressed: () => _proceedToInquiry(event, day, day.passes),
+                  onPressed: () => _proceedToInquiry(event, day, currentPass),
                 ),
               ] else ...[
-                // Empty state when 0 passes are selected
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: const Color(0xFF16102E),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFF2A204E)),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text('DAY ${day.dayNumber}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              day.date,
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.white),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Select passes on the left to view breakdown and proceed with booking.',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.4),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-                GradientButton(
-                  label: 'CHOOSE PASSES',
-                  height: 48,
-                  onPressed: () => _scrollToDaySection(),
-                ),
-              ],
-
-              // Optional Online UPI Payment Option (Gated by admin settings)
-              if (settings != null && settings.upiEnabled && totalCount > 0) ...[
-                const SizedBox(height: 10),
-                InkWell(
-                  onTap: () => _showUpiPaymentDialog(event, day, day.passes, settings),
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF059669), Color(0xFF10B981)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.flash_on_rounded, size: 18, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text(
-                          'PAY VIA UPI (INSTANT)',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
-                        ),
-                      ],
-                    ),
+                  child: const Text(
+                    'Select a stand or pass on the left to proceed with inquiry.',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                   ),
                 ),
               ],
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               // Chat on WhatsApp Button (Dark with green border and green text matching screenshot)
               InkWell(
-                onTap: () => _openWhatsApp(settings?.whatsappNumber ?? whatsappNumber, event, day, day.passes),
+                onTap: () => _openWhatsApp(whatsappNumber, event, day, currentPass),
                 borderRadius: BorderRadius.circular(14),
                 child: Container(
                   height: 48,
@@ -2293,16 +1840,22 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
 
     return dayAsync.maybeWhen(
       data: (day) {
-        final total = _calculateTotal(day.passes);
-        final totalCount = _totalPassesCount;
+        TicketCategory? currentPass;
+        if (_selectedPassId != null) {
+          for (final p in day.passes) {
+            if (p.id == _selectedPassId) {
+              currentPass = p;
+              break;
+            }
+          }
+        }
+        if (currentPass == null && day.passes.isNotEmpty) {
+          currentPass = day.passes.first;
+        }
 
-        final priceStr = totalCount > 0
-            ? '₹${total.toInt()}'
-            : (day.passes.isNotEmpty ? 'From ₹${day.passes.first.price.toInt()}' : 'Tickets TBA');
-
-        final subtextStr = totalCount > 0
-            ? '$totalCount passes selected · Day ${day.dayNumber}'
-            : 'Day ${day.dayNumber} · ${day.date}';
+        final priceStr = currentPass != null
+            ? '₹${(currentPass.price * _quantity).toInt()}'
+            : (day.passes.isNotEmpty ? '₹${day.passes.first.price.toInt()}' : 'Tickets TBA');
 
         return Container(
           padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
@@ -2337,7 +1890,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        subtextStr,
+                        currentPass != null ? '${currentPass.name} (×$_quantity)' : 'Day ${day.dayNumber} · ${day.date}',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.65),
                           fontSize: 11.5,
@@ -2352,8 +1905,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 const SizedBox(width: 14),
                 ElevatedButton(
                   onPressed: () {
-                    if (totalCount > 0) {
-                      _proceedToInquiry(event, day, day.passes);
+                    if (currentPass != null) {
+                      _proceedToInquiry(event, day, currentPass);
                     } else {
                       _scrollToDaySection();
                     }
@@ -2366,9 +1919,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     elevation: 6,
                     shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.5),
                   ),
-                  child: Text(
-                    totalCount > 0 ? 'BOOK PASSES ($totalCount)' : 'SELECT PASSES',
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, letterSpacing: 0.5),
+                  child: const Text(
+                    'BOOK TICKETS',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, letterSpacing: 0.5),
                   ),
                 ),
               ],
