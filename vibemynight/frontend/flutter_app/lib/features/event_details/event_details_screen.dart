@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/data_providers.dart';
 import '../../core/providers/dome_layout_provider.dart';
+import '../../core/providers/service_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_footer.dart';
 import '../../core/widgets/app_navbar.dart';
@@ -16,6 +17,7 @@ import '../../core/widgets/loading_view.dart';
 import '../../core/widgets/network_image_box.dart';
 import '../../models/event_day_detail.dart';
 import '../../models/event_detail.dart';
+import '../../models/settings.dart';
 import '../../models/ticket_category.dart';
 import 'widgets/interactive_venue_layout_map.dart';
 
@@ -116,6 +118,253 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
+  void _openUpiPaymentModal(
+    BuildContext parentContext,
+    AppSettings settings,
+    EventDetail event,
+    EventDayDetail day,
+    TicketCategory pass,
+  ) {
+    final nameController = TextEditingController();
+    final mobileController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isInitiating = false;
+    String? initError;
+    final totalAmount = pass.price * _quantity;
+
+    showModalBottomSheet(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F0B1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 24,
+              ),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.bolt, color: Color(0xFF10B981), size: 22),
+                            SizedBox(width: 8),
+                            Text(
+                              'Instant UPI Payment',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white70),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B1438),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFF38296B)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${pass.name} (${day.date})',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '₹${pass.price.toStringAsFixed(0)} × $_quantity passes • 0% Fee',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '₹${totalAmount.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Your Full Name *',
+                        prefixIcon: Icon(Icons.person_outline, size: 20),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter full name' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: mobileController,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(color: Colors.white),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'WhatsApp Mobile Number *',
+                        prefixIcon: Icon(Icons.phone_android_outlined, size: 20),
+                        prefixText: '+91 ',
+                      ),
+                      validator: (v) => (v == null || v.trim().length != 10) ? 'Enter valid 10-digit mobile' : null,
+                    ),
+                    if (initError != null) ...[
+                      const SizedBox(height: 12),
+                      Text(initError!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                    ],
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: isInitiating
+                            ? null
+                            : () async {
+                                if (!formKey.currentState!.validate()) return;
+                                setModalState(() {
+                                  isInitiating = true;
+                                  initError = null;
+                                });
+                                try {
+                                  final res = await ref.read(paymentServiceProvider).initiateUpi(
+                                    eventId: event.id,
+                                    eventDayId: day.id,
+                                    selectedQuantities: {pass.id: _quantity},
+                                    customerName: nameController.text.trim(),
+                                    customerMobile: mobileController.text.trim(),
+                                  );
+
+                                  if (ctx.mounted) {
+                                    Navigator.pop(ctx);
+                                  }
+                                  // Launch UPI URL on device
+                                  final uri = Uri.parse(res.upiUrl);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  }
+
+                                  // Show post-initiation confirmation & WhatsApp delivery dialog
+                                  if (!mounted) return;
+                                  showDialog(
+                                    context: context,
+                                    builder: (dCtx) => AlertDialog(
+                                      backgroundColor: const Color(0xFF130E26),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      title: const Row(
+                                        children: [
+                                          Icon(Icons.check_circle_outline, color: Color(0xFF10B981)),
+                                          SizedBox(width: 10),
+                                          Text('Payment Initiated', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Txn Ref: ${res.transactionReference}',
+                                            style: const TextStyle(color: Color(0xFFF472B6), fontWeight: FontWeight.bold, fontSize: 13),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Total: ₹${res.totalAmount.toInt()} to ${res.upiVpa}',
+                                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Text(
+                                            'Please complete payment in your UPI app. Digital passes will be confirmed & delivered directly on WhatsApp.',
+                                            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(dCtx),
+                                          child: const Text('Close', style: TextStyle(color: Colors.white60)),
+                                        ),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF22C55E),
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pop(dCtx);
+                                            _openWhatsApp(settings.whatsappNumber, event, day, pass);
+                                          },
+                                          child: const Text('Confirm on WhatsApp'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } catch (e) {
+                                  setModalState(() {
+                                    initError = e.toString();
+                                    isInitiating = false;
+                                  });
+                                }
+                              },
+                        child: isInitiating
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Text('PAY VIA UPI APP (GPAY / PHONEPE)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _scrollToDaySection() {
     final context = _daySectionKey.currentContext;
     if (context != null) {
@@ -149,7 +398,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   context,
                   event,
                   selectedDaySummary.id,
-                  settingsAsync.value?.whatsappNumber,
+                  settingsAsync.value,
                 );
               },
               orElse: () => null,
@@ -210,7 +459,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                   context,
                                   event,
                                   selectedDaySummary?.id,
-                                  settingsAsync.value?.whatsappNumber,
+                                  settingsAsync.value,
                                 ),
                               ),
                             ),
@@ -242,7 +491,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                         context,
                         event,
                         selectedDaySummary?.id,
-                        settingsAsync.value?.whatsappNumber,
+                        settingsAsync.value,
                       ),
                     ],
                   ),
@@ -1567,7 +1816,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   // ==========================================
   // RIGHT STICKY BOOKING SIDEBAR (Showmates Style)
   // ==========================================
-  Widget _buildStickySidebar(BuildContext context, EventDetail event, int? currentDayId, String? whatsappNumber) {
+  Widget _buildStickySidebar(BuildContext context, EventDetail event, int? currentDayId, AppSettings? settings) {
+    final whatsappNumber = settings?.whatsappNumber;
     if (currentDayId == null) {
       return Container(
         padding: const EdgeInsets.all(22),
@@ -1768,6 +2018,42 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   height: 48,
                   onPressed: () => _proceedToInquiry(event, day, currentPass),
                 ),
+
+                // Optional UPI Payment CTA Button (Enabled only when Admin sets upiEnabled = true)
+                if (settings?.upiEnabled == true) ...[
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () => _openUpiPaymentModal(context, settings!, event, day, currentPass!),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF059669), Color(0xFF10B981)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.bolt, size: 18, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            '⚡ Pay Online via UPI (GPay/PhonePe)',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ] else ...[
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -1835,7 +2121,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   // ==========================================
   // MOBILE FLOATING BOTTOM BOOKING BAR (District / Showmates UX)
   // ==========================================
-  Widget _buildMobileBottomBar(BuildContext context, EventDetail event, int dayId, String? whatsappNumber) {
+  Widget _buildMobileBottomBar(BuildContext context, EventDetail event, int dayId, AppSettings? settings) {
     final dayAsync = ref.watch(eventDayDetailProvider(dayId));
 
     return dayAsync.maybeWhen(
@@ -1902,7 +2188,24 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
+                if (settings?.upiEnabled == true && currentPass != null) ...[
+                  IconButton(
+                    onPressed: () => _openUpiPaymentModal(context, settings!, event, day, currentPass!),
+                    tooltip: 'Pay via UPI',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.18),
+                      foregroundColor: const Color(0xFF10B981),
+                      padding: const EdgeInsets.all(12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                      ),
+                    ),
+                    icon: const Icon(Icons.bolt, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 ElevatedButton(
                   onPressed: () {
                     if (currentPass != null) {
@@ -1914,7 +2217,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE11D48),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 6,
                     shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.5),
