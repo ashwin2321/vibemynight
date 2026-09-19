@@ -52,4 +52,14 @@ public class Settings extends BaseEntity {
 
     @Column(name = "footer_text", length = 1000)
     private String footerText;
+
+    @Column(name = "upi_enabled")
+    @Builder.Default
+    private Boolean upiEnabled = false;
+
+    @Column(name = "upi_vpa")
+    private String upiVpa;
+
+    @Column(name = "upi_merchant_name")
+    private String upiMerchantName;
 }

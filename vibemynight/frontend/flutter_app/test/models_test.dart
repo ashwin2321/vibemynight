@@ -9,6 +9,7 @@ import 'package:vibemynight/models/event_summary.dart';
 import 'package:vibemynight/models/inquiry.dart';
 import 'package:vibemynight/models/inquiry_admin_summary.dart';
 import 'package:vibemynight/models/settings.dart';
+import 'package:vibemynight/models/upi_payment.dart';
 
 void main() {
   group('Models JSON Serialization / Deserialization Tests', () {
@@ -367,6 +368,51 @@ void main() {
         suggestedRole: 'POSTER_3_4',
       );
       expect(candidateEmptyLocal.effectiveUrl, 'https://images.unsplash.com/poster.jpg');
+    });
+
+    test('AppSettings.fromJson parses upiEnabled, upiVpa, upiMerchantName safely', () {
+      final jsonWithUpi = {
+        'id': 1,
+        'brandName': 'VibeMyNight',
+        'whatsappNumber': '917041615131',
+        'upiEnabled': true,
+        'upiVpa': 'vibemynight@icici',
+        'upiMerchantName': 'VibeMyNight Live',
+      };
+      final settings = AppSettings.fromJson(jsonWithUpi);
+      expect(settings.upiEnabled, isTrue);
+      expect(settings.upiVpa, 'vibemynight@icici');
+      expect(settings.upiMerchantName, 'VibeMyNight Live');
+
+      final jsonWithoutUpi = {
+        'id': 1,
+        'brandName': 'VibeMyNight',
+        'whatsappNumber': '917041615131',
+      };
+      final fallbackSettings = AppSettings.fromJson(jsonWithoutUpi);
+      expect(fallbackSettings.upiEnabled, isFalse);
+      expect(fallbackSettings.upiVpa, isNull);
+    });
+
+    test('UpiPaymentResponse.fromJson parses server payment response correctly', () {
+      final json = {
+        'transactionReference': 'VMN-UPI-1789809400-ABCD',
+        'upiUrl': 'upi://pay?pa=vibemynight@icici&pn=VibeMyNight&am=1497.00&tr=VMN-UPI-1789809400-ABCD&tn=Booking+Payment&cu=INR',
+        'totalAmount': 1497.0,
+        'upiVpa': 'vibemynight@icici',
+        'merchantName': 'VibeMyNight',
+        'status': 'INITIATED',
+        'itemizedBreakdown': ['Regular Pass x 3 (Rs 1497)'],
+        'note': 'Passes for Navratri',
+      };
+      final res = UpiPaymentResponse.fromJson(json);
+      expect(res.transactionReference, 'VMN-UPI-1789809400-ABCD');
+      expect(res.totalAmount, 1497.0);
+      expect(res.upiVpa, 'vibemynight@icici');
+      expect(res.merchantName, 'VibeMyNight');
+      expect(res.status, 'INITIATED');
+      expect(res.itemizedBreakdown.length, 1);
+      expect(res.upiUrl, contains('upi://pay'));
     });
   });
 }

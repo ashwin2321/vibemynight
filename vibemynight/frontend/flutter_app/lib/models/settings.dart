@@ -10,6 +10,9 @@ class AppSettings {
   final String? facebookUrl;
   final String currency;
   final String? footerText;
+  final bool upiEnabled;
+  final String? upiVpa;
+  final String? upiMerchantName;
 
   const AppSettings({
     required this.websiteName,
@@ -21,18 +24,24 @@ class AppSettings {
     this.facebookUrl,
     required this.currency,
     this.footerText,
+    this.upiEnabled = false,
+    this.upiVpa,
+    this.upiMerchantName,
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-        websiteName: json['websiteName'] as String? ?? 'VibeMyNight',
-        logoUrl: json['logoUrl'] as String?,
-        whatsappNumber: json['whatsappNumber'] as String,
-        phone: json['phone'] as String?,
-        email: json['email'] as String?,
-        instagramUrl: json['instagramUrl'] as String?,
-        facebookUrl: json['facebookUrl'] as String?,
-        currency: json['currency'] as String? ?? 'INR',
-        footerText: json['footerText'] as String?,
+        websiteName: json['websiteName']?.toString() ?? 'VibeMyNight',
+        logoUrl: json['logoUrl']?.toString(),
+        whatsappNumber: json['whatsappNumber']?.toString() ?? '917041615131',
+        phone: json['phone']?.toString(),
+        email: json['email']?.toString(),
+        instagramUrl: json['instagramUrl']?.toString(),
+        facebookUrl: json['facebookUrl']?.toString(),
+        currency: json['currency']?.toString() ?? 'INR',
+        footerText: json['footerText']?.toString(),
+        upiEnabled: json['upiEnabled'] == true,
+        upiVpa: json['upiVpa']?.toString(),
+        upiMerchantName: json['upiMerchantName']?.toString(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -45,5 +54,8 @@ class AppSettings {
         'facebookUrl': facebookUrl,
         'currency': currency,
         'footerText': footerText,
+        'upiEnabled': upiEnabled,
+        'upiVpa': upiVpa,
+        'upiMerchantName': upiMerchantName,
       };
 }

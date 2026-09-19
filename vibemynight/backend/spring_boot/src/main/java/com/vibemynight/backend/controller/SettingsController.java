@@ -31,6 +31,9 @@ public class SettingsController {
                 .facebookUrl(s.getFacebookUrl())
                 .currency(s.getCurrency())
                 .footerText(s.getFooterText())
+                .upiEnabled(Boolean.TRUE.equals(s.getUpiEnabled()))
+                .upiVpa(s.getUpiVpa())
+                .upiMerchantName(s.getUpiMerchantName())
                 .build();
         return ApiResponse.ok(dto);
     }

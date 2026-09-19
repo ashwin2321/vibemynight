@@ -30,6 +30,9 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
   final _facebookUrl = TextEditingController();
   final _currency = TextEditingController();
   final _footerText = TextEditingController();
+  final _upiVpa = TextEditingController();
+  final _upiMerchantName = TextEditingController();
+  bool _upiEnabled = false;
 
   bool _loading = true;
   String? _loadError;
@@ -58,6 +61,9 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       _facebookUrl.text = settings.facebookUrl ?? '';
       _currency.text = settings.currency;
       _footerText.text = settings.footerText ?? '';
+      _upiEnabled = settings.upiEnabled;
+      _upiVpa.text = settings.upiVpa ?? '';
+      _upiMerchantName.text = settings.upiMerchantName ?? '';
     } catch (e) {
       _loadError = e.toString();
     } finally {
@@ -68,7 +74,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
   @override
   void dispose() {
     for (final c in [
-      _websiteName, _logoUrl, _whatsappNumber, _phone, _email, _instagramUrl, _facebookUrl, _currency, _footerText,
+      _websiteName, _logoUrl, _whatsappNumber, _phone, _email, _instagramUrl, _facebookUrl, _currency, _footerText, _upiVpa, _upiMerchantName,
     ]) {
       c.dispose();
     }
@@ -91,6 +97,9 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       if (_facebookUrl.text.trim().isNotEmpty) 'facebookUrl': _facebookUrl.text.trim(),
       'currency': _currency.text.trim(),
       if (_footerText.text.trim().isNotEmpty) 'footerText': _footerText.text.trim(),
+      'upiEnabled': _upiEnabled,
+      if (_upiVpa.text.trim().isNotEmpty) 'upiVpa': _upiVpa.text.trim(),
+      if (_upiMerchantName.text.trim().isNotEmpty) 'upiMerchantName': _upiMerchantName.text.trim(),
     };
     try {
       await ref.read(adminServiceProvider).updateSettings(body);
@@ -156,7 +165,65 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
                         decoration: const InputDecoration(labelText: 'Footer Text'),
                         maxLines: 2,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      // Online UPI / Direct Payment Toggle Section
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _upiEnabled ? const Color(0xFF10B981) : Colors.white12,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text(
+                                'Enable Online UPI Payments',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              subtitle: const Text(
+                                'Allow customers to pay directly via UPI apps (GPay, PhonePe, Paytm, BHIM)',
+                                style: TextStyle(color: Colors.white60, fontSize: 13),
+                              ),
+                              value: _upiEnabled,
+                              activeThumbColor: const Color(0xFF10B981),
+                              onChanged: (val) => setState(() => _upiEnabled = val),
+                            ),
+                            if (_upiEnabled) ...[
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _upiVpa,
+                                decoration: const InputDecoration(
+                                  labelText: 'Merchant UPI VPA / ID *',
+                                  hintText: 'e.g. vibemynight@icici or 917041615131@upi',
+                                  helperText: 'Payments will be routed directly to this UPI ID',
+                                ),
+                                validator: (v) {
+                                  if (!_upiEnabled) return null;
+                                  if (v == null || v.trim().isEmpty) return 'UPI VPA is required when UPI is enabled';
+                                  if (!v.contains('@')) return 'Enter a valid UPI ID (e.g. username@bank)';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _upiMerchantName,
+                                decoration: const InputDecoration(
+                                  labelText: 'Merchant Display Name (Optional)',
+                                  hintText: 'e.g. VIBE MY NIGHT',
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       if (_submitError != null) ErrorView(message: _submitError!),
                       GradientButton(
                         label: _submitting ? 'SAVING...' : 'SAVE SETTINGS',

@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/event_service.dart';
 import '../../services/facility_service.dart';
 import '../../services/inquiry_service.dart';
+import '../../services/payment_service.dart';
 import '../../services/settings_service.dart';
 import '../network/api_client.dart';
 
@@ -27,6 +28,9 @@ final settingsServiceProvider =
 
 final inquiryServiceProvider =
     Provider<InquiryService>((ref) => InquiryService(ref.watch(apiClientProvider)));
+
+final paymentServiceProvider =
+    Provider<PaymentService>((ref) => PaymentService(ref.watch(apiClientProvider)));
 
 final authServiceProvider =
     Provider<AuthService>((ref) => AuthService(ref.watch(apiClientProvider)));

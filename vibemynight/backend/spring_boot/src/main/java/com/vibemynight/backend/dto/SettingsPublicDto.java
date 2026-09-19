@@ -19,4 +19,7 @@ public class SettingsPublicDto {
     private String facebookUrl;
     private String currency;
     private String footerText;
+    private Boolean upiEnabled;
+    private String upiVpa;
+    private String upiMerchantName;
 }

@@ -81,8 +81,8 @@ public class SecurityConfig {
                                 "/api/v1/settings/public"
                         ).permitAll()
 
-                        // Inquiry submission and status lookup are public
-                        .requestMatchers(HttpMethod.POST, "/api/v1/inquiries").permitAll()
+                        // Inquiry submission, lookup and UPI initiation are public
+                        .requestMatchers(HttpMethod.POST, "/api/v1/inquiries", "/api/v1/payments/upi/initiate").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/inquiries/**").permitAll()
 
                         // Static uploads (local image storage, Phase 5+)

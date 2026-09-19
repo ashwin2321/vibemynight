@@ -29,6 +29,7 @@ class ApiConstants {
   static const String settingsPublic = '/settings/public';
   static const String inquiries = '/inquiries';
   static String inquiryByNumber(String number) => '/inquiries/$number';
+  static const String paymentsUpiInitiate = '/payments/upi/initiate';
 
   // ---- Auth ----
   static const String login = '/auth/login';
