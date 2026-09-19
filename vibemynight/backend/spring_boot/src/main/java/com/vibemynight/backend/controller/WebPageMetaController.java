@@ -1,4 +1,4 @@
-﻿package com.vibemynight.backend.controller;
+package com.vibemynight.backend.controller;
 
 import com.vibemynight.backend.entity.Event;
 import com.vibemynight.backend.service.EventService;

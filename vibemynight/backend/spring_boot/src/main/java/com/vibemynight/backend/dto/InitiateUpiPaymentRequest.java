@@ -1,4 +1,4 @@
-﻿package com.vibemynight.backend.dto;
+package com.vibemynight.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

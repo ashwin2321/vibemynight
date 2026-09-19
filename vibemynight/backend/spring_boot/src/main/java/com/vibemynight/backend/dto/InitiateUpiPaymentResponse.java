@@ -1,4 +1,4 @@
-﻿package com.vibemynight.backend.dto;
+package com.vibemynight.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

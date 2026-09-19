@@ -1,4 +1,4 @@
-﻿package com.vibemynight.backend.controller;
+package com.vibemynight.backend.controller;
 
 import com.vibemynight.backend.dto.ApiResponse;
 import com.vibemynight.backend.dto.InitiateUpiPaymentRequest;
