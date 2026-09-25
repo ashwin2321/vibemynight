@@ -151,4 +151,36 @@ class EventScraperServiceTest {
         assertTrue(preview.getEvent().getName().length() > 0);
         assertTrue(preview.getTotalDays() >= 1);
     }
+
+    @Test
+    void testScrapeShowmatesWithRelativeBannerAndPoster() {
+        String testUrl = "https://showmates.in/events/swarnim-nagari-ac-dome-garba-2026";
+        String html = "<!DOCTYPE html><html><head><script id=\"__NEXT_DATA__\" type=\"application/json\">" +
+                "{\"props\":{\"pageProps\":{\"event\":{" +
+                "\"title\":\"Swarnim Nagari AC Dome Garba 2026\"," +
+                "\"description\":\"Experience non-stop garba beats inside 100% AC Dome.\"," +
+                "\"startDate\":\"2026-10-11\"," +
+                "\"endDate\":\"2026-10-20\"," +
+                "\"venue\":\"Swarnim Nagari AC Dome, Sardar Patel Ring Rd\"," +
+                "\"city\":\"Ahmedabad\"," +
+                "\"web_banner_image\":\"/static/images/event-images/web-banner-images/showmates-swarnim-banner.webp\"," +
+                "\"mobile_banner_image\":\"/static/images/event-images/mobile-banner-images/showmates-swarnim-poster.webp\"," +
+                "\"ticketCategories\":[" +
+                "{\"name\":\"Daily Regular\",\"price\":\"499\",\"quantity\":200,\"type\":\"REGULAR\"}" +
+                "]}}}}</script></head><body></body></html>";
+
+        when(urlSecurityValidator.extractAndCleanSingleUrl(anyString())).thenReturn(testUrl);
+        when(safeWebFetcher.fetchHtml(testUrl)).thenReturn(html);
+        when(eventRepository.existsBySlug(anyString())).thenReturn(false);
+
+        EventImportPreviewDto preview = scraperService.scrapeEventFromUrl(testUrl);
+
+        assertNotNull(preview);
+        assertNotNull(preview.getEvent());
+        // Verify that candidates contain the resolved cdn.showmates.in URLs
+        assertNotNull(preview.getArtworkCandidates());
+        boolean hasCdnUrl = preview.getArtworkCandidates().stream()
+                .anyMatch(c -> c.getUrl() != null && c.getUrl().startsWith("https://cdn.showmates.in/static/images/"));
+        assertTrue(hasCdnUrl, "Artwork candidates should include resolved cdn.showmates.in URLs");
+    }
 }

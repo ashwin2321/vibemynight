@@ -201,7 +201,7 @@ public class EventScraperServiceImpl implements EventScraperService {
 
             try {
                 JsonNode root = objectMapper.readTree(jsonText);
-                extractAllImagesFromJsonNode(root, data.images);
+                extractAllImagesFromJsonNode(root, data.images, data.sourceUrl, data.platform);
                 if (root.isArray()) {
                     for (JsonNode node : root) {
                         parseJsonLdNode(node, data);
@@ -313,8 +313,9 @@ public class EventScraperServiceImpl implements EventScraperService {
 
         Elements ogImages = doc.select("meta[property^=og:image], meta[name^=twitter:image], meta[itemprop=image], link[rel=image_src]");
         for (Element img : ogImages) {
-            String src = img.hasAttr("content") ? img.attr("content").trim() : img.attr("href").trim();
-            if (!src.isEmpty() && isValidEventImageUrl(src) && !data.images.contains(src)) {
+            String raw = img.hasAttr("content") ? img.attr("content").trim() : img.attr("href").trim();
+            String src = resolveAndCleanImageUrl(raw, data.sourceUrl, data.platform);
+            if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
                 data.images.add(src);
             }
         }
@@ -322,20 +323,21 @@ public class EventScraperServiceImpl implements EventScraperService {
         // Extract from img tags and picture sources
         Elements imgs = doc.select("img[src], img[data-src], img[srcset], source[srcset]");
         for (Element el : imgs) {
-            String src = el.absUrl("src");
-            if (isValidEventImageUrl(src) && !data.images.contains(src)) {
+            String src = resolveAndCleanImageUrl(el.absUrl("src"), data.sourceUrl, data.platform);
+            if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
                 data.images.add(src);
             }
-            String dataSrc = el.absUrl("data-src");
-            if (isValidEventImageUrl(dataSrc) && !data.images.contains(dataSrc)) {
+            String dataSrc = resolveAndCleanImageUrl(el.absUrl("data-src"), data.sourceUrl, data.platform);
+            if (dataSrc != null && isValidEventImageUrl(dataSrc) && !data.images.contains(dataSrc)) {
                 data.images.add(dataSrc);
             }
             String srcset = el.attr("srcset");
             if (!srcset.isBlank()) {
                 for (String part : srcset.split(",")) {
                     String u = part.trim().split(" ")[0];
-                    if (isValidEventImageUrl(u) && !data.images.contains(u)) {
-                        data.images.add(u);
+                    String res = resolveAndCleanImageUrl(u, data.sourceUrl, data.platform);
+                    if (res != null && isValidEventImageUrl(res) && !data.images.contains(res)) {
+                        data.images.add(res);
                     }
                 }
             }
@@ -346,8 +348,9 @@ public class EventScraperServiceImpl implements EventScraperService {
         // Additional District image patterns
         Elements imgs = doc.select("img");
         for (Element img : imgs) {
-            String src = img.absUrl("src");
-            if (src.contains("district") || src.contains("event_cover_image") || src.contains("publisher")) {
+            String raw = img.absUrl("src");
+            String src = resolveAndCleanImageUrl(raw, data.sourceUrl, data.platform);
+            if (src != null && (src.contains("district") || src.contains("event_cover_image") || src.contains("publisher"))) {
                 if (isValidEventImageUrl(src) && !data.images.contains(src)) data.images.add(src);
             }
         }
@@ -382,36 +385,73 @@ public class EventScraperServiceImpl implements EventScraperService {
             }
 
             // 2. Secondary supplement: extract remaining genuine event gallery images
-            extractAllImagesFromJsonNode(root, data.images);
+            extractAllImagesFromJsonNode(root, data.images, data.sourceUrl, data.platform);
         } catch (Exception e) {
             log.debug("Could not parse __NEXT_DATA__ JSON: {}", e.getMessage());
         }
     }
 
-    private void extractAllImagesFromJsonNode(JsonNode node, List<String> images) {
+    private String resolveAndCleanImageUrl(String raw, String baseUrl, String platform) {
+        if (raw == null || raw.isBlank()) return null;
+        String text = raw.trim();
+
+        // 1. Next.js image optimization URL unwrapper: /_next/image?url=...
+        if (text.contains("/_next/image") && text.contains("url=")) {
+            try {
+                int urlIdx = text.indexOf("url=");
+                String sub = text.substring(urlIdx + 4);
+                int ampIdx = sub.indexOf('&');
+                if (ampIdx != -1) {
+                    sub = sub.substring(0, ampIdx);
+                }
+                String decoded = java.net.URLDecoder.decode(sub, java.nio.charset.StandardCharsets.UTF_8);
+                if (!decoded.isBlank()) {
+                    text = decoded.trim();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // 2. Resolve relative URLs (e.g. /static/images/... or static/images/...)
+        if (!text.startsWith("http://") && !text.startsWith("https://")) {
+            if ("SHOWMATES".equals(platform) || (baseUrl != null && baseUrl.contains("showmates.in"))) {
+                String cleanPath = text.startsWith("/") ? text.substring(1) : text;
+                return "https://cdn.showmates.in/" + cleanPath;
+            } else if (baseUrl != null && !baseUrl.isBlank()) {
+                try {
+                    return URI.create(baseUrl).resolve(text).toString();
+                } catch (Exception ignored) {}
+            }
+            return null;
+        }
+
+        return text;
+    }
+
+    private void extractAllImagesFromJsonNode(JsonNode node, List<String> images, String baseUrl, String platform) {
         if (node == null || node.isMissingNode() || node.isNull()) return;
         if (node.isTextual()) {
             String text = node.asText().trim();
-            if ((text.startsWith("http://") || text.startsWith("https://")) && isValidEventImageUrl(text)) {
-                if (!images.contains(text)) {
-                    images.add(text);
+            String resolved = resolveAndCleanImageUrl(text, baseUrl, platform);
+            if (resolved != null && isValidEventImageUrl(resolved)) {
+                if (!images.contains(resolved)) {
+                    images.add(resolved);
                 }
             }
         } else if (node.isArray()) {
             for (JsonNode child : node) {
-                extractAllImagesFromJsonNode(child, images);
+                extractAllImagesFromJsonNode(child, images, baseUrl, platform);
             }
         } else if (node.isObject()) {
             Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = fields.next();
-                extractAllImagesFromJsonNode(entry.getValue(), images);
+                extractAllImagesFromJsonNode(entry.getValue(), images, baseUrl, platform);
             }
         }
     }
 
     private boolean isValidEventImageUrl(String url) {
-        if (url == null || url.isBlank() || url.length() < 10) return false;
+        if (url == null || url.isBlank() || url.length() < 5) return false;
         String lower = url.toLowerCase();
         if (lower.contains("favicon") || lower.contains("avatar") || lower.contains("icon-")
                 || lower.contains("logo-small") || lower.endsWith(".svg") || lower.contains("sponsor")
@@ -423,7 +463,9 @@ public class EventScraperServiceImpl implements EventScraperService {
         }
         return lower.contains(".jpg") || lower.contains(".jpeg") || lower.contains(".png") || lower.contains(".webp") || lower.contains(".avif")
                 || lower.contains("event_cover_image") || lower.contains("cdn.") || lower.contains("img.") || lower.contains("poster")
-                || lower.contains("banner") || lower.contains("bmscdn.com") || lower.contains("showmates") || lower.contains("district");
+                || lower.contains("banner") || lower.contains("bmscdn.com") || lower.contains("showmates") || lower.contains("district")
+                || lower.contains("event-banner") || lower.contains("event-image") || lower.contains("artwork") || lower.contains("unsplash.com")
+                || lower.startsWith("https://cdn.showmates.in/") || lower.contains("/static/images/");
     }
 
     private void parseNextJsEventNode(JsonNode node, ScrapedData data) {
@@ -460,13 +502,20 @@ public class EventScraperServiceImpl implements EventScraperService {
         }
 
         // 1. High Priority Artwork Images: Vertical Poster (Index 0) & Horizontal Banner (Index 1)
-        List<String> primaryPosterKeys = List.of("verticalBanner", "verticalImage", "posterImage", "cover_image_vertical", "portraitImage", "poster");
-        List<String> primaryBannerKeys = List.of("horizontalBanner", "bannerImage", "cover_image_horizontal", "coverImage", "banner", "mainImage", "image");
+        List<String> primaryPosterKeys = List.of(
+                "verticalBanner", "verticalImage", "posterImage", "cover_image_vertical", "portraitImage",
+                "poster", "poster_image", "mobileBannerImage", "mobile_banner_image", "mobileBanner", "mobile_banner"
+        );
+        List<String> primaryBannerKeys = List.of(
+                "horizontalBanner", "bannerImage", "cover_image_horizontal", "coverImage", "banner",
+                "mainImage", "image", "webBannerImage", "web_banner_image", "event_banner_image", "eventImage",
+                "event_image", "banner_image", "display_image", "card_image"
+        );
 
         for (String k : primaryPosterKeys) {
             if (node.has(k) && node.path(k).isTextual()) {
-                String src = node.path(k).asText().trim();
-                if (!src.isEmpty() && isValidEventImageUrl(src) && !data.images.contains(src)) {
+                String src = resolveAndCleanImageUrl(node.path(k).asText().trim(), data.sourceUrl, data.platform);
+                if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
                     data.images.add(0, src); // Top priority for 3:4 Poster
                     break;
                 }
@@ -475,8 +524,8 @@ public class EventScraperServiceImpl implements EventScraperService {
 
         for (String k : primaryBannerKeys) {
             if (node.has(k) && node.path(k).isTextual()) {
-                String src = node.path(k).asText().trim();
-                if (!src.isEmpty() && isValidEventImageUrl(src) && !data.images.contains(src)) {
+                String src = resolveAndCleanImageUrl(node.path(k).asText().trim(), data.sourceUrl, data.platform);
+                if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
                     if (data.images.isEmpty()) data.images.add(src);
                     else data.images.add(1, src); // #2 priority for 16:9 Banner
                     break;
@@ -529,10 +578,13 @@ public class EventScraperServiceImpl implements EventScraperService {
     }
 
     private void extractShowmatesSpecifics(Document doc, ScrapedData data) {
-        Elements posters = doc.select(".poster img, .event-card img, .hero-poster img");
+        Elements posters = doc.select(".poster img, .event-card img, .hero-poster img, img[src*=/static/images/], img[src*=showmates], [class*='event'] img, [class*='banner'] img");
         for (Element p : posters) {
-            String src = p.absUrl("src");
-            if (!src.isEmpty() && !data.images.contains(src)) data.images.add(src);
+            String raw = p.hasAttr("src") ? p.attr("src") : p.absUrl("src");
+            String src = resolveAndCleanImageUrl(raw, data.sourceUrl, data.platform);
+            if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
+                data.images.add(src);
+            }
         }
     }
 

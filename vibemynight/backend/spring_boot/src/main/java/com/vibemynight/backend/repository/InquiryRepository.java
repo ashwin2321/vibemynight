@@ -16,7 +16,8 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long>, JpaSpec
     boolean existsByInquiryNumber(String inquiryNumber);
     List<Inquiry> findByStatus(InquiryStatus status);
     Page<Inquiry> findByStatus(InquiryStatus status, Pageable pageable);
-    long countByStatus(InquiryStatus status);
+    boolean existsByEventId(Long eventId);
+    boolean existsByEventDayId(Long eventDayId);
 
     @Query("select count(i) from Inquiry i")
     long countAllInquiries();

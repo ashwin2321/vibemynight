@@ -970,28 +970,55 @@ public class EventImportServiceImpl implements EventImportService {
     }
 
     private String resolveDurableUrl(String candidateUrl, List<ScrapedImageCandidateDto> candidates, String preferredRole) {
-        if (candidateUrl != null && candidateUrl.startsWith("http")) {
-            return candidateUrl;
+        // If candidateUrl is already a valid local stored image (/uploads/...), preserve it directly
+        if (candidateUrl != null && !candidateUrl.isBlank()) {
+            if (candidateUrl.startsWith("/uploads/") || candidateUrl.contains("/uploads/")) {
+                return candidateUrl;
+            }
         }
+
         if (candidates != null && !candidates.isEmpty()) {
+            // If candidateUrl matches a candidate with a verified localUrl, prioritize the localUrl
             if (candidateUrl != null && !candidateUrl.isBlank()) {
                 for (ScrapedImageCandidateDto c : candidates) {
-                    if (candidateUrl.equals(c.getLocalUrl()) && c.getUrl() != null && c.getUrl().startsWith("http")) {
-                        return c.getUrl();
+                    if (candidateUrl.equals(c.getUrl()) && c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
+                        return c.getLocalUrl();
+                    }
+                    if (candidateUrl.equals(c.getLocalUrl())) {
+                        return candidateUrl;
                     }
                 }
             }
+
+            // Find matching preferred role with localUrl first
             for (ScrapedImageCandidateDto c : candidates) {
-                if (preferredRole.equals(c.getSuggestedRole()) && c.getUrl() != null && c.getUrl().startsWith("http")) {
-                    return c.getUrl();
+                if (preferredRole.equals(c.getSuggestedRole()) && c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
+                    return c.getLocalUrl();
                 }
             }
+
+            // Find matching preferred role with any url
             for (ScrapedImageCandidateDto c : candidates) {
-                if (c.getUrl() != null && c.getUrl().startsWith("http")) {
-                    return c.getUrl();
+                if (preferredRole.equals(c.getSuggestedRole())) {
+                    return c.getEffectiveUrl();
+                }
+            }
+
+            // Fallback to any localUrl
+            for (ScrapedImageCandidateDto c : candidates) {
+                if (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
+                    return c.getLocalUrl();
+                }
+            }
+
+            // Fallback to any effective url
+            for (ScrapedImageCandidateDto c : candidates) {
+                if (c.getEffectiveUrl() != null && !c.getEffectiveUrl().isBlank()) {
+                    return c.getEffectiveUrl();
                 }
             }
         }
+
         return candidateUrl;
     }
 }

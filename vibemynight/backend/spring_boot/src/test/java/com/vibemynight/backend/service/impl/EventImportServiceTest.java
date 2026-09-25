@@ -124,4 +124,53 @@ class EventImportServiceTest {
 
         assertThrows(BadRequestException.class, () -> importService.confirmAndCreate(invalidPreview));
     }
+
+    @Test
+    void testConfirmAndCreatePreservesLocalUploadImages() {
+        EventHeaderImportDto header = EventHeaderImportDto.builder()
+                .name("Test Fest 2026")
+                .slug("test-fest-2026")
+                .city("Ahmedabad")
+                .venue("Test Venue")
+                .startDate(java.time.LocalDate.now())
+                .endDate(java.time.LocalDate.now().plusDays(1))
+                .mainImage("/uploads/events/local-poster.webp")
+                .banner("/uploads/events/local-banner.webp")
+                .thumbnail("/uploads/events/local-poster.webp")
+                .build();
+
+        com.vibemynight.backend.dto.importing.ScrapedImageCandidateDto candidate1 = com.vibemynight.backend.dto.importing.ScrapedImageCandidateDto.builder()
+                .url("https://cdn.showmates.in/static/images/poster.webp")
+                .localUrl("/uploads/events/local-poster.webp")
+                .suggestedRole("POSTER_3_4")
+                .build();
+
+        EventImportPreviewDto preview = EventImportPreviewDto.builder()
+                .event(header)
+                .days(java.util.List.of())
+                .eventFacilities(java.util.List.of())
+                .highlights(java.util.List.of())
+                .rules(java.util.List.of())
+                .artworkCandidates(java.util.List.of(candidate1))
+                .hasBlockingErrors(false)
+                .build();
+
+        when(eventRepository.existsBySlug(anyString())).thenReturn(false);
+        when(eventRepository.save(org.mockito.ArgumentMatchers.any(Event.class))).thenAnswer(invocation -> {
+            Event saved = invocation.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
+        when(eventMapper.toDetailDto(org.mockito.ArgumentMatchers.any(Event.class), org.mockito.ArgumentMatchers.anyList()))
+                .thenReturn(new EventDetailDto());
+
+        EventDetailDto result = importService.confirmAndCreate(preview);
+        assertNotNull(result);
+
+        org.mockito.ArgumentCaptor<Event> eventCaptor = org.mockito.ArgumentCaptor.forClass(Event.class);
+        org.mockito.Mockito.verify(eventRepository).save(eventCaptor.capture());
+        Event captured = eventCaptor.getValue();
+        assertEquals("/uploads/events/local-poster.webp", captured.getMainImage());
+        assertEquals("/uploads/events/local-banner.webp", captured.getBanner());
+    }
 }

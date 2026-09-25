@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface EventDayFacilityRepository extends JpaRepository<EventDayFacility, Long> {
     List<EventDayFacility> findByEventDayId(Long eventDayId);
+    void deleteByEventDayId(Long eventDayId);
     void deleteByEventDayIdAndFacilityId(Long eventDayId, Long facilityId);
     boolean existsByEventDayIdAndFacilityId(Long eventDayId, Long facilityId);
 }

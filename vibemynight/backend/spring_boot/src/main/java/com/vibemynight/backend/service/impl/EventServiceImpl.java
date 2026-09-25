@@ -4,7 +4,10 @@ import com.vibemynight.backend.entity.Event;
 import com.vibemynight.backend.entity.EventStatus;
 import com.vibemynight.backend.exception.ConflictException;
 import com.vibemynight.backend.exception.ResourceNotFoundException;
+import com.vibemynight.backend.repository.EventDayFacilityRepository;
+import com.vibemynight.backend.repository.EventFacilityRepository;
 import com.vibemynight.backend.repository.EventRepository;
+import com.vibemynight.backend.repository.InquiryRepository;
 import com.vibemynight.backend.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -19,6 +22,9 @@ import java.util.List;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final EventFacilityRepository eventFacilityRepository;
+    private final EventDayFacilityRepository eventDayFacilityRepository;
+    private final InquiryRepository inquiryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -97,6 +103,23 @@ public class EventServiceImpl implements EventService {
     @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public void delete(Long id) {
         Event event = getById(id);
+
+        if (inquiryRepository.existsByEventId(id)) {
+            throw new ConflictException("Cannot delete event because it has associated customer inquiries/passes. Please cancel or unpublish the event instead.");
+        }
+
+        // Clean up event-level facilities
+        eventFacilityRepository.deleteByEventId(id);
+
+        // Clean up day-level facilities for all days belonging to this event
+        if (event.getEventDays() != null) {
+            for (com.vibemynight.backend.entity.EventDay day : event.getEventDays()) {
+                if (day.getId() != null) {
+                    eventDayFacilityRepository.deleteByEventDayId(day.getId());
+                }
+            }
+        }
+
         eventRepository.delete(event);
     }
 

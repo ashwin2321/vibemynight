@@ -159,7 +159,8 @@ public class SafeWebFetcher {
         int redirectCount = 0;
 
         while (redirectCount <= MAX_REDIRECTS) {
-            HttpRequest request = HttpRequest.newBuilder()
+            String host = currentUri.getHost() != null ? currentUri.getHost().toLowerCase() : "";
+            HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
                     .uri(currentUri)
                     .timeout(READ_TIMEOUT)
                     .header("User-Agent", USER_AGENT)
@@ -167,8 +168,13 @@ public class SafeWebFetcher {
                     .header("Sec-Fetch-Dest", "image")
                     .header("Sec-Fetch-Mode", "no-cors")
                     .header("Sec-Fetch-Site", "cross-site")
-                    .GET()
-                    .build();
+                    .GET();
+
+            if (host.contains("showmates.in")) {
+                reqBuilder.header("Referer", "https://showmates.in/");
+            }
+
+            HttpRequest request = reqBuilder.build();
 
             try {
                 HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());

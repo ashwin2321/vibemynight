@@ -4,8 +4,10 @@ import com.vibemynight.backend.entity.Event;
 import com.vibemynight.backend.entity.EventDay;
 import com.vibemynight.backend.exception.ConflictException;
 import com.vibemynight.backend.exception.ResourceNotFoundException;
+import com.vibemynight.backend.repository.EventDayFacilityRepository;
 import com.vibemynight.backend.repository.EventDayRepository;
 import com.vibemynight.backend.repository.EventRepository;
+import com.vibemynight.backend.repository.InquiryRepository;
 import com.vibemynight.backend.service.EventDayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +22,8 @@ public class EventDayServiceImpl implements EventDayService {
 
     private final EventDayRepository eventDayRepository;
     private final EventRepository eventRepository;
+    private final EventDayFacilityRepository eventDayFacilityRepository;
+    private final InquiryRepository inquiryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -75,6 +79,12 @@ public class EventDayServiceImpl implements EventDayService {
     @CacheEvict(value = {"events", "event_details"}, allEntries = true)
     public void delete(Long id) {
         EventDay day = getById(id);
+
+        if (inquiryRepository.existsByEventDayId(id)) {
+            throw new ConflictException("Cannot delete event day because it has associated customer inquiries/passes. Please cancel or modify the day instead.");
+        }
+
+        eventDayFacilityRepository.deleteByEventDayId(id);
         eventDayRepository.delete(day);
     }
 }
