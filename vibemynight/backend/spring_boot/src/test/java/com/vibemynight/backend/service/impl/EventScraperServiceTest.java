@@ -183,4 +183,39 @@ class EventScraperServiceTest {
                 .anyMatch(c -> c.getUrl() != null && c.getUrl().startsWith("https://cdn.showmates.in/static/images/"));
         assertTrue(hasCdnUrl, "Artwork candidates should include resolved cdn.showmates.in URLs");
     }
+
+    @Test
+    void testScrapeBookMyShowEventImages() {
+        String testUrl = "https://in.bookmyshow.com/events/sunburn-arena-ft-alan-walker-ahmedabad/ET00412345";
+        String html = "<!DOCTYPE html><html><head>" +
+                "<meta property=\"og:title\" content=\"Sunburn Arena ft. Alan Walker - Ahmedabad\" />" +
+                "<meta property=\"og:description\" content=\"Experience EDM magic live in Ahmedabad.\" />" +
+                "<meta property=\"og:image\" content=\"https://assets-in.bmscdn.com/discovery-catalog/events/tr:w-1200,h-630,c-at_max/et00412345-alan-walker-banner.jpg\" />" +
+                "<script type=\"application/ld+json\">" +
+                "{\"@context\":\"https://schema.org\",\"@type\":\"Event\"," +
+                "\"name\":\"Sunburn Arena ft. Alan Walker\"," +
+                "\"startDate\":\"2026-11-20T18:00:00\"," +
+                "\"endDate\":\"2026-11-20T23:00:00\"," +
+                "\"image\":\"https://assets-in.bmscdn.com/discovery-catalog/events/tr:w-400,h-600,bg-CCCCCC:w-400.0,h-660.0,cm-pad_resize,bg-000000,fo-top/et00412345-alan-walker-poster.jpg\"," +
+                "\"location\":{\"@type\":\"Place\",\"name\":\"Sardar Patel Stadium\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Ahmedabad\"}}}" +
+                "</script></head><body>" +
+                "<div class=\"poster\"><img src=\"https://assets-in.bmscdn.com/discovery-catalog/events/tr:w-400,h-600,bg-CCCCCC:w-400.0,h-660.0,cm-pad_resize,bg-000000,fo-top/et00412345-alan-walker-poster.jpg\" /></div>" +
+                "</body></html>";
+
+        when(urlSecurityValidator.extractAndCleanSingleUrl(anyString())).thenReturn(testUrl);
+        when(safeWebFetcher.fetchHtml(testUrl)).thenReturn(html);
+        when(eventRepository.existsBySlug(anyString())).thenReturn(false);
+
+        EventImportPreviewDto preview = scraperService.scrapeEventFromUrl(testUrl);
+
+        assertNotNull(preview);
+        assertNotNull(preview.getEvent());
+        assertEquals("Sunburn Arena ft. Alan Walker", preview.getEvent().getName());
+        assertEquals("Ahmedabad", preview.getEvent().getCity());
+        assertNotNull(preview.getArtworkCandidates());
+        assertFalse(preview.getArtworkCandidates().isEmpty());
+        boolean hasBmsPoster = preview.getArtworkCandidates().stream()
+                .anyMatch(c -> c.getUrl() != null && c.getUrl().contains("assets-in.bmscdn.com"));
+        assertTrue(hasBmsPoster, "Artwork candidates should include extracted bmscdn image");
+    }
 }

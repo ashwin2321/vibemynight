@@ -172,6 +172,10 @@ public class SafeWebFetcher {
 
             if (host.contains("showmates.in")) {
                 reqBuilder.header("Referer", "https://showmates.in/");
+            } else if (host.contains("bmscdn.com") || host.contains("bookmyshow.com")) {
+                reqBuilder.header("Referer", "https://in.bookmyshow.com/");
+            } else if (host.contains("district.in") || host.contains("insider.in")) {
+                reqBuilder.header("Referer", "https://www.district.in/");
             }
 
             HttpRequest request = reqBuilder.build();
