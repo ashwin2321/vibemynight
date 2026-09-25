@@ -78,7 +78,8 @@ public class SecurityConfig {
                                 "/api/v1/artists/**",
                                 "/api/v1/facilities/**",
                                 "/api/v1/event-days/**",
-                                "/api/v1/settings/public"
+                                "/api/v1/settings/public",
+                                "/api/v1/images/proxy"
                         ).permitAll()
 
                         // Inquiry submission, lookup and UPI initiation are public

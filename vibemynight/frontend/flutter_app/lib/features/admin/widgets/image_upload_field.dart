@@ -80,6 +80,51 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
     }
   }
 
+  bool get _isExternalUrl {
+    final text = widget.controller.text.trim();
+    return (text.startsWith('http://') || text.startsWith('https://')) &&
+        !text.contains('/api/v1/uploads/') &&
+        !text.contains('/uploads/');
+  }
+
+  Future<void> _saveExternalImageToServer() async {
+    final text = widget.controller.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _uploading = true;
+      _error = null;
+    });
+    try {
+      final localUrl = await ref
+          .read(adminServiceProvider)
+          .uploadImageFromUrl(text, folder: widget.folder);
+      widget.controller.text = localUrl;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image downloaded & saved to server!'),
+            backgroundColor: Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save to server: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasImage = widget.controller.text.trim().isNotEmpty;
@@ -112,6 +157,18 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
               ),
             ],
           ),
+          if (_isExternalUrl)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: OutlinedButton.icon(
+                onPressed: _uploading ? null : _saveExternalImageToServer,
+                icon: const Icon(Icons.download_for_offline_outlined, size: 14, color: Color(0xFF10B981)),
+                label: const Text('Save to Server (Permanent)', style: TextStyle(color: Color(0xFF10B981), fontSize: 11.5)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                ),
+              ),
+            ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -318,6 +375,25 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
                         ),
                       ),
                     ),
+                    if (_isExternalUrl) ...[
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: _uploading ? null : _saveExternalImageToServer,
+                        icon: _uploading
+                            ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF10B981)))
+                            : const Icon(Icons.download_for_offline_outlined, size: 15, color: Color(0xFF10B981)),
+                        label: Text(
+                          _uploading ? 'Downloading...' : '⚡ Save to Server (Permanent)',
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF10B981)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.08),
+                        ),
+                      ),
+                    ],
                     if (_error != null) ...[
                       const SizedBox(height: 6),
                       Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 11.5)),

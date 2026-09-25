@@ -199,6 +199,16 @@ class AdminService {
     return (data as Map<String, dynamic>)['url'] as String;
   }
 
+  /// Downloads and saves a remote image from [remoteUrl] to the server
+  /// and returns the VibeMyNight local URL.
+  Future<String> uploadImageFromUrl(String remoteUrl, {String folder = 'events'}) async {
+    final data = await _client.post(
+      '${ApiConstants.adminUploadsFromUrl}?folder=${Uri.encodeComponent(folder)}',
+      body: {'url': remoteUrl, 'folder': folder},
+    );
+    return (data as Map<String, dynamic>)['url'] as String;
+  }
+
   // ---------- Event Import & Builder ----------
 
   /// Parses and validates an Excel workbook (.xlsx) returning the preview hierarchy

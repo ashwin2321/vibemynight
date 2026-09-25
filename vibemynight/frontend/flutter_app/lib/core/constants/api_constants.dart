@@ -59,7 +59,11 @@ class ApiConstants {
   static String adminEventRules(int eventId) => '/admin/events/$eventId/rules';
   static String adminRuleById(int id) => '/admin/rules/$id';
   static const String adminSettings = '/admin/settings';
+  static const String imagesProxy = '/images/proxy';
+  static String imagesProxyUrl(String targetUrl) =>
+      '$baseUrl/images/proxy?url=${Uri.encodeComponent(targetUrl)}';
   static const String adminUploads = '/admin/uploads';
+  static const String adminUploadsFromUrl = '/admin/uploads/from-url';
   static const String adminEventImportParse = '/admin/events/import/parse';
   static const String adminEventImportUrl = '/admin/events/import/url';
   static const String adminEventImportTemplate = '/admin/events/import/template';

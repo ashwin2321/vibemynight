@@ -95,6 +95,38 @@ class NetworkImageBox extends StatelessWidget {
           return _renderLoadingState();
         },
         errorBuilder: (context, error, stack) {
+          final isProxied = effectiveUrl.contains('/images/proxy');
+          final isExternal = effectiveUrl.startsWith('http') &&
+              !effectiveUrl.contains('localhost') &&
+              !effectiveUrl.contains('unsplash.com') &&
+              !effectiveUrl.contains('vibemynight.com');
+
+          if (!isProxied && isExternal) {
+            final proxiedUrl = ApiConstants.imagesProxyUrl(effectiveUrl);
+            return Image.network(
+              proxiedUrl,
+              height: height,
+              width: width,
+              fit: fit,
+              cacheWidth: targetCacheWidth,
+              cacheHeight: targetCacheHeight,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (_, __, ___) {
+                final resolvedFallback = resolveUrl(fallbackUrl) ?? defaultEventPosters[0];
+                return Image.network(
+                  resolvedFallback != effectiveUrl ? resolvedFallback : defaultEventPosters[0],
+                  height: height,
+                  width: width,
+                  fit: fit,
+                  cacheWidth: targetCacheWidth,
+                  cacheHeight: targetCacheHeight,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (_, __, ___) => _renderStylizedFallback(),
+                );
+              },
+            );
+          }
+
           final resolvedFallback = resolveUrl(fallbackUrl) ?? defaultEventPosters[0];
           return Image.network(
             resolvedFallback != effectiveUrl ? resolvedFallback : defaultEventPosters[0],
