@@ -178,7 +178,7 @@ public class EventScraperServiceImpl implements EventScraperService {
     }
 
     private String classifyPlatform(String host) {
-        if (host.contains("bookmyshow.com") || host.contains("bmscdn.com")) {
+        if (host.endsWith("bookmyshow.com") || host.equals("bookmyshow.com")) {
             return "BOOKMYSHOW";
         }
         if (host.endsWith("district.in") || host.equals("district.in")) {
@@ -239,30 +239,10 @@ public class EventScraperServiceImpl implements EventScraperService {
             if (node.has("image")) {
                 JsonNode imgNode = node.get("image");
                 if (imgNode.isTextual()) {
-                    String src = resolveAndCleanImageUrl(imgNode.asText(), data.sourceUrl, data.platform);
-                    if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                        data.images.add(src);
-                    }
+                    data.images.add(imgNode.asText());
                 } else if (imgNode.isArray()) {
                     for (JsonNode i : imgNode) {
-                        if (i.isTextual()) {
-                            String src = resolveAndCleanImageUrl(i.asText(), data.sourceUrl, data.platform);
-                            if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                                data.images.add(src);
-                            }
-                        } else if (i.isObject()) {
-                            String u = i.path("url").asText(i.path("contentUrl").asText(""));
-                            String src = resolveAndCleanImageUrl(u, data.sourceUrl, data.platform);
-                            if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                                data.images.add(src);
-                            }
-                        }
-                    }
-                } else if (imgNode.isObject()) {
-                    String u = imgNode.path("url").asText(imgNode.path("contentUrl").asText(""));
-                    String src = resolveAndCleanImageUrl(u, data.sourceUrl, data.platform);
-                    if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                        data.images.add(src);
+                        if (i.isTextual()) data.images.add(i.asText());
                     }
                 }
             }
@@ -377,48 +357,7 @@ public class EventScraperServiceImpl implements EventScraperService {
     }
 
     private void extractBookMyShowSpecifics(Document doc, ScrapedData data) {
-        // 1. BMS DOM poster/banner images
-        Elements bmsImgs = doc.select("img[src*='bmscdn.com'], img[data-src*='bmscdn.com'], img[src*='discovery-catalog'], [class*='poster'] img, [class*='banner'] img, [class*='hero'] img, [class*='event-card'] img, [class*='eventCard'] img, [class*='Header'] img");
-        for (Element img : bmsImgs) {
-            String raw = img.hasAttr("src") ? img.attr("src") : img.attr("data-src");
-            if (raw == null || raw.isBlank()) raw = img.absUrl("src");
-            String src = resolveAndCleanImageUrl(raw, data.sourceUrl, data.platform);
-            if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                data.images.add(src);
-            }
-        }
-
-        // 2. BMS background images in style attributes
-        Elements styleElements = doc.select("[style*='background-image'], [style*='background:']");
-        for (Element el : styleElements) {
-            String style = el.attr("style");
-            Matcher m = Pattern.compile("url\\(['\"]?([^'\")]+)['\"]?\\)", Pattern.CASE_INSENSITIVE).matcher(style);
-            if (m.find()) {
-                String rawUrl = m.group(1).trim();
-                String src = resolveAndCleanImageUrl(rawUrl, data.sourceUrl, data.platform);
-                if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                    data.images.add(src);
-                }
-            }
-        }
-
-        // 3. BMS initial state scripts e.g. window.__INITIAL_STATE__
-        Elements scripts = doc.select("script:not([src])");
-        for (Element s : scripts) {
-            String html = s.html();
-            if (html.contains("__INITIAL_STATE__") || html.contains("__PRELOADED_STATE__") || html.contains("eventDetails") || html.contains("discovery-catalog")) {
-                Matcher urlMatcher = Pattern.compile("https://[a-zA-Z0-9.-]*bmscdn\\.com/[^\"'\\s\\\\)]+", Pattern.CASE_INSENSITIVE).matcher(html);
-                while (urlMatcher.find()) {
-                    String found = urlMatcher.group(0).replace("\\/", "/");
-                    String src = resolveAndCleanImageUrl(found, data.sourceUrl, data.platform);
-                    if (src != null && isValidEventImageUrl(src) && !data.images.contains(src)) {
-                        data.images.add(src);
-                    }
-                }
-            }
-        }
-
-        // 4. Look for venue breadcrumbs or city badges
+        // Look for venue breadcrumbs or city badges
         Elements cityElem = doc.select("[data-city], .event-venue-city, .venue-name");
         if (cityElem != null && !cityElem.text().isBlank() && (data.city == null || data.city.isBlank())) {
             data.city = cityElem.first().text().trim();
@@ -434,11 +373,9 @@ public class EventScraperServiceImpl implements EventScraperService {
             JsonNode pageProps = root.path("props").path("pageProps");
 
             if (!pageProps.isMissingNode()) {
-                // 1. Showmates / District / BookMyShow Next.js event payload variations
+                // 1. Showmates / District Next.js event payload variations
                 JsonNode eventNode = pageProps.path("event");
                 if (eventNode.isMissingNode()) eventNode = pageProps.path("eventDetails");
-                if (eventNode.isMissingNode()) eventNode = pageProps.path("initialState").path("eventDetails");
-                if (eventNode.isMissingNode()) eventNode = pageProps.path("initialState").path("event");
                 if (eventNode.isMissingNode()) eventNode = pageProps.path("data");
                 if (eventNode.isMissingNode() && pageProps.has("name")) eventNode = pageProps;
 
@@ -567,14 +504,12 @@ public class EventScraperServiceImpl implements EventScraperService {
         // 1. High Priority Artwork Images: Vertical Poster (Index 0) & Horizontal Banner (Index 1)
         List<String> primaryPosterKeys = List.of(
                 "verticalBanner", "verticalImage", "posterImage", "cover_image_vertical", "portraitImage",
-                "poster", "poster_image", "mobileBannerImage", "mobile_banner_image", "mobileBanner", "mobile_banner",
-                "posterURL", "verticalCoverImage", "cmsImage", "movieCard", "eventPoster", "banner_portrait", "card_image_url"
+                "poster", "poster_image", "mobileBannerImage", "mobile_banner_image", "mobileBanner", "mobile_banner"
         );
         List<String> primaryBannerKeys = List.of(
                 "horizontalBanner", "bannerImage", "cover_image_horizontal", "coverImage", "banner",
                 "mainImage", "image", "webBannerImage", "web_banner_image", "event_banner_image", "eventImage",
-                "event_image", "banner_image", "display_image", "card_image",
-                "bannerURL", "eventBannerImage", "horizontalCoverImage", "bgImage", "event_banner_url", "banner_landscape"
+                "event_image", "banner_image", "display_image", "card_image"
         );
 
         for (String k : primaryPosterKeys) {
@@ -756,13 +691,15 @@ public class EventScraperServiceImpl implements EventScraperService {
     private void processAndDownloadArtwork(ScrapedData data, EventHeaderImportDto header, List<ScrapedImageCandidateDto> artworkCandidates, List<ValidationMessageDto> messages) {
         Set<String> seen = new HashSet<>();
 
-        // 1. Fallback for BookMyShow moviecard if no images were extracted from page/DOM
-        if (data.images.isEmpty() && data.sourceUrl != null && (data.sourceUrl.contains("bookmyshow") || data.sourceUrl.contains("ET00"))) {
+        // 1. Check for BookMyShow CDN Image patterns from Event Code
+        if (data.sourceUrl != null && (data.sourceUrl.contains("bookmyshow") || data.sourceUrl.contains("ET00"))) {
             Matcher m = Pattern.compile("(ET[0-9]{6,10})", Pattern.CASE_INSENSITIVE).matcher(data.sourceUrl);
             if (m.find()) {
                 String code = m.group(1).toUpperCase();
                 String bmsCard = "https://in.bmscdn.com/events/moviecard/" + code + ".jpg";
-                data.images.add(bmsCard);
+                String bmsPoster = "https://assets-in.bmscdn.com/discovery-catalog/events/tr:w-400,h-600,bg-CCCCCC:w-400.0,h-660.0,cm-pad_resize,bg-000000,fo-top/" + code.toLowerCase() + ".jpg";
+                data.images.add(0, bmsCard);
+                data.images.add(1, bmsPoster);
             }
         }
 
