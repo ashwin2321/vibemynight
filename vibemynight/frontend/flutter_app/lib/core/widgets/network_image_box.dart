@@ -96,10 +96,15 @@ class NetworkImageBox extends StatelessWidget {
         },
         errorBuilder: (context, error, stack) {
           final isProxied = effectiveUrl.contains('/images/proxy');
+          final isLocalUpload = effectiveUrl.contains('/uploads/');
+          final isBackendHost = effectiveUrl.contains('onrender.com') ||
+              effectiveUrl.contains('vibemynight.com') ||
+              effectiveUrl.contains('localhost');
           final isExternal = effectiveUrl.startsWith('http') &&
-              !effectiveUrl.contains('localhost') &&
-              !effectiveUrl.contains('unsplash.com') &&
-              !effectiveUrl.contains('vibemynight.com');
+              !isProxied &&
+              !isLocalUpload &&
+              !isBackendHost &&
+              !effectiveUrl.contains('unsplash.com');
 
           if (!isProxied && isExternal) {
             final proxiedUrl = ApiConstants.imagesProxyUrl(effectiveUrl);

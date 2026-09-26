@@ -970,55 +970,68 @@ public class EventImportServiceImpl implements EventImportService {
     }
 
     private String resolveDurableUrl(String candidateUrl, List<ScrapedImageCandidateDto> candidates, String preferredRole) {
-        // If candidateUrl is already a valid local stored image (/uploads/...), preserve it directly
+        // 1. If candidateUrl is already a permanent external CDN URL (http/https), preserve it directly
         if (candidateUrl != null && !candidateUrl.isBlank()) {
-            if (candidateUrl.startsWith("/uploads/") || candidateUrl.contains("/uploads/")) {
-                return candidateUrl;
+            String trimmed = candidateUrl.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                return trimmed;
             }
         }
 
         if (candidates != null && !candidates.isEmpty()) {
-            // If candidateUrl matches a candidate with a verified localUrl, prioritize the localUrl
+            // 2. If candidateUrl matches a candidate with an external URL, prioritize the external CDN URL
             if (candidateUrl != null && !candidateUrl.isBlank()) {
                 for (ScrapedImageCandidateDto c : candidates) {
-                    if (candidateUrl.equals(c.getUrl()) && c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
-                        return c.getLocalUrl();
+                    if (candidateUrl.equals(c.getUrl()) || candidateUrl.equals(c.getLocalUrl())) {
+                        if (c.getUrl() != null && (c.getUrl().startsWith("http://") || c.getUrl().startsWith("https://"))) {
+                            return c.getUrl().trim();
+                        }
+                        if (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
+                            return c.getLocalUrl().trim();
+                        }
                     }
-                    if (candidateUrl.equals(c.getLocalUrl())) {
-                        return candidateUrl;
+                }
+            }
+
+            // 3. If candidateUrl is null/blank, find matching preferred role with external CDN URL
+            if (candidateUrl == null || candidateUrl.isBlank()) {
+                for (ScrapedImageCandidateDto c : candidates) {
+                    if (preferredRole.equals(c.getSuggestedRole()) && c.getUrl() != null && (c.getUrl().startsWith("http://") || c.getUrl().startsWith("https://"))) {
+                        return c.getUrl().trim();
                     }
                 }
-            }
 
-            // Find matching preferred role with localUrl first
-            for (ScrapedImageCandidateDto c : candidates) {
-                if (preferredRole.equals(c.getSuggestedRole()) && c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
-                    return c.getLocalUrl();
+                // 4. Find matching preferred role with localUrl (e.g. direct admin disk upload)
+                for (ScrapedImageCandidateDto c : candidates) {
+                    if (preferredRole.equals(c.getSuggestedRole()) && c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
+                        return c.getLocalUrl().trim();
+                    }
                 }
-            }
 
-            // Find matching preferred role with any url
-            for (ScrapedImageCandidateDto c : candidates) {
-                if (preferredRole.equals(c.getSuggestedRole())) {
-                    return c.getEffectiveUrl();
+                // 5. Fallback to any candidate with external CDN URL
+                for (ScrapedImageCandidateDto c : candidates) {
+                    if (c.getUrl() != null && (c.getUrl().startsWith("http://") || c.getUrl().startsWith("https://"))) {
+                        return c.getUrl().trim();
+                    }
                 }
-            }
 
-            // Fallback to any localUrl
-            for (ScrapedImageCandidateDto c : candidates) {
-                if (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
-                    return c.getLocalUrl();
+                // 6. Fallback to any candidate with localUrl
+                for (ScrapedImageCandidateDto c : candidates) {
+                    if (c.getLocalUrl() != null && !c.getLocalUrl().isBlank()) {
+                        return c.getLocalUrl().trim();
+                    }
                 }
-            }
 
-            // Fallback to any effective url
-            for (ScrapedImageCandidateDto c : candidates) {
-                if (c.getEffectiveUrl() != null && !c.getEffectiveUrl().isBlank()) {
-                    return c.getEffectiveUrl();
+                // 7. Fallback to any effective url
+                for (ScrapedImageCandidateDto c : candidates) {
+                    if (c.getEffectiveUrl() != null && !c.getEffectiveUrl().isBlank()) {
+                        return c.getEffectiveUrl().trim();
+                    }
                 }
             }
         }
 
-        return candidateUrl;
+        // 8. If candidateUrl was a local upload (/uploads/...), preserve it
+        return (candidateUrl != null && !candidateUrl.isBlank()) ? candidateUrl.trim() : null;
     }
 }

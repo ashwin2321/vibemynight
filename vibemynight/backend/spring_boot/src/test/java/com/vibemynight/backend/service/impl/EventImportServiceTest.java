@@ -126,7 +126,7 @@ class EventImportServiceTest {
     }
 
     @Test
-    void testConfirmAndCreatePreservesLocalUploadImages() {
+    void testConfirmAndCreatePrioritizesExternalCdnUrlsOverLocalCopies() {
         EventHeaderImportDto header = EventHeaderImportDto.builder()
                 .name("Test Fest 2026")
                 .slug("test-fest-2026")
@@ -134,7 +134,7 @@ class EventImportServiceTest {
                 .venue("Test Venue")
                 .startDate(java.time.LocalDate.now())
                 .endDate(java.time.LocalDate.now().plusDays(1))
-                .mainImage("/uploads/events/local-poster.webp")
+                .mainImage("https://cdn.showmates.in/static/images/poster.webp")
                 .banner("/uploads/events/local-banner.webp")
                 .thumbnail("/uploads/events/local-poster.webp")
                 .build();
@@ -170,7 +170,50 @@ class EventImportServiceTest {
         org.mockito.ArgumentCaptor<Event> eventCaptor = org.mockito.ArgumentCaptor.forClass(Event.class);
         org.mockito.Mockito.verify(eventRepository).save(eventCaptor.capture());
         Event captured = eventCaptor.getValue();
-        assertEquals("/uploads/events/local-poster.webp", captured.getMainImage());
+        assertEquals("https://cdn.showmates.in/static/images/poster.webp", captured.getMainImage());
         assertEquals("/uploads/events/local-banner.webp", captured.getBanner());
+    }
+
+    @Test
+    void testConfirmAndCreatePreservesPureLocalUploadsWhenNoExternalCdnExists() {
+        EventHeaderImportDto header = EventHeaderImportDto.builder()
+                .name("Local Admin Event 2026")
+                .slug("local-admin-event-2026")
+                .city("Surat")
+                .venue("Admin Venue")
+                .startDate(java.time.LocalDate.now())
+                .endDate(java.time.LocalDate.now().plusDays(1))
+                .mainImage("/uploads/events/admin-poster.jpg")
+                .banner("/uploads/events/admin-banner.jpg")
+                .thumbnail("/uploads/events/admin-poster.jpg")
+                .build();
+
+        EventImportPreviewDto preview = EventImportPreviewDto.builder()
+                .event(header)
+                .days(java.util.List.of())
+                .eventFacilities(java.util.List.of())
+                .highlights(java.util.List.of())
+                .rules(java.util.List.of())
+                .artworkCandidates(java.util.List.of())
+                .hasBlockingErrors(false)
+                .build();
+
+        when(eventRepository.existsBySlug(anyString())).thenReturn(false);
+        when(eventRepository.save(org.mockito.ArgumentMatchers.any(Event.class))).thenAnswer(invocation -> {
+            Event saved = invocation.getArgument(0);
+            saved.setId(2L);
+            return saved;
+        });
+        when(eventMapper.toDetailDto(org.mockito.ArgumentMatchers.any(Event.class), org.mockito.ArgumentMatchers.anyList()))
+                .thenReturn(new EventDetailDto());
+
+        EventDetailDto result = importService.confirmAndCreate(preview);
+        assertNotNull(result);
+
+        org.mockito.ArgumentCaptor<Event> eventCaptor = org.mockito.ArgumentCaptor.forClass(Event.class);
+        org.mockito.Mockito.verify(eventRepository).save(eventCaptor.capture());
+        Event captured = eventCaptor.getValue();
+        assertEquals("/uploads/events/admin-poster.jpg", captured.getMainImage());
+        assertEquals("/uploads/events/admin-banner.jpg", captured.getBanner());
     }
 }
