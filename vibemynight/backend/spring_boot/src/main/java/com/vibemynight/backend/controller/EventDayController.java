@@ -18,6 +18,7 @@ import com.vibemynight.backend.repository.EventDayFacilityRepository;
 import com.vibemynight.backend.service.EventDayService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +31,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventDayController {
 
     private final EventDayService eventDayService;
@@ -60,6 +62,7 @@ public class EventDayController {
     // ---------- Admin ----------
 
     @PostMapping("/api/v1/admin/events/{eventId}/days")
+    @Transactional
     public ApiResponse<EventDayDetailDto> create(@PathVariable Long eventId, @Valid @RequestBody CreateEventDayRequest request) {
         EventDay day = EventDay.builder()
                 .dayNumber(request.getDayNumber())
@@ -80,6 +83,7 @@ public class EventDayController {
     }
 
     @PutMapping("/api/v1/admin/event-days/{id}")
+    @Transactional
     public ApiResponse<EventDayDetailDto> update(@PathVariable Long id, @Valid @RequestBody CreateEventDayRequest request) {
         EventDay day = EventDay.builder()
                 .dayNumber(request.getDayNumber())
@@ -103,6 +107,7 @@ public class EventDayController {
     }
 
     @DeleteMapping("/api/v1/admin/event-days/{id}")
+    @Transactional
     public ApiResponse<Void> delete(@PathVariable Long id) {
         eventDayService.delete(id);
         return ApiResponse.ok(null, "Event day deleted");
@@ -110,6 +115,7 @@ public class EventDayController {
 
     /** Assign (or update the assignment of) an artist to a day - one primary + any number of additional artists. */
     @PostMapping("/api/v1/admin/event-days/{dayId}/artists")
+    @Transactional
     public ApiResponse<Void> assignArtist(@PathVariable Long dayId, @Valid @RequestBody AssignArtistToDayRequest request) {
         EventDay day = eventDayService.getById(dayId);
         Artist artist = artistRepository.findById(request.getArtistId())
@@ -128,6 +134,7 @@ public class EventDayController {
     }
 
     @DeleteMapping("/api/v1/admin/event-days/{dayId}/artists/{artistId}")
+    @Transactional
     public ApiResponse<Void> removeArtist(@PathVariable Long dayId, @PathVariable Long artistId) {
         eventDayArtistRepository.deleteByEventDayIdAndArtistId(dayId, artistId);
         return ApiResponse.ok(null, "Artist removed from day");

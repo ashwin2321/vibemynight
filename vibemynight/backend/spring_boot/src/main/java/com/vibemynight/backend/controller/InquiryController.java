@@ -10,6 +10,7 @@ import com.vibemynight.backend.mapper.InquiryMapper;
 import com.vibemynight.backend.service.InquiryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InquiryController {
 
     private final InquiryService inquiryService;
@@ -37,6 +39,7 @@ public class InquiryController {
      * then WhatsApp opens" ordering matches the spec exactly.
      */
     @PostMapping("/api/v1/inquiries")
+    @Transactional
     public ApiResponse<InquiryResponse> create(@Valid @RequestBody CreateInquiryRequest request) {
         return ApiResponse.ok(inquiryService.createInquiry(request), "Inquiry submitted");
     }
@@ -75,6 +78,7 @@ public class InquiryController {
 
     /** Body: { "status": "NEW" | "CONTACTED" | "CONFIRMED" | "CANCELLED" | "COMPLETED" } */
     @PatchMapping("/api/v1/admin/inquiries/{id}/status")
+    @Transactional
     public ApiResponse<InquiryResponse> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateInquiryStatusRequest request) {
         InquiryStatus status = InquiryStatus.valueOf(request.getStatus().toUpperCase());
         inquiryService.updateStatus(id, status);
@@ -82,6 +86,7 @@ public class InquiryController {
     }
 
     @DeleteMapping("/api/v1/admin/inquiries/{id}")
+    @Transactional
     public ApiResponse<Void> delete(@PathVariable Long id) {
         inquiryService.delete(id);
         return ApiResponse.ok(null, "Inquiry deleted");

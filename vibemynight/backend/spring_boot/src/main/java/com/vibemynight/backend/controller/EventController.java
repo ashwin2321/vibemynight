@@ -12,6 +12,7 @@ import com.vibemynight.backend.repository.EventFacilityRepository;
 import com.vibemynight.backend.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventController {
 
     private final EventService eventService;
@@ -72,6 +74,7 @@ public class EventController {
     }
 
     @PostMapping("/api/v1/admin/events")
+    @Transactional
     public ApiResponse<EventSummaryDto> create(@Valid @RequestBody CreateEventRequest request) {
         Event event = Event.builder()
                 .name(request.getName())
@@ -98,6 +101,7 @@ public class EventController {
     }
 
     @PutMapping("/api/v1/admin/events/{id}")
+    @Transactional
     public ApiResponse<EventSummaryDto> update(@PathVariable Long id, @Valid @RequestBody CreateEventRequest request) {
         Event event = Event.builder()
                 .name(request.getName())
@@ -124,6 +128,7 @@ public class EventController {
     }
 
     @DeleteMapping("/api/v1/admin/events/{id}")
+    @Transactional
     public ApiResponse<Void> delete(@PathVariable Long id) {
         eventService.delete(id);
         return ApiResponse.ok(null, "Event deleted");
@@ -131,6 +136,7 @@ public class EventController {
 
     /** Body: { "status": "PUBLISHED" | "UNPUBLISHED" | "COMPLETED" | "CANCELLED" | "DRAFT" } */
     @PatchMapping("/api/v1/admin/events/{id}/status")
+    @Transactional
     public ApiResponse<EventSummaryDto> changeStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         EventStatus status = EventStatus.valueOf(body.get("status").toUpperCase());
         Event saved = eventService.changeStatus(id, status);
@@ -139,6 +145,7 @@ public class EventController {
 
     /** Body: { "showInHero": true | false } */
     @PatchMapping("/api/v1/admin/events/{id}/hero")
+    @Transactional
     public ApiResponse<EventSummaryDto> toggleHero(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
         Boolean showInHero = body.getOrDefault("showInHero", false);
         Event saved = eventService.toggleHero(id, showInHero);
