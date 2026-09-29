@@ -7,6 +7,7 @@ import 'package:vibemynight/core/widgets/error_view.dart';
 import 'package:vibemynight/core/widgets/glass_card.dart';
 import 'package:vibemynight/core/widgets/gradient_button.dart';
 import 'package:vibemynight/core/widgets/loading_view.dart';
+import 'package:vibemynight/core/widgets/network_image_box.dart';
 import 'package:vibemynight/features/admin/widgets/status_badge.dart';
 import 'package:vibemynight/features/events/widgets/event_card.dart';
 import 'package:vibemynight/models/event_summary.dart';
@@ -189,6 +190,23 @@ void main() {
       expect(find.text('Navratri Nights 2026'), findsOneWidget);
       expect(find.text('₹399 onwards'), findsOneWidget);
       expect(find.text('Passes'), findsOneWidget);
+    });
+
+    testWidgets('NeonShimmerPlaceholder renders and animates smoothly', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: NeonShimmerPlaceholder(
+              width: 200,
+              height: 100,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(NeonShimmerPlaceholder), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(NeonShimmerPlaceholder), findsOneWidget);
     });
   });
 }

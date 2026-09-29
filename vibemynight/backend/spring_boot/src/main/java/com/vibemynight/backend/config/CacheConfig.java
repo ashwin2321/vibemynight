@@ -7,7 +7,6 @@ import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -17,11 +16,57 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+
+        // Default fallback builder
         cacheManager.setCaffeine(Caffeine.newBuilder()
-                .maximumSize(500)
-                .expireAfterWrite(60, TimeUnit.SECONDS)
+                .maximumSize(200)
+                .expireAfterWrite(120, TimeUnit.SECONDS)
                 .recordStats());
-        cacheManager.setCacheNames(Arrays.asList("events", "event_details", "artists", "facilities", "settings", "settings_public"));
+
+        // Granular cache policies
+        cacheManager.registerCustomCache("events",
+                Caffeine.newBuilder()
+                        .maximumSize(200)
+                        .expireAfterWrite(120, TimeUnit.SECONDS)
+                        .recordStats()
+                        .build());
+
+        cacheManager.registerCustomCache("event_details",
+                Caffeine.newBuilder()
+                        .maximumSize(500)
+                        .expireAfterWrite(120, TimeUnit.SECONDS)
+                        .recordStats()
+                        .build());
+
+        cacheManager.registerCustomCache("artists",
+                Caffeine.newBuilder()
+                        .maximumSize(200)
+                        .expireAfterWrite(300, TimeUnit.SECONDS)
+                        .recordStats()
+                        .build());
+
+        cacheManager.registerCustomCache("facilities",
+                Caffeine.newBuilder()
+                        .maximumSize(100)
+                        .expireAfterWrite(600, TimeUnit.SECONDS)
+                        .recordStats()
+                        .build());
+
+        cacheManager.registerCustomCache("settings",
+                Caffeine.newBuilder()
+                        .maximumSize(10)
+                        .expireAfterWrite(600, TimeUnit.SECONDS)
+                        .recordStats()
+                        .build());
+
+        cacheManager.registerCustomCache("settings_public",
+                Caffeine.newBuilder()
+                        .maximumSize(10)
+                        .expireAfterWrite(600, TimeUnit.SECONDS)
+                        .recordStats()
+                        .build());
+
         return cacheManager;
     }
 }
+

@@ -113,7 +113,7 @@ class EventServiceTest {
 
         EventDay day1 = EventDay.builder()
                 .dayNumber(1)
-                .date("2026-10-15")
+                .date(java.time.LocalDate.of(2026, 10, 15))
                 .eventDayArtists(new ArrayList<>())
                 .ticketCategories(new ArrayList<>())
                 .build();

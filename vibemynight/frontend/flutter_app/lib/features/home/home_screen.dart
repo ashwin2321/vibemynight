@@ -1164,13 +1164,10 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
                     separatorBuilder: (_, __) => const SizedBox(width: 16),
-                    itemBuilder: (_, __) => Container(
+                    itemBuilder: (_, __) => ShimmerBox(
                       width: cardWidth,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF15102A),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                      ),
+                      height: isDesktop ? 340 : 300,
+                      borderRadius: 20,
                     ),
                   ),
                 ),
@@ -1438,12 +1435,7 @@ class _UpcomingEventsSection extends StatelessWidget {
 
               // Dynamic Grid
               eventsAsync.when(
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+                loading: () => const ShimmerCardGrid(count: 3, cardHeight: 88),
                 error: (_, __) => const SizedBox.shrink(),
                 data: (events) {
                   if (events.isEmpty) {

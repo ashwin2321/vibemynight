@@ -38,11 +38,13 @@ public class EventController {
     // ---------- Public ----------
 
     @GetMapping("/api/v1/events")
-    public ApiResponse<List<EventSummaryDto>> listPublished() {
+    public org.springframework.http.ResponseEntity<ApiResponse<List<EventSummaryDto>>> listPublished() {
         List<EventSummaryDto> events = eventService.findPublished().stream()
                 .map(eventMapper::toSummaryDto)
                 .toList();
-        return ApiResponse.ok(events);
+        return org.springframework.http.ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(60, java.util.concurrent.TimeUnit.SECONDS).cachePublic().mustRevalidate())
+                .body(ApiResponse.ok(events));
     }
 
     @GetMapping("/api/v1/events/{slug}")
