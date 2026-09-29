@@ -1,4 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vibemynight/core/network/api_client.dart';
+import 'package:vibemynight/core/network/api_exception.dart';
 import 'package:vibemynight/core/utils/csv_exporter.dart';
 import 'package:vibemynight/models/admin_requests.dart';
 import 'package:vibemynight/models/admin_user.dart';
@@ -12,6 +15,166 @@ import 'package:vibemynight/models/settings.dart';
 import 'package:vibemynight/models/upi_payment.dart';
 
 void main() {
+  group('ApiClient Cold-Start Retry & Reliability Tests', () {
+    test('GET retries on transient connection timeout and succeeds on subsequent attempt', () async {
+      int attempts = 0;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            attempts++;
+            if (attempts == 1) {
+              return handler.reject(
+                DioException(
+                  requestOptions: options,
+                  type: DioExceptionType.connectionTimeout,
+                  message: 'Connection timed out (Render cold-start)',
+                ),
+              );
+            }
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'success': true, 'data': {'status': 'ONLINE'}},
+              ),
+            );
+          },
+        ),
+      );
+
+      final client = ApiClient.withDio(dio);
+      final result = await client.get('/public/health');
+
+      expect(attempts, 2);
+      expect(result, {'status': 'ONLINE'});
+    });
+
+    test('GET retries on 502/503/504 Service Unavailable and succeeds', () async {
+      int attempts = 0;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            attempts++;
+            if (attempts <= 2) {
+              return handler.reject(
+                DioException(
+                  requestOptions: options,
+                  response: Response(
+                    requestOptions: options,
+                    statusCode: 503,
+                    statusMessage: 'Service Unavailable',
+                  ),
+                  type: DioExceptionType.badResponse,
+                ),
+              );
+            }
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'success': true, 'data': [{'id': 1, 'name': 'Event'}]},
+              ),
+            );
+          },
+        ),
+      );
+
+      final client = ApiClient.withDio(dio);
+      final result = await client.get('/public/events');
+
+      expect(attempts, 3);
+      expect((result as List).length, 1);
+    });
+
+    test('GET fails with ApiException after max retry attempts exhausted', () async {
+      int attempts = 0;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            attempts++;
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.connectionError,
+                message: 'Connection refused',
+              ),
+            );
+          },
+        ),
+      );
+
+      final client = ApiClient.withDio(dio);
+
+      await expectLater(
+        () => client.get('/public/events'),
+        throwsA(isA<ApiException>()),
+      );
+      expect(attempts, 4);
+    });
+
+    test('POST requests are strictly NEVER retried automatically', () async {
+      int attempts = 0;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            attempts++;
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.connectionTimeout,
+                message: 'Timeout on booking',
+              ),
+            );
+          },
+        ),
+      );
+
+      final client = ApiClient.withDio(dio);
+
+      try {
+        await client.post('/public/inquiries', body: {'name': 'Test'});
+      } catch (_) {}
+
+      expect(attempts, 1);
+    });
+
+    test('Concurrent identical GET requests are deduplicated into single in-flight future', () async {
+      int networkCalls = 0;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) async {
+            networkCalls++;
+            await Future.delayed(const Duration(milliseconds: 20));
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'success': true, 'data': 'DEDUPLICATED_SUCCESS'},
+              ),
+            );
+          },
+        ),
+      );
+
+      final client = ApiClient.withDio(dio);
+
+      final results = await Future.wait([
+        client.get('/public/events'),
+        client.get('/public/events'),
+        client.get('/public/events'),
+      ]);
+
+      expect(networkCalls, 1);
+      expect(results[0], 'DEDUPLICATED_SUCCESS');
+      expect(results[1], 'DEDUPLICATED_SUCCESS');
+      expect(results[2], 'DEDUPLICATED_SUCCESS');
+    });
+  });
   group('Models JSON Serialization / Deserialization Tests', () {
     test('EventSummary.fromJson parses correctly', () {
       final json = {

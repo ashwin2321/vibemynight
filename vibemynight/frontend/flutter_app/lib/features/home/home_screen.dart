@@ -58,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final eventsAsync = ref.watch(publishedEventsProvider);
     final artistsAsync = ref.watch(artistsProvider);
     final settingsAsync = ref.watch(appSettingsProvider);
-    final whatsappNumber = settingsAsync.value?.whatsappNumber ?? '917041615131';
+    final whatsappNumber = settingsAsync.valueOrNull?.whatsappNumber ?? '917041615131';
 
     return Scaffold(
       backgroundColor: const Color(0xFF07070E),
@@ -176,7 +176,7 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
   }
 
   List<EventSummary> _getDisplayEvents() {
-    final liveEvents = widget.eventsAsync.value;
+    final liveEvents = widget.eventsAsync.valueOrNull;
     if (liveEvents != null && liveEvents.isNotEmpty) {
       final heroOnly = liveEvents.where((e) => e.showInHero).toList();
       if (heroOnly.isNotEmpty) {
