@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "vibemynight/frontend/flutter_app/build/web",
-  "buildCommand": "bash build_vercel.sh",
+  "buildCommand": "export PATH=$PATH:$(pwd)/flutter/bin && cd vibemynight/frontend/flutter_app && flutter pub get && flutter build web --release --no-tree-shake-icons",
   "rewrites": [
     {
       "source": "/(.*)",
