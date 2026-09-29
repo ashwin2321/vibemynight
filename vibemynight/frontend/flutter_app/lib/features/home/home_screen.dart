@@ -1360,7 +1360,7 @@ class _NavArrowButton extends StatelessWidget {
 }
 
 // ==========================================
-// 3. UPCOMING EVENTS SECTION (DYNAMIC - 2 COLUMNS ON MOBILE)
+// 3. UPCOMING EVENTS SECTION (DYNAMIC - 1 COL ON MOBILE, 2 ON TABLET, 3 ON DESKTOP)
 // ==========================================
 class _UpcomingEventsSection extends StatelessWidget {
   final AsyncValue<List<EventSummary>> eventsAsync;
@@ -1372,7 +1372,7 @@ class _UpcomingEventsSection extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 900;
     final isTablet = size.width >= 600 && size.width < 900;
-    final cols = isDesktop ? 3 : (isTablet ? 2 : 2);
+    final cols = isDesktop ? 3 : (isTablet ? 2 : 1);
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -1449,8 +1449,6 @@ class _UpcomingEventsSection extends StatelessWidget {
                         spacing: 16,
                         runSpacing: 16,
                         children: events.take(6).map((ev) {
-                          final img = NetworkImageBox.resolveUrl(ev.thumbnail ?? ev.mainImage) ??
-                              'https://images.unsplash.com/photo-1618176581836-9dcf475e2b4a?w=400&h=280&fit=crop&auto=format';
                           final targetRoute = '/events/${ev.slug.isNotEmpty ? ev.slug : ev.id}';
 
                           return SizedBox(
@@ -1471,19 +1469,12 @@ class _UpcomingEventsSection extends StatelessWidget {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        img,
-                                        width: 76,
-                                        height: 76,
+                                      child: NetworkImageBox(
+                                        url: ev.thumbnail ?? ev.mainImage,
+                                        width: 80,
+                                        height: 80,
+                                        borderRadius: BorderRadius.circular(12),
                                         fit: BoxFit.cover,
-                                        cacheWidth: 200,
-                                        cacheHeight: 200,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          width: 76,
-                                          height: 76,
-                                          color: const Color(0xFF1E1E38),
-                                          child: const Icon(Icons.nightlife, color: Colors.white24),
-                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 14),
@@ -1497,7 +1488,7 @@ class _UpcomingEventsSection extends StatelessWidget {
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontWeight: FontWeight.w700,
-                                              fontSize: 14,
+                                              fontSize: 15,
                                               color: Colors.white,
                                             ),
                                           ),
@@ -1518,8 +1509,8 @@ class _UpcomingEventsSection extends StatelessWidget {
                                               Text(
                                                 '📅 ${ev.startDate}',
                                                 style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.white.withValues(alpha: 0.4),
+                                                  fontSize: 12,
+                                                  color: Colors.white.withValues(alpha: 0.5),
                                                 ),
                                               ),
                                               Text(

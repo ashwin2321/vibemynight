@@ -32,10 +32,10 @@ class AppFooter extends ConsumerWidget {
     final settingsAsync = ref.watch(appSettingsProvider);
     final settings = settingsAsync.value;
     final whatsapp = settings?.whatsappNumber ?? '917041615131';
-    final email = settings?.email ?? 'hello@vibemynight.com';
     final phone = settings?.phone ?? '+91 70416 15131';
-    final instagram = settings?.instagramUrl;
-    final facebook = settings?.facebookUrl;
+    final instagram = (settings?.instagramUrl != null && settings!.instagramUrl!.isNotEmpty)
+        ? settings.instagramUrl!
+        : 'https://www.instagram.com/vibemynight/';
     final footerText = settings?.footerText ?? '© 2026 VibeMyNight. All rights reserved.';
 
     return Container(
@@ -116,7 +116,7 @@ class AppFooter extends ConsumerWidget {
                             ),
                             const SizedBox(height: 12),
                             _FooterLink(label: phone, onTap: () => _launchUrl('tel:$phone')),
-                            _FooterLink(label: email, onTap: () => _launchUrl('mailto:$email')),
+                            _FooterLink(label: 'WhatsApp', onTap: () => _launchWhatsApp(whatsapp)),
                           ],
                         ),
                       ),
@@ -134,12 +134,8 @@ class AppFooter extends ConsumerWidget {
                             const SizedBox(height: 12),
                             Row(
                               children: [
-                                if (instagram != null && instagram.isNotEmpty) ...[
+                                if (instagram.isNotEmpty) ...[
                                   _SocialCircle(icon: Icons.camera_alt, color: const Color(0xFFE1306C), onTap: () => _launchUrl(instagram)),
-                                  const SizedBox(width: 8),
-                                ],
-                                if (facebook != null && facebook.isNotEmpty) ...[
-                                  _SocialCircle(icon: Icons.facebook, color: const Color(0xFF1877F2), onTap: () => _launchUrl(facebook)),
                                   const SizedBox(width: 8),
                                 ],
                                 _SocialCircle(icon: Icons.chat, color: const Color(0xFF25D366), onTap: () => _launchWhatsApp(whatsapp)),

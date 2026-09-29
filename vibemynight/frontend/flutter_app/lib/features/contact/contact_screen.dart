@@ -35,9 +35,9 @@ class ContactScreen extends ConsumerWidget {
     final settings = settingsAsync.value;
     final whatsapp = settings?.whatsappNumber ?? '917041615131';
     final phone = settings?.phone ?? '+91 70416 15131';
-    final email = settings?.email ?? 'hello@vibemynight.com';
-    final instagram = settings?.instagramUrl ?? 'https://instagram.com/vibemynight';
-    final facebook = settings?.facebookUrl ?? 'https://facebook.com/vibemynight';
+    final instagram = (settings?.instagramUrl != null && settings!.instagramUrl!.isNotEmpty)
+        ? settings.instagramUrl!
+        : 'https://www.instagram.com/vibemynight/';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -75,7 +75,7 @@ class ContactScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 36),
 
-                      // Contact Channel Grid
+                      // Contact Channel Grid (WhatsApp, Phone, Instagram)
                       LayoutBuilder(
                         builder: (context, constraints) {
                           final isWide = constraints.maxWidth >= 600;
@@ -85,7 +85,7 @@ class ContactScreen extends ConsumerWidget {
                             physics: const NeverScrollableScrollPhysics(),
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: isWide ? 1.5 : 2.5,
+                            childAspectRatio: isWide ? 1.4 : 2.6,
                             children: [
                               _ContactCard(
                                 icon: '💬',
@@ -102,25 +102,11 @@ class ContactScreen extends ConsumerWidget {
                                 onTap: () => _launch('tel:$phone'),
                               ),
                               _ContactCard(
-                                icon: '✉️',
-                                label: 'Email',
-                                value: email,
-                                accentColor: AppColors.neonPurple,
-                                onTap: () => _launch('mailto:$email'),
-                              ),
-                              _ContactCard(
                                 icon: '📸',
                                 label: 'Instagram',
                                 value: '@vibemynight',
                                 accentColor: AppColors.neonPink,
                                 onTap: () => _launch(instagram),
-                              ),
-                              _ContactCard(
-                                icon: '👤',
-                                label: 'Facebook',
-                                value: 'VibeMyNight',
-                                accentColor: const Color(0xFF1877F2),
-                                onTap: () => _launch(facebook),
                               ),
                             ],
                           );
