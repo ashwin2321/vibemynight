@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/data_providers.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/gradient_button.dart';
@@ -98,11 +99,12 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       'currency': _currency.text.trim(),
       if (_footerText.text.trim().isNotEmpty) 'footerText': _footerText.text.trim(),
       'upiEnabled': _upiEnabled,
-      if (_upiVpa.text.trim().isNotEmpty) 'upiVpa': _upiVpa.text.trim(),
-      if (_upiMerchantName.text.trim().isNotEmpty) 'upiMerchantName': _upiMerchantName.text.trim(),
+      'upiVpa': _upiVpa.text.trim().isNotEmpty ? _upiVpa.text.trim() : null,
+      'upiMerchantName': _upiMerchantName.text.trim().isNotEmpty ? _upiMerchantName.text.trim() : null,
     };
     try {
       await ref.read(adminServiceProvider).updateSettings(body);
+      ref.invalidate(appSettingsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings saved')));
       }
@@ -203,7 +205,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
                                   labelText: 'Merchant UPI VPA / ID *',
                                   hintText: 'e.g. vibemynight@icici or 917041615131@upi',
                                   helperText: 'Payments will be routed directly to this UPI ID',
-                                ),
+                                  ),
                                 validator: (v) {
                                   if (!_upiEnabled) return null;
                                   if (v == null || v.trim().isEmpty) return 'UPI VPA is required when UPI is enabled';

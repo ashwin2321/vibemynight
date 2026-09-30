@@ -2019,11 +2019,11 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   onPressed: () => _proceedToInquiry(event, day, currentPass),
                 ),
 
-                // Optional UPI Payment CTA Button (Enabled only when Admin sets upiEnabled = true)
-                if (settings?.upiEnabled == true) ...[
+                // Optional UPI Payment CTA Button (Enabled only when Admin sets upiEnabled = true and upiVpa is non-empty)
+                if (settings != null && settings.upiEnabled && settings.upiVpa != null && settings.upiVpa!.trim().isNotEmpty) ...[
                   const SizedBox(height: 12),
                   InkWell(
-                    onTap: () => _openUpiPaymentModal(context, settings!, event, day, currentPass!),
+                    onTap: () => _openUpiPaymentModal(context, settings, event, day, currentPass!),
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       height: 48,
@@ -2189,9 +2189,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                if (settings?.upiEnabled == true && currentPass != null) ...[
+                if (settings != null && settings.upiEnabled && settings.upiVpa != null && settings.upiVpa!.trim().isNotEmpty && currentPass != null) ...[
                   IconButton(
-                    onPressed: () => _openUpiPaymentModal(context, settings!, event, day, currentPass!),
+                    onPressed: () => _openUpiPaymentModal(context, settings, event, day, currentPass!),
                     tooltip: 'Pay via UPI',
                     style: IconButton.styleFrom(
                       backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.18),

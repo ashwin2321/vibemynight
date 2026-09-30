@@ -47,6 +47,9 @@ public class SettingsServiceImpl implements SettingsService {
         existing.setFacebookUrl(updated.getFacebookUrl());
         existing.setCurrency(updated.getCurrency());
         existing.setFooterText(updated.getFooterText());
+        existing.setUpiEnabled(Boolean.TRUE.equals(updated.getUpiEnabled()));
+        existing.setUpiVpa(updated.getUpiVpa());
+        existing.setUpiMerchantName(updated.getUpiMerchantName());
         return settingsRepository.save(existing);
     }
 }
