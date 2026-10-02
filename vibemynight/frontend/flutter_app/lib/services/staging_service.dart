@@ -211,4 +211,92 @@ class StagingService {
     }
     throw const ApiException('Unexpected response from production import bridge');
   }
+
+  /// Discovers live events from external sources without deep-scraping.
+  Future<DiscoverEventsResponse> discoverEvents({
+    String source = 'all',
+    String? city,
+    String? category,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'source': source.toLowerCase(),
+        'page': page,
+        'pageSize': pageSize,
+      };
+      if (city != null && city.trim().isNotEmpty && city.toUpperCase() != 'ALL') {
+        queryParams['city'] = city.trim();
+      }
+      if (category != null && category.trim().isNotEmpty && category.toUpperCase() != 'ALL') {
+        queryParams['category'] = category.trim();
+      }
+
+      final response = await _stagingDio.post(
+        ApiConstants.syncDiscover,
+        queryParameters: queryParams,
+        data: {
+          'source': source.toLowerCase(),
+          'city': city,
+          'category': category,
+          'page': page,
+          'pageSize': pageSize,
+        },
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        return DiscoverEventsResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw const ApiException('Invalid discovery response format from Staging API');
+    } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to discover live events';
+      if (e.type == DioExceptionType.connectionError ||
+          message.contains('XMLHttpRequest') ||
+          message.contains('Failed to fetch') ||
+          message.contains('NetworkError')) {
+        message =
+            'Unable to reach Staging Service at ${ApiConstants.stagingSyncBaseUrl}.';
+      }
+      throw ApiException(message, statusCode: e.response?.statusCode);
+    }
+  }
+
+  /// Deep scrapes selected discovered events and stages them for review.
+  Future<DeepScrapeResponse> deepScrapeEvents({
+    required List<DeepScrapeSelectedTarget> events,
+    bool runAiEnrichment = true,
+  }) async {
+    try {
+      final response = await _stagingDio.post(
+        ApiConstants.syncDeepScrape,
+        data: {
+          'events': events.map((e) => e.toJson()).toList(),
+          'run_ai_enrichment': runAiEnrichment,
+        },
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        return DeepScrapeResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw const ApiException('Invalid deep scrape response format');
+    } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to deep-scrape selected events';
+      if (e.type == DioExceptionType.connectionError ||
+          message.contains('XMLHttpRequest') ||
+          message.contains('Failed to fetch') ||
+          message.contains('NetworkError')) {
+        message =
+            'Unable to reach Staging Service at ${ApiConstants.stagingSyncBaseUrl}.';
+      }
+      throw ApiException(message, statusCode: e.response?.statusCode);
+    }
+  }
 }
+

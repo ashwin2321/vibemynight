@@ -1,5 +1,6 @@
+import datetime
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc
@@ -10,8 +11,17 @@ from app.schemas.staging_event import (
     StagingEventResponse,
     StagingEventListResponse,
     StagingEventUpdate,
-    SyncFetchResponse
+    SyncFetchResponse,
+    DiscoverEventsRequest,
+    DiscoverEventsResponse,
+    DiscoveredEventItem,
+    DeepScrapeRequest,
+    DeepScrapeResponse,
+    DeepScrapeResultItem
 )
+from app.services.base_adapter import AdapterRegistry
+# Import adapters so they register with AdapterRegistry
+import app.services.adapters
 from app.services.showmates_service import ShowmatesService
 from app.services.bookmyshow_service import BookMyShowService
 from app.services.district_service import DistrictService
@@ -221,6 +231,257 @@ async def fetch_and_stage_events(
         duplicates=duplicate_count,
         failed=failed_count,
         message=f"Sync cycle completed: {processed_count} staged from {selected_source.upper()}, {duplicate_count} duplicates detected, {failed_count} errors."
+    )
+
+
+# =========================================================================
+# UNIVERSAL DYNAMIC LIVE DISCOVERY & DEEP SCRAPING ENDPOINTS
+# =========================================================================
+
+@router.post("/discover", response_model=DiscoverEventsResponse)
+@router.get("/discover", response_model=DiscoverEventsResponse)
+async def discover_events(
+    request: Optional[DiscoverEventsRequest] = None,
+    source: Optional[str] = Query("all", description="Source: 'all', 'showmates', 'bookmyshow', 'district'"),
+    city: Optional[str] = Query(None, description="City name or 'ALL'"),
+    category: Optional[str] = Query(None, description="Category filter"),
+    page: int = Query(1, ge=1),
+    pageSize: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Live Catalog Discovery:
+    Discovers live events across BookMyShow, District, and Showmates by City and Category.
+    Returns lightweight summaries with live posters and dates without deep scraping.
+    """
+    req_source = request.source if request else source
+    req_city = request.city if request else city
+    req_cat = request.category if request else category
+    req_page = request.page if request else page
+    req_page_size = request.pageSize if request else pageSize
+
+    req_source_clean = (req_source or "all").lower().strip()
+
+    adapters_to_run = []
+    if req_source_clean == "all":
+        adapters_to_run = AdapterRegistry.get_all()
+    else:
+        adp = AdapterRegistry.get(req_source_clean)
+        if adp:
+            adapters_to_run.append(adp)
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown source adapter '{req_source_clean}'. Available sources: {AdapterRegistry.list_sources()}"
+            )
+
+    all_discovered: List[DiscoveredEventItem] = []
+
+    for adp in adapters_to_run:
+        try:
+            discovered_events = await adp.discover(
+                city=req_city,
+                category=req_cat,
+                page=req_page,
+                page_size=req_page_size
+            )
+            for d in discovered_events:
+                # Check if already staged in database
+                existing_staged = db.query(StagingEvent).filter(
+                    StagingEvent.source == d.source,
+                    StagingEvent.source_event_id == d.source_event_id
+                ).first()
+
+                is_staged = existing_staged is not None
+
+                all_discovered.append(DiscoveredEventItem(
+                    source=d.source,
+                    source_event_id=d.source_event_id,
+                    title=d.title,
+                    event_url=d.event_url,
+                    poster_url=d.poster_url,
+                    banner_url=d.banner_url,
+                    venue_name=d.venue_name,
+                    city=d.city,
+                    event_start_date=d.event_start_date,
+                    event_end_date=d.event_end_date,
+                    starting_price=d.starting_price,
+                    currency=d.currency,
+                    category=d.category,
+                    is_already_staged=is_staged,
+                    is_already_in_production=False,
+                    discovered_at=d.discovered_at or datetime.datetime.utcnow().isoformat(),
+                    raw_discovery_payload=d.raw_discovery_payload
+                ))
+        except Exception as e:
+            logger.error(f"Error discovering events from adapter '{adp.source_name}': {e}")
+
+    return DiscoverEventsResponse(
+        success=True,
+        source=req_source_clean,
+        city=req_city,
+        category=req_cat,
+        total_discovered=len(all_discovered),
+        items=all_discovered,
+        timestamp=datetime.datetime.utcnow().isoformat()
+    )
+
+
+@router.post("/deep-scrape", response_model=DeepScrapeResponse)
+async def deep_scrape_events(
+    request: DeepScrapeRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Selective Deep Scraping & Staging:
+    Deep-scrapes selected events, extracts full nested hierarchy (days, passes, artists, facilities, rules),
+    runs duplicate checking and Gemini AI enrichment, and inserts into Staging DB.
+    """
+    if not request.events:
+        raise HTTPException(status_code=400, detail="No events selected for deep scraping.")
+
+    ai_service = get_ai_service()
+    results: List[DeepScrapeResultItem] = []
+
+    staged_count = 0
+    duplicate_count = 0
+    failed_count = 0
+
+    for target in request.events:
+        src_name = target.source.lower().strip()
+        adp = AdapterRegistry.get(src_name)
+        if not adp:
+            failed_count += 1
+            results.append(DeepScrapeResultItem(
+                source=target.source,
+                source_event_id=target.source_event_id,
+                title=target.title or "Unknown",
+                status="FAILED",
+                validation_status="INVALID",
+                message=f"No source adapter registered for '{target.source}'"
+            ))
+            continue
+
+        try:
+            # 1. Deep scrape from source adapter
+            deep_scraped = await adp.deep_scrape(
+                event_url=target.event_url,
+                hint_payload=target.hint_payload
+            )
+
+            # 2. Check for duplicates in Staging DB
+            is_dup, existing_id = DuplicateDetector.check_duplicate(
+                db=db,
+                source=deep_scraped.source,
+                source_event_id=deep_scraped.source_event_id,
+                title=deep_scraped.title,
+                venue_name=deep_scraped.venue_name,
+                event_start_date=deep_scraped.event_start_date,
+                city=deep_scraped.city
+            )
+
+            # 3. AI Enrichment (only if not duplicate and requested)
+            ai_enhanced = None
+            ai_error = None
+            ai_processed = False
+
+            if not is_dup and request.run_ai_enrichment:
+                ai_enhanced, ai_error = await ai_service.enhance_event(
+                    title=deep_scraped.title,
+                    description=deep_scraped.description,
+                    venue=deep_scraped.venue_name,
+                    city=deep_scraped.city,
+                    start_date=deep_scraped.event_start_date,
+                    raw_info=deep_scraped.raw_source_payload or deep_scraped.model_dump()
+                )
+                ai_processed = ai_enhanced is not None
+
+            # 4. Status determination
+            if is_dup:
+                status_val = StagingEventStatus.DUPLICATE
+                duplicate_count += 1
+            elif deep_scraped.validation_status == "INVALID":
+                status_val = StagingEventStatus.CONFLICT
+            else:
+                status_val = StagingEventStatus.PENDING_REVIEW
+
+            # Prepare full hierarchy payload
+            full_raw_payload = deep_scraped.model_dump()
+            if deep_scraped.raw_source_payload:
+                full_raw_payload["source_original_payload"] = deep_scraped.raw_source_payload
+
+            staging_obj = StagingEvent(
+                source=deep_scraped.source,
+                source_event_id=deep_scraped.source_event_id,
+                source_url=deep_scraped.source_url,
+                title=deep_scraped.title,
+                description=deep_scraped.description,
+                enhanced_title=ai_enhanced.enhancedTitle if ai_enhanced else deep_scraped.title,
+                catchy_description=ai_enhanced.catchyDescription if ai_enhanced else deep_scraped.description,
+                highlights=ai_enhanced.highlights if ai_enhanced else [],
+                genre_tags=ai_enhanced.genreTags if ai_enhanced else [],
+                seo_keywords=ai_enhanced.seoKeywords if ai_enhanced else [],
+                whatsapp_teaser=ai_enhanced.whatsAppTeaser if ai_enhanced else None,
+                poster_url=deep_scraped.poster_url,
+                banner_url=deep_scraped.banner_url,
+                event_start_date=deep_scraped.event_start_date,
+                event_end_date=deep_scraped.event_end_date,
+                start_time=deep_scraped.start_time,
+                end_time=deep_scraped.end_time,
+                venue_name=deep_scraped.venue_name,
+                venue_address=deep_scraped.venue_address,
+                city=deep_scraped.city,
+                state=deep_scraped.state,
+                min_ticket_price=deep_scraped.min_ticket_price,
+                max_ticket_price=deep_scraped.max_ticket_price,
+                currency=deep_scraped.currency,
+                raw_payload=full_raw_payload,
+                status=status_val,
+                duplicate_of=existing_id,
+                ai_processed=ai_processed,
+                ai_provider="gemini" if settings.GEMINI_API_KEY else "fallback",
+                ai_model=settings.GEMINI_MODEL if settings.GEMINI_API_KEY else "rule-based",
+                ai_error=ai_error
+            )
+
+            db.add(staging_obj)
+            db.commit()
+            db.refresh(staging_obj)
+            staged_count += 1
+
+            results.append(DeepScrapeResultItem(
+                source=deep_scraped.source,
+                source_event_id=deep_scraped.source_event_id,
+                staging_id=staging_obj.id,
+                title=deep_scraped.title,
+                status=status_val.value,
+                validation_status=deep_scraped.validation_status,
+                is_duplicate=is_dup,
+                duplicate_of=existing_id,
+                message="Successfully deep-scraped and staged" if not is_dup else f"Duplicate of #{existing_id}"
+            ))
+
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error deep scraping target '{target.title}': {e}")
+            failed_count += 1
+            results.append(DeepScrapeResultItem(
+                source=target.source,
+                source_event_id=target.source_event_id,
+                title=target.title or "Unknown",
+                status="FAILED",
+                validation_status="INVALID",
+                message=str(e)
+            ))
+
+    return DeepScrapeResponse(
+        success=True,
+        total_requested=len(request.events),
+        total_staged=staged_count,
+        total_duplicates=duplicate_count,
+        total_failed=failed_count,
+        results=results,
+        message=f"Deep scraping completed: {staged_count} staged, {duplicate_count} duplicates, {failed_count} failures."
     )
 
 

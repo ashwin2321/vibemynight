@@ -11,31 +11,31 @@ logger = logging.getLogger(__name__)
 SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
     {
         "id": "SM-AMD-2026-01",
-        "title": "Suvarnim Navratri AC Dome Garba 2026",
-        "description": "Experience Gujarat's largest air-conditioned Garba dome with live orchestra, traditional Dhol beats, and top Gujarati folk artists.",
+        "title": "Swarnim Nagari AC Dome Garba 2026",
+        "description": "Experience Gujarat's grandest air-conditioned Garba dome with Aishwarya Majmudar and Rangtaali live orchestra, traditional Dhol beats, and celebrity Garba nights.",
         "startDate": "2026-10-10",
         "endDate": "2026-10-19",
         "time": "19:30",
-        "venue": "Suvarnim Ground, SG Highway",
+        "venue": "Swarnim Ground, Near Vaishnodevi Circle, SG Highway",
         "city": "Ahmedabad",
         "state": "Gujarat",
         "bannerImage": "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=1200&auto=format&fit=crop&q=80",
         "posterImage": "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 499,
         "priceMax": 2499,
-        "url": "https://showmates.in/event/suvarnim-navratri-2026",
+        "url": "https://showmates.in/event/swarnim-nagari-ac-dome-garba-2026",
         "artists": [
             {
-                "name": "Kinjal Dave",
-                "role": "Headliner / Lead Garba Singer",
-                "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80",
-                "bio": "Gujarat's celebrated folk sensation and Char Char Bangdi star."
+                "name": "Aishwarya Majmudar",
+                "role": "Headliner / Lead Garba Performer",
+                "imageUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+                "bio": "Voice of Gujarat, celebrated for iconic Navratri hits and mesmerizing stage energy."
             },
             {
-                "name": "Sanjay Oza",
-                "role": "Traditional Folk Vocalist",
-                "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
-                "bio": "Master vocalist of authentic classical Gujarati Garba."
+                "name": "Rangtaali Troupe",
+                "role": "Live Symphony & Dhol Orchestra",
+                "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80",
+                "bio": "Gujarat's premier 15-piece traditional fusion Garba band."
             }
         ],
         "passes": [
@@ -49,7 +49,7 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
     {
         "id": "SM-SRT-2026-02",
         "title": "Surat Raas Rang Mahotsav 2026",
-        "description": "9 Nights of non-stop energetic Garba and Raas in Surat with youth heartthrob artists, massive wooden flooring, and 360-degree LED visual setup.",
+        "description": "9 Nights of non-stop energetic Garba and Raas in Surat with Bollywood diva Bhoomi Trivedi and Arvind Vegda, massive wooden flooring, and 360-degree LED visual setup.",
         "startDate": "2026-10-10",
         "endDate": "2026-10-19",
         "time": "20:00",
@@ -86,7 +86,7 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
     {
         "id": "SM-AMD-2026-03",
         "title": "Radhe Raas Navratri Mahotsav 2026",
-        "description": "Grand heritage Navratri celebration in Ahmedabad featuring royal Mandvi setup, traditional Chaniya Choli contests, and celebrity Garba singers.",
+        "description": "Grand heritage Navratri celebration in Ahmedabad featuring royal Mandvi setup, traditional Chaniya Choli contests, and living folk legends Kirtidan Gadhvi and Umesh Barot.",
         "startDate": "2026-10-10",
         "endDate": "2026-10-19",
         "time": "19:00",
@@ -123,7 +123,7 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
     {
         "id": "SM-RJK-2026-04",
         "title": "Khelaiya Heritage Garba Rajkot 2026",
-        "description": "Saurashtra's most iconic open-air Navratri festival with authentic Kathiyawadi Raas-Dandiya and world-class live percussion.",
+        "description": "Saurashtra's most iconic open-air Navratri festival with authentic Kathiyawadi Raas-Dandiya, world-class live percussion, and folk superstar Geeta Rabari.",
         "startDate": "2026-10-10",
         "endDate": "2026-10-19",
         "time": "20:00",

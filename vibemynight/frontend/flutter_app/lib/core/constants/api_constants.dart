@@ -98,4 +98,7 @@ class ApiConstants {
   static String syncEventById(int id) => '/sync/events/$id';
   static const String syncFetchNow = '/sync/fetch-now';
   static const String syncStats = '/sync/stats';
+  static const String syncDiscover = '/sync/discover';
+  static const String syncDeepScrape = '/sync/deep-scrape';
 }
+

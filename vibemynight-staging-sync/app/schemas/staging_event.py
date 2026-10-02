@@ -61,6 +61,7 @@ class StagingEventUpdate(BaseModel):
     max_ticket_price: Optional[float] = None
     currency: Optional[str] = None
     status: Optional[StagingEventStatus] = None
+    raw_payload: Optional[Dict[str, Any]] = None
 
 
 class StagingEventResponse(BaseModel):
@@ -98,6 +99,7 @@ class StagingEventResponse(BaseModel):
     ai_provider: Optional[str] = None
     ai_model: Optional[str] = None
     ai_error: Optional[str] = None
+    raw_payload: Optional[Dict[str, Any]] = None
     created_at: datetime
     updated_at: datetime
 
@@ -119,3 +121,87 @@ class SyncFetchResponse(BaseModel):
     duplicates: int
     failed: int
     message: Optional[str] = None
+
+
+# =========================================================================
+# UNIVERSAL LIVE DISCOVERY & DEEP SCRAPING SCHEMAS
+# =========================================================================
+
+class DiscoverEventsRequest(BaseModel):
+    """Request payload for live catalog discovery."""
+    source: str = Field("all", description="Source: 'all', 'showmates', 'bookmyshow', 'district'")
+    city: Optional[str] = Field(None, description="City name or 'ALL'")
+    category: Optional[str] = Field(None, description="Category filter e.g. 'Garba', 'Music'")
+    page: int = Field(1, ge=1, description="Catalog page number")
+    pageSize: int = Field(20, ge=1, le=100, description="Items per page")
+
+
+class DiscoveredEventItem(BaseModel):
+    """Lightweight discovery summary item."""
+    source: str
+    source_event_id: str
+    title: str
+    event_url: str
+    poster_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    venue_name: Optional[str] = None
+    city: Optional[str] = None
+    event_start_date: Optional[str] = None
+    event_end_date: Optional[str] = None
+    starting_price: Optional[float] = None
+    currency: str = "INR"
+    category: Optional[str] = None
+    is_already_staged: bool = False
+    is_already_in_production: bool = False
+    discovered_at: Optional[str] = None
+    raw_discovery_payload: Optional[Dict[str, Any]] = None
+
+
+class DiscoverEventsResponse(BaseModel):
+    """Response returned by live catalog discovery."""
+    success: bool
+    source: str
+    city: Optional[str] = None
+    category: Optional[str] = None
+    total_discovered: int
+    items: List[DiscoveredEventItem]
+    timestamp: str
+
+
+class DeepScrapeSelectedTarget(BaseModel):
+    """Target event to deep scrape."""
+    source: str
+    source_event_id: str
+    event_url: str
+    title: Optional[str] = None
+    hint_payload: Optional[Dict[str, Any]] = None
+
+
+class DeepScrapeRequest(BaseModel):
+    """Admin request to deep scrape selected events."""
+    events: List[DeepScrapeSelectedTarget]
+    run_ai_enrichment: bool = True
+
+
+class DeepScrapeResultItem(BaseModel):
+    """Individual deep scrape result item."""
+    source: str
+    source_event_id: str
+    staging_id: Optional[int] = None
+    title: str
+    status: str
+    validation_status: str
+    is_duplicate: bool = False
+    duplicate_of: Optional[int] = None
+    message: Optional[str] = None
+
+
+class DeepScrapeResponse(BaseModel):
+    """Summary response from deep scraping selected events."""
+    success: bool
+    total_requested: int
+    total_staged: int
+    total_duplicates: int
+    total_failed: int
+    results: List[DeepScrapeResultItem]
+    message: str

@@ -1,13 +1,26 @@
 import re
+import ipaddress
+import urllib.parse
 import logging
 from typing import Optional, Tuple, Any
 from dateutil import parser as date_parser
 
 logger = logging.getLogger(__name__)
 
+# Blocked hostnames for SSRF protection
+BLOCKED_HOSTNAMES = {
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "::1",
+    "169.254.169.254",  # AWS/GCP/Cloud instance metadata
+    "metadata.google.internal",
+    "instance-data",
+}
+
 
 class EventNormalizer:
-    """Utilities to clean, normalize, and format external event data consistently."""
+    """Utilities to clean, normalize, format, and secure external event data consistently."""
 
     @staticmethod
     def normalize_date(raw_date: Optional[str]) -> Optional[str]:
@@ -73,10 +86,12 @@ class EventNormalizer:
 
     @staticmethod
     def normalize_city(city: Optional[str]) -> Optional[str]:
-        """Normalizes city names standardizing common Gujarat/India cities."""
+        """Normalizes city names standardizing common Gujarat/India cities without inventing defaults."""
         if not city:
             return None
         cleaned = " ".join(str(city).split()).strip()
+        if not cleaned:
+            return None
         canonical_map = {
             "ahmedabad": "Ahmedabad",
             "amd": "Ahmedabad",
@@ -85,7 +100,11 @@ class EventNormalizer:
             "baroda": "Vadodara",
             "rajkot": "Rajkot",
             "gandhinagar": "Gandhinagar",
-            "mumbai": "Mumbai"
+            "mumbai": "Mumbai",
+            "goa": "Goa",
+            "pune": "Pune",
+            "delhi": "Delhi",
+            "delhi-ncr": "Delhi",
         }
         return canonical_map.get(cleaned.lower(), cleaned.title())
 
@@ -95,7 +114,7 @@ class EventNormalizer:
         raw_max: Any = None,
         default_currency: str = "INR"
     ) -> Tuple[Optional[float], Optional[float], str]:
-        """Extracts and validates numeric minimum and maximum ticket prices."""
+        """Extracts and validates numeric minimum and maximum ticket prices without fabricating defaults."""
         def parse_price(val: Any) -> Optional[float]:
             if val is None:
                 return None
@@ -123,10 +142,50 @@ class EventNormalizer:
 
     @staticmethod
     def validate_url(url: Optional[str]) -> Optional[str]:
-        """Validates that a given URL is a syntactically valid HTTP/HTTPS URL."""
+        """
+        Validates that a given URL is a syntactically valid and secure HTTP/HTTPS URL.
+        Enforces SSRF Protection:
+        - Blocks localhost, loopback (127.0.0.1, ::1), cloud metadata (169.254.169.254),
+          and private IP addresses (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16).
+        - Blocks non-HTTP protocols (file://, ftp://, gopher://).
+        """
         if not url or not str(url).strip():
             return None
         trimmed = str(url).strip()
-        if trimmed.startswith(("http://", "https://")):
+        
+        try:
+            parsed = urllib.parse.urlparse(trimmed)
+            # Only allow http and https protocols
+            if parsed.scheme.lower() not in ("http", "https"):
+                logger.warning(f"SSRF Blocked: Invalid scheme '{parsed.scheme}' in URL '{trimmed}'")
+                return None
+            
+            hostname = (parsed.hostname or "").lower().strip()
+            if not hostname:
+                return None
+
+            # Block known local and metadata hostnames
+            if hostname in BLOCKED_HOSTNAMES or hostname.endswith(".local") or hostname.endswith(".internal"):
+                logger.warning(f"SSRF Blocked: Hostname '{hostname}' is restricted")
+                return None
+
+            # Check if hostname is an IP address and block private/reserved/loopback IPs
+            try:
+                ip_obj = ipaddress.ip_address(hostname)
+                if (
+                    ip_obj.is_private
+                    or ip_obj.is_loopback
+                    or ip_obj.is_link_local
+                    or ip_obj.is_reserved
+                    or ip_obj.is_multicast
+                ):
+                    logger.warning(f"SSRF Blocked: Private or restricted IP '{hostname}'")
+                    return None
+            except ValueError:
+                # Not a literal IP address, standard hostname (e.g. showmates.in, cdn.district.in)
+                pass
+
             return trimmed
-        return None
+        except Exception as e:
+            logger.debug(f"URL validation error for '{trimmed}': {e}")
+            return None

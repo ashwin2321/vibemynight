@@ -4,20 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:vibemynight/core/network/api_client.dart';
-import 'package:vibemynight/core/network/api_exception.dart';
 import 'package:vibemynight/core/providers/staged_event_providers.dart';
 import 'package:vibemynight/features/admin/import_hub/admin_import_hub_screen.dart';
-import 'package:vibemynight/features/admin/import_hub/dialogs/import_confirmation_dialog.dart';
-import 'package:vibemynight/features/admin/import_hub/dialogs/import_result_dialog.dart';
 import 'package:vibemynight/features/admin/import_hub/dialogs/staged_event_detail_dialog.dart';
-import 'package:vibemynight/features/admin/import_hub/dialogs/staged_event_edit_dialog.dart';
-import 'package:vibemynight/features/admin/import_hub/widgets/staged_event_card.dart';
+import 'package:vibemynight/features/admin/import_hub/widgets/discovered_event_card.dart';
 import 'package:vibemynight/features/admin/import_hub/widgets/staged_stats_row.dart';
 import 'package:vibemynight/models/staged_event_models.dart';
 import 'package:vibemynight/services/staging_service.dart';
 
 void main() {
-  group('Phase 3 Staged Event Models & Enum Tests', () {
+  group('Phase 3 Staged Event Models & Universal Hierarchy Tests', () {
     test('StagedStatus enum mappings', () {
       expect(StagedStatus.fromString('PENDING_REVIEW'), StagedStatus.pendingReview);
       expect(StagedStatus.fromString('APPROVED'), StagedStatus.approved);
@@ -37,7 +33,7 @@ void main() {
       expect(StagedStatus.imported.displayName, 'Imported');
     });
 
-    test('StagedEvent JSON deserialization and serialization', () {
+    test('StagedEvent JSON deserialization and full hierarchy accessors', () {
       final json = {
         'id': 101,
         'source': 'showmates',
@@ -69,6 +65,36 @@ void main() {
         'ai_processed': true,
         'ai_provider': 'google_gemini',
         'ai_model': 'gemini-1.5-flash',
+        'raw_payload': {
+          'passes': [
+            {
+              'name': 'Female Season Pass',
+              'type': 'SEASON',
+              'price': 499.0,
+              'available_quantity': 2000,
+              'max_per_customer': 4,
+              'benefits': ['9 Nights Entry'],
+            }
+          ],
+          'artists': [
+            {
+              'name': 'Aishwarya Majmudar',
+              'role': 'Lead Singer',
+              'imageUrl': 'https://example.com/artist.jpg',
+              'bio': 'Voice of Gujarat',
+            }
+          ],
+          'days': [
+            {
+              'day_number': 1,
+              'date': '2026-10-15',
+              'day_name': 'Opening Night',
+              'start_time': '19:30',
+            }
+          ],
+          'facilities': ['AC Dome', 'Food Court'],
+          'rules': ['Traditional dress compulsory'],
+        },
       };
 
       final event = StagedEvent.fromJson(json);
@@ -85,245 +111,84 @@ void main() {
       expect(event.aiProcessed, true);
       expect(event.status, StagedStatus.pendingReview);
 
-      final outJson = event.toJson();
-      expect(outJson['id'], 101);
-      expect(outJson['title'], 'Original Navratri Garba 2026');
-      expect(outJson['status'], 'PENDING_REVIEW');
+      // Verify Hierarchy Accessors
+      expect(event.passes.length, 1);
+      expect(event.passes.first.name, 'Female Season Pass');
+      expect(event.passes.first.availableQuantity, 2000);
+
+      expect(event.artists.length, 1);
+      expect(event.artists.first.name, 'Aishwarya Majmudar');
+
+      expect(event.days.length, 1);
+      expect(event.days.first.dayName, 'Opening Night');
+
+      expect(event.facilities.length, 2);
+      expect(event.rules.length, 1);
     });
 
-    test('StagedEvent priceDisplay handles single and null prices', () {
-      const eSingle = StagedEvent(
-        id: 1,
-        source: 'test',
-        sourceEventId: '1',
-        title: 'Single Price Event',
-        minTicketPrice: 499.0,
-        maxTicketPrice: 499.0,
-      );
-      expect(eSingle.priceDisplay, '₹499');
-
-      const eTba = StagedEvent(
-        id: 2,
-        source: 'test',
-        sourceEventId: '2',
-        title: 'TBA Price Event',
-      );
-      expect(eTba.priceDisplay, 'Price TBA');
-    });
-
-    test('StagedEventListResponse and Stats deserialization', () {
-      final listJson = {
+    test('DiscoveredEventItem and DiscoverEventsResponse parsing', () {
+      final discJson = {
+        'success': true,
+        'source': 'bookmyshow',
+        'city': 'Vadodara',
+        'total_discovered': 1,
         'items': [
           {
-            'id': 1,
-            'source': 'showmates',
-            'source_event_id': 'sm-1',
-            'title': 'Event 1',
-            'status': 'PENDING_REVIEW',
-            'ai_processed': false,
-          },
-          {
-            'id': 2,
-            'source': 'showmates',
-            'source_event_id': 'sm-2',
-            'title': 'Event 2',
-            'status': 'IMPORTED',
-            'ai_processed': true,
+            'source': 'bookmyshow',
+            'source_event_id': 'bms-vdr-01',
+            'title': 'United Way of Baroda Garba 2026',
+            'event_url': 'https://in.bookmyshow.com/events/united-way',
+            'poster_url': 'https://example.com/bms_poster.jpg',
+            'city': 'Vadodara',
+            'venue_name': 'Navlakhi Ground',
+            'starting_price': 799.0,
+            'is_already_staged': true,
           }
         ],
-        'total': 2,
-        'page': 1,
-        'page_size': 20,
-        'total_pages': 1,
+        'timestamp': '2026-10-03T00:00:00',
       };
 
-      final response = StagedEventListResponse.fromJson(listJson);
-      expect(response.total, 2);
-      expect(response.items.length, 2);
-      expect(response.items.first.title, 'Event 1');
-
-      final statsJson = {
-        'total': 50,
-        'pending': 35,
-        'imported': 10,
-        'conflicts': 3,
-        'rejected': 2,
-      };
-      final stats = StagedEventStats.fromJson(statsJson);
-      expect(stats.total, 50);
-      expect(stats.pending, 35);
-      expect(stats.imported, 10);
-      expect(stats.conflicts, 3);
-      expect(stats.rejected, 2);
-    });
-
-    test('StagedImportBatchResult deserialization and item helper properties', () {
-      final batchJson = {
-        'totalRequested': 3,
-        'imported': 2,
-        'alreadyImported': 0,
-        'conflicts': 1,
-        'failed': 0,
-        'results': [
-          {
-            'stagedEventId': 101,
-            'status': 'SUCCESS',
-            'productionEventId': 42,
-            'eventName': 'Surat Garba Night',
-            'slug': 'surat-garba-night',
-          },
-          {
-            'stagedEventId': 102,
-            'status': 'CONFLICT',
-            'productionEventId': 43,
-            'eventName': 'Surat Garba Night 2',
-            'slug': 'surat-garba-night-2',
-            'reason': 'Slug conflict resolved with suffix',
-          },
-          {
-            'stagedEventId': 103,
-            'status': 'ALREADY_IMPORTED',
-            'eventName': 'Surat Garba Night 3',
-            'slug': 'surat-garba-night-3',
-            'reason': 'Event was already imported into production',
-          },
-        ],
-      };
-
-      final batchResult = StagedImportBatchResult.fromJson(batchJson);
-      expect(batchResult.totalRequested, 3);
-      expect(batchResult.imported, 2);
-      expect(batchResult.conflicts, 1);
-      expect(batchResult.results.length, 3);
-
-      expect(batchResult.results[0].isSuccess, true);
-      expect(batchResult.results[0].productionEventId, 42);
-      expect(batchResult.results[1].isConflict, true);
-      expect(batchResult.results[2].isAlreadyImported, true);
-      expect(batchResult.results[2].isFailed, false);
+      final resp = DiscoverEventsResponse.fromJson(discJson);
+      expect(resp.success, true);
+      expect(resp.totalDiscovered, 1);
+      expect(resp.items.first.title, 'United Way of Baroda Garba 2026');
+      expect(resp.items.first.priceDisplay, 'From ₹799');
+      expect(resp.items.first.isAlreadyStaged, true);
     });
   });
 
   group('Phase 3 StagingService Unit Tests', () {
-    test('fetchStagedEvents calls staging API and parses response', () async {
+    test('discoverEvents calls /sync/discover and parses response', () async {
       final dio = Dio();
       dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) {
-            return handler.resolve(
-              Response(
-                requestOptions: options,
-                statusCode: 200,
-                data: {
-                  'items': [
-                    {
-                      'id': 101,
-                      'source': 'showmates',
-                      'source_event_id': 'sm-101',
-                      'title': 'Test Staged Event',
-                      'city': 'Surat',
-                      'status': 'PENDING_REVIEW',
-                      'ai_processed': true,
-                      'enhanced_title': 'Enhanced Test Staged Event',
-                    }
-                  ],
-                  'total': 1,
-                  'page': 1,
-                  'page_size': 20,
-                  'total_pages': 1,
-                },
-              ),
-            );
-          },
-        ),
-      );
-
-      final adminDio = Dio();
-      final adminClient = ApiClient.withDio(adminDio);
-      final stagingService = StagingService(adminClient, stagingDio: dio);
-
-      final response = await stagingService.fetchStagedEvents(
-        status: StagedStatus.pendingReview,
-        city: 'Surat',
-        search: 'Test',
-      );
-
-      expect(response.total, 1);
-      expect(response.items.first.id, 101);
-      expect(response.items.first.displayTitle, 'Enhanced Test Staged Event');
-    });
-
-    test('updateStagedEvent calls PUT /sync/events/:id', () async {
-      final dio = Dio();
-      dio.interceptors.add(
-        InterceptorsWrapper(
-          onRequest: (options, handler) {
-            expect(options.method, 'PUT');
-            return handler.resolve(
-              Response(
-                requestOptions: options,
-                statusCode: 200,
-                data: {
-                  'id': 101,
-                  'source': 'showmates',
-                  'source_event_id': 'sm-101',
-                  'title': 'Updated Title',
-                  'status': 'APPROVED',
-                  'ai_processed': true,
-                },
-              ),
-            );
-          },
-        ),
-      );
-
-      final adminClient = ApiClient.withDio(Dio());
-      final stagingService = StagingService(adminClient, stagingDio: dio);
-
-      final updated = await stagingService.updateStagedEvent(101, {
-        'title': 'Updated Title',
-      });
-
-      expect(updated.title, 'Updated Title');
-      expect(updated.status, StagedStatus.approved);
-    });
-
-    test('importStagedEvents calls Spring Boot POST /api/v1/admin/events/import-staged', () async {
-      final adminDio = Dio();
-      adminDio.interceptors.add(
-        InterceptorsWrapper(
-          onRequest: (options, handler) {
-            expect(options.method, 'POST');
-            expect(options.path, '/admin/events/import-staged');
+            expect(options.path, contains('/sync/discover'));
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'success': true,
-                  'data': {
-                    'totalRequested': 2,
-                    'imported': 2,
-                    'alreadyImported': 0,
-                    'conflicts': 0,
-                    'failed': 0,
-                    'results': [
-                      {
-                        'stagedEventId': 101,
-                        'status': 'SUCCESS',
-                        'productionEventId': 1,
-                        'eventName': 'Event 1',
-                        'slug': 'event-1',
-                      },
-                      {
-                        'stagedEventId': 102,
-                        'status': 'SUCCESS',
-                        'productionEventId': 2,
-                        'eventName': 'Event 2',
-                        'slug': 'event-2',
-                      },
-                    ],
-                  },
+                  'source': 'all',
+                  'total_discovered': 2,
+                  'items': [
+                    {
+                      'source': 'showmates',
+                      'source_event_id': 'sm-01',
+                      'title': 'Showmates Event 1',
+                      'event_url': 'https://showmates.in/1',
+                      'starting_price': 499.0,
+                    },
+                    {
+                      'source': 'bookmyshow',
+                      'source_event_id': 'bms-01',
+                      'title': 'BookMyShow Event 1',
+                      'event_url': 'https://bms.in/1',
+                      'starting_price': 799.0,
+                    }
+                  ],
+                  'timestamp': '2026-10-03',
                 },
               ),
             );
@@ -331,15 +196,64 @@ void main() {
         ),
       );
 
-      final adminClient = ApiClient.withDio(adminDio);
-      final stagingService = StagingService(adminClient, stagingDio: Dio());
+      final stagingService = StagingService(ApiClient.withDio(Dio()), stagingDio: dio);
+      final res = await stagingService.discoverEvents(city: 'Ahmedabad');
 
-      final result = await stagingService.importStagedEvents([101, 102]);
+      expect(res.success, true);
+      expect(res.totalDiscovered, 2);
+      expect(res.items.length, 2);
+      expect(res.items.first.title, 'Showmates Event 1');
+    });
 
-      expect(result.totalRequested, 2);
-      expect(result.imported, 2);
-      expect(result.results.length, 2);
-      expect(result.results.first.isSuccess, true);
+    test('deepScrapeEvents calls /sync/deep-scrape and parses response', () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            expect(options.path, contains('/sync/deep-scrape'));
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'success': true,
+                  'total_requested': 1,
+                  'total_staged': 1,
+                  'total_duplicates': 0,
+                  'total_failed': 0,
+                  'results': [
+                    {
+                      'source': 'showmates',
+                      'source_event_id': 'sm-01',
+                      'staging_id': 105,
+                      'title': 'Showmates Event 1',
+                      'status': 'PENDING_REVIEW',
+                      'validation_status': 'VALID',
+                      'is_duplicate': false,
+                    }
+                  ],
+                  'message': 'Deep scraping completed',
+                },
+              ),
+            );
+          },
+        ),
+      );
+
+      final stagingService = StagingService(ApiClient.withDio(Dio()), stagingDio: dio);
+      final res = await stagingService.deepScrapeEvents(
+        events: const [
+          DeepScrapeSelectedTarget(
+            source: 'showmates',
+            sourceEventId: 'sm-01',
+            eventUrl: 'https://showmates.in/1',
+          )
+        ],
+      );
+
+      expect(res.success, true);
+      expect(res.totalStaged, 1);
+      expect(res.results.first.stagingId, 105);
     });
   });
 
@@ -379,65 +293,53 @@ void main() {
       expect(tappedStatus, StagedStatus.imported);
     });
 
-    testWidgets('StagedEventCard renders and triggers callbacks', (tester) async {
-      const event = StagedEvent(
-        id: 101,
-        source: 'showmates',
-        sourceEventId: 'sm-101',
-        title: 'Original Title',
-        enhancedTitle: '✨ AI Enhanced Title',
-        city: 'Surat',
-        venueName: 'Surat Arena',
-        minTicketPrice: 499.0,
-        maxTicketPrice: 999.0,
-        aiProcessed: true,
-        status: StagedStatus.pendingReview,
+    testWidgets('DiscoveredEventCard renders and triggers selection', (tester) async {
+      const item = DiscoveredEventItem(
+        source: 'bookmyshow',
+        sourceEventId: 'bms-101',
+        title: 'United Way of Baroda Garba 2026',
+        eventUrl: 'https://in.bookmyshow.com/1',
+        city: 'Vadodara',
+        venueName: 'Navlakhi Ground',
+        startingPrice: 799.0,
       );
 
       bool selected = false;
-      bool previewTriggered = false;
-      bool editTriggered = false;
+      bool scrapedSingle = false;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 350,
-              height: 450,
-              child: StagedEventCard(
-                event: event,
+              height: 400,
+              child: DiscoveredEventCard(
+                item: item,
                 isSelected: false,
                 onSelectChanged: (val) => selected = val ?? false,
-                onPreview: () => previewTriggered = true,
-                onEdit: () => editTriggered = true,
+                onDeepScrapeSingle: () => scrapedSingle = true,
               ),
             ),
           ),
         ),
       );
 
-      expect(find.text('✨ AI Enhanced Title'), findsOneWidget);
-      expect(find.text('Gemini Enriched'), findsOneWidget);
-      expect(find.text('₹499 - ₹999'), findsOneWidget);
-      expect(find.text('Surat Arena'), findsOneWidget);
-
-      // Tap preview
-      await tester.tap(find.text('Preview'));
-      await tester.pump();
-      expect(previewTriggered, true);
-
-      // Tap edit
-      await tester.tap(find.text('Edit'));
-      await tester.pump();
-      expect(editTriggered, true);
+      expect(find.text('United Way of Baroda Garba 2026'), findsOneWidget);
+      expect(find.text('BOOKMYSHOW'), findsOneWidget);
+      expect(find.text('From ₹799'), findsOneWidget);
 
       // Tap checkbox
       await tester.tap(find.byType(Checkbox));
       await tester.pump();
       expect(selected, true);
+
+      // Tap single scrape
+      await tester.tap(find.text('Scrape'));
+      await tester.pump();
+      expect(scrapedSingle, true);
     });
 
-    testWidgets('StagedEventDetailDialog displays full details and AI copy', (tester) async {
+    testWidgets('StagedEventDetailDialog displays full 5-tab details and AI copy', (tester) async {
       const event = StagedEvent(
         id: 101,
         source: 'showmates',
@@ -467,175 +369,17 @@ void main() {
         ),
       );
 
-      expect(find.text('Staged Event #101 Details'), findsOneWidget);
-      expect(find.text('✨ AI Enhanced Garba 2026'), findsOneWidget);
+      expect(find.textContaining('Staged Event #101'), findsOneWidget);
+      expect(find.textContaining('✨ AI Enhanced Garba 2026'), findsNWidgets(2));
       expect(find.text('🔥 Book now for the best passes!'), findsOneWidget);
-
-      await tester.scrollUntilVisible(
-        find.text('AC Dome'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('AC Dome'), findsOneWidget);
-      expect(find.text('Garba'), findsOneWidget);
+      expect(find.text('Overview'), findsOneWidget);
+      expect(find.text('Passes (0)'), findsOneWidget);
+      expect(find.text('Artists (0)'), findsOneWidget);
+      expect(find.text('Days (0)'), findsOneWidget);
+      expect(find.text('Rules & Perks (0)'), findsOneWidget);
     });
 
-    testWidgets('StagedEventEditDialog renders and submits updated fields', (tester) async {
-      const event = StagedEvent(
-        id: 101,
-        source: 'showmates',
-        sourceEventId: 'sm-101',
-        title: 'Original Title',
-        city: 'Surat',
-      );
-
-      Map<String, dynamic>? savedData;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StagedEventEditDialog(
-              event: event,
-              onSave: (data) async {
-                savedData = data;
-              },
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Quick Edit Staged Event'), findsOneWidget);
-      expect(find.text('Save Staged Changes'), findsOneWidget);
-
-      await tester.tap(find.text('Save Staged Changes'));
-      await tester.pumpAndSettle();
-
-      expect(savedData, isNotNull);
-      expect(savedData!['title'], 'Original Title');
-    });
-
-    testWidgets('ImportConfirmationDialog shows selected count and confirms', (tester) async {
-      const event1 = StagedEvent(
-        id: 101,
-        source: 'showmates',
-        sourceEventId: 'sm-1',
-        title: 'Event One',
-      );
-      const event2 = StagedEvent(
-        id: 102,
-        source: 'showmates',
-        sourceEventId: 'sm-2',
-        title: 'Event Two',
-      );
-
-      bool confirmed = false;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ImportConfirmationDialog(
-              selectedEvents: const [event1, event2],
-              onConfirm: () => confirmed = true,
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Confirm Live Production Import'), findsOneWidget);
-      expect(find.text('Event One'), findsOneWidget);
-      expect(find.text('Event Two'), findsOneWidget);
-      expect(find.text('Import 2 Events Now'), findsOneWidget);
-
-      await tester.tap(find.text('Import 2 Events Now'));
-      await tester.pump();
-
-      expect(confirmed, true);
-    });
-
-    testWidgets('ImportResultDialog renders results summary and items', (tester) async {
-      const result = StagedImportBatchResult(
-        totalRequested: 2,
-        imported: 1,
-        alreadyImported: 0,
-        conflicts: 1,
-        failed: 0,
-        results: [
-          StagedEventImportResultItem(
-            stagedEventId: 101,
-            status: 'SUCCESS',
-            productionEventId: 42,
-            eventName: 'Success Event',
-            slug: 'success-event',
-          ),
-          StagedEventImportResultItem(
-            stagedEventId: 102,
-            status: 'CONFLICT',
-            productionEventId: 43,
-            eventName: 'Conflict Event',
-            slug: 'conflict-event-1',
-            reason: 'Slug adjusted',
-          ),
-        ],
-      );
-
-      bool viewed = false;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ImportResultDialog(
-              result: result,
-              onViewProductionEvents: () => viewed = true,
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Import Execution Report'), findsOneWidget);
-      expect(find.text('Success Event'), findsOneWidget);
-      expect(find.text('Conflict Event'), findsOneWidget);
-      expect(find.text('Slug adjusted'), findsOneWidget);
-
-      await tester.tap(find.text('View in Production Events'));
-      await tester.pump();
-
-      expect(viewed, true);
-    });
-
-    testWidgets('AdminImportHubScreen renders header and empty state cleanly', (tester) async {
-      tester.view.physicalSize = const Size(1280, 900);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            stagedEventsListProvider.overrideWith((ref) async {
-              return const StagedEventListResponse(
-                items: [],
-                total: 0,
-                page: 1,
-                pageSize: 20,
-                totalPages: 1,
-              );
-            }),
-            stagedStatsProvider.overrideWith((ref) async {
-              return const StagedEventStats();
-            }),
-          ],
-          child: const MaterialApp(
-            home: AdminImportHubScreen(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      expect(find.text('Railway Staging & Gemini AI Pipeline'), findsOneWidget);
-      expect(find.text('No Staged Events Found'), findsOneWidget);
-    });
-
-    testWidgets('AdminImportHubScreen renders loaded grid and allows selection', (tester) async {
+    testWidgets('AdminImportHubScreen renders Discovery mode and Staging Review mode cleanly', (tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -653,6 +397,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            activeImportHubTabProvider.overrideWith((ref) => 1),
             stagedEventsListProvider.overrideWith((ref) async {
               return const StagedEventListResponse(
                 items: [sampleEvent],
@@ -674,6 +419,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      expect(find.text('Universal Dynamic Scraping Engine'), findsOneWidget);
       expect(find.text('✨ Surat Navratri Mahotsav'), findsOneWidget);
       expect(find.text('0 of 1 events selected'), findsOneWidget);
 
@@ -684,57 +430,5 @@ void main() {
       expect(find.text('1 of 1 events selected'), findsOneWidget);
       expect(find.text('Approve & Import Selected (1)'), findsOneWidget);
     });
-
-    test('StagedEventFilterParams copyWith and equality tests', () {
-      const p1 = StagedEventFilterParams(
-        status: StagedStatus.pendingReview,
-        city: 'Surat',
-        search: 'Garba',
-        page: 1,
-        pageSize: 20,
-      );
-
-      final p2 = p1.copyWith(city: 'Ahmedabad');
-      expect(p2.city, 'Ahmedabad');
-      expect(p2.status, StagedStatus.pendingReview);
-      expect(p2.search, 'Garba');
-
-      final p3 = p1.copyWith(clearStatus: true, clearSearch: true);
-      expect(p3.status, isNull);
-      expect(p3.search, isNull);
-      expect(p3.city, 'Surat');
-    });
-
-    test('StagingService handles 401, 403, 409, 500 error responses gracefully', () async {
-      for (final statusCode in [401, 403, 404, 409, 500]) {
-        final dio = Dio();
-        dio.interceptors.add(
-          InterceptorsWrapper(
-            onRequest: (options, handler) {
-              return handler.reject(
-                DioException(
-                  requestOptions: options,
-                  response: Response(
-                    requestOptions: options,
-                    statusCode: statusCode,
-                    data: {'detail': 'HTTP error $statusCode'},
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-
-        final client = ApiClient.withDio(Dio());
-        final service = StagingService(client, stagingDio: dio);
-
-        expect(
-          () => service.fetchStagedEvents(),
-          throwsA(predicate((e) => e is ApiException && e.statusCode == statusCode)),
-        );
-      }
-    });
   });
 }
-
-

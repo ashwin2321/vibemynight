@@ -25,16 +25,16 @@ SAMPLE_DISTRICT_EVENTS: List[Dict[str, Any]] = [
         "url": "https://district.in/events/shankus-dandiya-celebration-2026",
         "artists": [
             {
-                "name": "Aishwarya Majmudar",
-                "role": "Lead Performer / Voice of Gujarat",
-                "imageUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
-                "bio": "Renowned playback singer and golden voice behind Gujarat's biggest Dandiya hits."
+                "name": "Nirav Barot",
+                "role": "Lead Performer / Folk Sensation",
+                "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+                "bio": "Energetic live performer specializing in high-pitch traditional Gujarati Garba."
             },
             {
-                "name": "Nirav Barot",
-                "role": "Folk & Fusion Garba Artist",
-                "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
-                "bio": "Energetic live performer specializing in rhythmic Kathiyawadi Raas."
+                "name": "Gujarat Folk Troupe",
+                "role": "Live Dhol & Shehnai Ensemble",
+                "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80",
+                "bio": "Premier traditional acoustic percussion troupe."
             }
         ],
         "passes": [

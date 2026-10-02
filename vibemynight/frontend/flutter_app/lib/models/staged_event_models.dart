@@ -18,8 +18,12 @@ enum StagedStatus {
       case 'REJECTED':
         return StagedStatus.rejected;
       case 'CONFLICT':
+      case 'DUPLICATE':
+      case 'AI_PROCESSING_FAILED':
+      case 'SYNC_FAILED':
         return StagedStatus.conflict;
       case 'PENDING_REVIEW':
+      case 'READY_TO_IMPORT':
       default:
         return StagedStatus.pendingReview;
     }
@@ -49,11 +53,207 @@ enum StagedStatus {
       case StagedStatus.rejected:
         return 'Rejected';
       case StagedStatus.conflict:
-        return 'Conflict';
+        return 'Conflict / Dup';
       case StagedStatus.pendingReview:
         return 'Pending Review';
     }
   }
+}
+
+/// Represents an artist scraped from source data.
+class ScrapedArtistItem extends Equatable {
+  final String name;
+  final String? role;
+  final String? imageUrl;
+  final String? bio;
+
+  const ScrapedArtistItem({
+    required this.name,
+    this.role,
+    this.imageUrl,
+    this.bio,
+  });
+
+  factory ScrapedArtistItem.fromJson(Map<String, dynamic> json) {
+    return ScrapedArtistItem(
+      name: json['name'] as String? ?? 'Artist',
+      role: json['role'] as String?,
+      imageUrl: json['imageUrl'] as String? ?? json['image_url'] as String?,
+      bio: json['bio'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'role': role,
+        'imageUrl': imageUrl,
+        'bio': bio,
+      };
+
+  @override
+  List<Object?> get props => [name, role, imageUrl, bio];
+}
+
+/// Represents a ticket pass scraped from source data without fabricated defaults.
+class ScrapedPassItem extends Equatable {
+  final String name;
+  final String type;
+  final double? price;
+  final int? availableQuantity;
+  final int? maxPerCustomer;
+  final List<String> benefits;
+  final String? description;
+
+  const ScrapedPassItem({
+    required this.name,
+    this.type = 'REGULAR',
+    this.price,
+    this.availableQuantity,
+    this.maxPerCustomer,
+    this.benefits = const [],
+    this.description,
+  });
+
+  factory ScrapedPassItem.fromJson(Map<String, dynamic> json) {
+    double? parsePrice(dynamic val) {
+      if (val == null) return null;
+      if (val is num) return val.toDouble();
+      return double.tryParse(val.toString());
+    }
+
+    int? parseInt(dynamic val) {
+      if (val == null) return null;
+      if (val is int) return val;
+      return int.tryParse(val.toString());
+    }
+
+    List<String> parseBenefits(dynamic val) {
+      if (val is List) {
+        return val.map((e) => e.toString()).toList();
+      }
+      return const [];
+    }
+
+    return ScrapedPassItem(
+      name: json['name'] as String? ?? 'Pass',
+      type: json['type'] as String? ?? 'REGULAR',
+      price: parsePrice(json['price']),
+      availableQuantity: parseInt(json['available_quantity'] ?? json['totalQuantity']),
+      maxPerCustomer: parseInt(json['max_per_customer'] ?? json['maxPerCustomer']),
+      benefits: parseBenefits(json['benefits']),
+      description: json['description'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'type': type,
+        'price': price,
+        'available_quantity': availableQuantity,
+        'max_per_customer': maxPerCustomer,
+        'benefits': benefits,
+        'description': description,
+      };
+
+  @override
+  List<Object?> get props => [
+        name,
+        type,
+        price,
+        availableQuantity,
+        maxPerCustomer,
+        benefits,
+        description,
+      ];
+}
+
+/// Represents an event day scraped from source data.
+class ScrapedDayItem extends Equatable {
+  final int dayNumber;
+  final String? date;
+  final String? dayName;
+  final String? programName;
+  final String? startTime;
+  final String? endTime;
+  final String? venue;
+  final String? description;
+
+  const ScrapedDayItem({
+    required this.dayNumber,
+    this.date,
+    this.dayName,
+    this.programName,
+    this.startTime,
+    this.endTime,
+    this.venue,
+    this.description,
+  });
+
+  factory ScrapedDayItem.fromJson(Map<String, dynamic> json) {
+    return ScrapedDayItem(
+      dayNumber: json['day_number'] as int? ?? json['dayNumber'] as int? ?? 1,
+      date: json['date'] as String?,
+      dayName: json['day_name'] as String? ?? json['dayName'] as String?,
+      programName: json['program_name'] as String? ?? json['programName'] as String?,
+      startTime: json['start_time'] as String? ?? json['startTime'] as String?,
+      endTime: json['end_time'] as String? ?? json['endTime'] as String?,
+      venue: json['venue'] as String?,
+      description: json['description'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'day_number': dayNumber,
+        'date': date,
+        'day_name': dayName,
+        'program_name': programName,
+        'start_time': startTime,
+        'end_time': endTime,
+        'venue': venue,
+        'description': description,
+      };
+
+  @override
+  List<Object?> get props => [
+        dayNumber,
+        date,
+        dayName,
+        programName,
+        startTime,
+        endTime,
+        venue,
+        description,
+      ];
+}
+
+/// Represents an image candidate scraped from source data.
+class ScrapedArtworkCandidate extends Equatable {
+  final String url;
+  final String suggestedRole;
+  final String? altText;
+
+  const ScrapedArtworkCandidate({
+    required this.url,
+    this.suggestedRole = 'GALLERY',
+    this.altText,
+  });
+
+  factory ScrapedArtworkCandidate.fromJson(Map<String, dynamic> json) {
+    return ScrapedArtworkCandidate(
+      url: json['url'] as String? ?? '',
+      suggestedRole: json['suggested_role'] as String? ?? json['suggestedRole'] as String? ?? 'GALLERY',
+      altText: json['alt_text'] as String? ?? json['altText'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'suggested_role': suggestedRole,
+        'alt_text': altText,
+      };
+
+  @override
+  List<Object?> get props => [url, suggestedRole, altText];
 }
 
 /// Represents an external event fetched and AI-enhanced in the staging database.
@@ -89,6 +289,7 @@ class StagedEvent extends Equatable {
   final String? aiProvider;
   final String? aiModel;
   final String? aiError;
+  final Map<String, dynamic>? rawPayload;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -124,6 +325,7 @@ class StagedEvent extends Equatable {
     this.aiProvider,
     this.aiModel,
     this.aiError,
+    this.rawPayload,
     this.createdAt,
     this.updatedAt,
   });
@@ -140,7 +342,7 @@ class StagedEvent extends Equatable {
           ? catchyDescription!.trim()
           : (description ?? '');
 
-  /// Price display string e.g. "₹499" or "₹499 - ₹1,499" or "Free / Contact"
+  /// Price display string e.g. "₹499" or "₹499 - ₹1,499" or "Price TBA"
   String get priceDisplay {
     if (minTicketPrice == null && maxTicketPrice == null) {
       return 'Price TBA';
@@ -153,6 +355,74 @@ class StagedEvent extends Equatable {
       return '₹${minTicketPrice!.toStringAsFixed(0)} - ₹${maxTicketPrice!.toStringAsFixed(0)}';
     }
     return '₹${maxTicketPrice!.toStringAsFixed(0)}';
+  }
+
+  // --- Rich Hierarchy Getters ---
+
+  List<ScrapedPassItem> get passes {
+    if (rawPayload == null) return const [];
+    final rawPasses = rawPayload!['passes'];
+    if (rawPasses is List) {
+      return rawPasses
+          .whereType<Map<String, dynamic>>()
+          .map((p) => ScrapedPassItem.fromJson(p))
+          .toList();
+    }
+    return const [];
+  }
+
+  List<ScrapedArtistItem> get artists {
+    if (rawPayload == null) return const [];
+    final rawArtists = rawPayload!['artists'];
+    if (rawArtists is List) {
+      return rawArtists
+          .whereType<Map<String, dynamic>>()
+          .map((a) => ScrapedArtistItem.fromJson(a))
+          .toList();
+    }
+    return const [];
+  }
+
+  List<ScrapedDayItem> get days {
+    if (rawPayload == null) return const [];
+    final rawDays = rawPayload!['days'];
+    if (rawDays is List) {
+      return rawDays
+          .whereType<Map<String, dynamic>>()
+          .map((d) => ScrapedDayItem.fromJson(d))
+          .toList();
+    }
+    return const [];
+  }
+
+  List<String> get facilities {
+    if (rawPayload == null) return const [];
+    final rawFacilities = rawPayload!['facilities'];
+    if (rawFacilities is List) {
+      return rawFacilities.map((f) => f.toString()).toList();
+    }
+    return const [];
+  }
+
+  List<String> get rules {
+    if (rawPayload == null) return const [];
+    final rawRules = rawPayload!['rules'];
+    if (rawRules is List) {
+      return rawRules.map((r) => r.toString()).toList();
+    }
+    return const [];
+  }
+
+  List<ScrapedArtworkCandidate> get artworkCandidates {
+    if (rawPayload == null) return const [];
+    final rawArtworks = rawPayload!['artwork_candidates'] ?? rawPayload!['artworkCandidates'];
+    if (rawArtworks is List) {
+      return rawArtworks
+          .whereType<Map<String, dynamic>>()
+          .map((a) => ScrapedArtworkCandidate.fromJson(a))
+          .toList();
+    }
+    return const [];
   }
 
   factory StagedEvent.fromJson(Map<String, dynamic> json) {
@@ -173,6 +443,14 @@ class StagedEvent extends Equatable {
       if (val == null) return null;
       if (val is DateTime) return val;
       return DateTime.tryParse(val.toString());
+    }
+
+    Map<String, dynamic>? parseRawPayload(dynamic val) {
+      if (val is Map<String, dynamic>) return val;
+      if (val is Map) {
+        return val.map((k, v) => MapEntry(k.toString(), v));
+      }
+      return null;
     }
 
     return StagedEvent(
@@ -222,6 +500,7 @@ class StagedEvent extends Equatable {
           json['ai_provider'] as String? ?? json['aiProvider'] as String?,
       aiModel: json['ai_model'] as String? ?? json['aiModel'] as String?,
       aiError: json['ai_error'] as String? ?? json['aiError'] as String?,
+      rawPayload: parseRawPayload(json['raw_payload'] ?? json['rawPayload']),
       createdAt: parseDateTime(json['created_at'] ?? json['createdAt']),
       updatedAt: parseDateTime(json['updated_at'] ?? json['updatedAt']),
     );
@@ -259,6 +538,7 @@ class StagedEvent extends Equatable {
         'ai_provider': aiProvider,
         'ai_model': aiModel,
         'ai_error': aiError,
+        'raw_payload': rawPayload,
       };
 
   StagedEvent copyWith({
@@ -293,6 +573,7 @@ class StagedEvent extends Equatable {
     String? aiProvider,
     String? aiModel,
     String? aiError,
+    Map<String, dynamic>? rawPayload,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -328,6 +609,7 @@ class StagedEvent extends Equatable {
       aiProvider: aiProvider ?? this.aiProvider,
       aiModel: aiModel ?? this.aiModel,
       aiError: aiError ?? this.aiError,
+      rawPayload: rawPayload ?? this.rawPayload,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -366,6 +648,7 @@ class StagedEvent extends Equatable {
         aiProvider,
         aiModel,
         aiError,
+        rawPayload,
       ];
 }
 
@@ -428,6 +711,298 @@ class StagedEventStats extends Equatable {
 
   @override
   List<Object?> get props => [total, pending, imported, rejected, conflicts];
+}
+
+// =========================================================================
+// UNIVERSAL LIVE DISCOVERY & DEEP SCRAPING MODELS
+// =========================================================================
+
+/// Lightweight discovery card item.
+class DiscoveredEventItem extends Equatable {
+  final String source;
+  final String sourceEventId;
+  final String title;
+  final String eventUrl;
+  final String? posterUrl;
+  final String? bannerUrl;
+  final String? venueName;
+  final String? city;
+  final String? eventStartDate;
+  final String? eventEndDate;
+  final double? startingPrice;
+  final String currency;
+  final String? category;
+  final bool isAlreadyStaged;
+  final bool isAlreadyInProduction;
+  final String? discoveredAt;
+  final Map<String, dynamic>? rawDiscoveryPayload;
+
+  const DiscoveredEventItem({
+    required this.source,
+    required this.sourceEventId,
+    required this.title,
+    required this.eventUrl,
+    this.posterUrl,
+    this.bannerUrl,
+    this.venueName,
+    this.city,
+    this.eventStartDate,
+    this.eventEndDate,
+    this.startingPrice,
+    this.currency = 'INR',
+    this.category,
+    this.isAlreadyStaged = false,
+    this.isAlreadyInProduction = false,
+    this.discoveredAt,
+    this.rawDiscoveryPayload,
+  });
+
+  String get priceDisplay {
+    if (startingPrice == null || startingPrice == 0) return 'Free / TBA';
+    return 'From ₹${startingPrice!.toStringAsFixed(0)}';
+  }
+
+  factory DiscoveredEventItem.fromJson(Map<String, dynamic> json) {
+    double? parsePrice(dynamic val) {
+      if (val == null) return null;
+      if (val is num) return val.toDouble();
+      return double.tryParse(val.toString());
+    }
+
+    Map<String, dynamic>? parsePayload(dynamic val) {
+      if (val is Map<String, dynamic>) return val;
+      if (val is Map) return val.map((k, v) => MapEntry(k.toString(), v));
+      return null;
+    }
+
+    return DiscoveredEventItem(
+      source: json['source'] as String? ?? '',
+      sourceEventId: json['source_event_id'] as String? ?? json['sourceEventId'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      eventUrl: json['event_url'] as String? ?? json['eventUrl'] as String? ?? '',
+      posterUrl: json['poster_url'] as String? ?? json['posterUrl'] as String?,
+      bannerUrl: json['banner_url'] as String? ?? json['bannerUrl'] as String?,
+      venueName: json['venue_name'] as String? ?? json['venueName'] as String?,
+      city: json['city'] as String?,
+      eventStartDate: json['event_start_date'] as String? ?? json['eventStartDate'] as String?,
+      eventEndDate: json['event_end_date'] as String? ?? json['eventEndDate'] as String?,
+      startingPrice: parsePrice(json['starting_price'] ?? json['startingPrice']),
+      currency: json['currency'] as String? ?? 'INR',
+      category: json['category'] as String?,
+      isAlreadyStaged: json['is_already_staged'] as bool? ?? json['isAlreadyStaged'] as bool? ?? false,
+      isAlreadyInProduction: json['is_already_in_production'] as bool? ?? json['isAlreadyInProduction'] as bool? ?? false,
+      discoveredAt: json['discovered_at'] as String? ?? json['discoveredAt'] as String?,
+      rawDiscoveryPayload: parsePayload(json['raw_discovery_payload'] ?? json['rawDiscoveryPayload']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'source': source,
+        'source_event_id': sourceEventId,
+        'title': title,
+        'event_url': eventUrl,
+        'poster_url': posterUrl,
+        'banner_url': bannerUrl,
+        'venue_name': venueName,
+        'city': city,
+        'event_start_date': eventStartDate,
+        'event_end_date': eventEndDate,
+        'starting_price': startingPrice,
+        'currency': currency,
+        'category': category,
+        'is_already_staged': isAlreadyStaged,
+        'is_already_in_production': isAlreadyInProduction,
+        'discovered_at': discoveredAt,
+        'raw_discovery_payload': rawDiscoveryPayload,
+      };
+
+  @override
+  List<Object?> get props => [
+        source,
+        sourceEventId,
+        title,
+        eventUrl,
+        posterUrl,
+        bannerUrl,
+        venueName,
+        city,
+        eventStartDate,
+        eventEndDate,
+        startingPrice,
+        currency,
+        category,
+        isAlreadyStaged,
+        isAlreadyInProduction,
+      ];
+}
+
+/// Response returned from live discovery API.
+class DiscoverEventsResponse extends Equatable {
+  final bool success;
+  final String source;
+  final String? city;
+  final String? category;
+  final int totalDiscovered;
+  final List<DiscoveredEventItem> items;
+  final String timestamp;
+
+  const DiscoverEventsResponse({
+    required this.success,
+    required this.source,
+    this.city,
+    this.category,
+    required this.totalDiscovered,
+    required this.items,
+    required this.timestamp,
+  });
+
+  factory DiscoverEventsResponse.fromJson(Map<String, dynamic> json) {
+    final list = json['items'] as List? ?? [];
+    return DiscoverEventsResponse(
+      success: json['success'] as bool? ?? false,
+      source: json['source'] as String? ?? 'all',
+      city: json['city'] as String?,
+      category: json['category'] as String?,
+      totalDiscovered: json['total_discovered'] as int? ?? json['totalDiscovered'] as int? ?? 0,
+      items: list.map((e) => DiscoveredEventItem.fromJson(e as Map<String, dynamic>)).toList(),
+      timestamp: json['timestamp'] as String? ?? '',
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        success,
+        source,
+        city,
+        category,
+        totalDiscovered,
+        items,
+        timestamp,
+      ];
+}
+
+/// Target payload for deep scraping.
+class DeepScrapeSelectedTarget extends Equatable {
+  final String source;
+  final String sourceEventId;
+  final String eventUrl;
+  final String? title;
+  final Map<String, dynamic>? hintPayload;
+
+  const DeepScrapeSelectedTarget({
+    required this.source,
+    required this.sourceEventId,
+    required this.eventUrl,
+    this.title,
+    this.hintPayload,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'source': source,
+        'source_event_id': sourceEventId,
+        'event_url': eventUrl,
+        'title': title,
+        'hint_payload': hintPayload,
+      };
+
+  @override
+  List<Object?> get props => [source, sourceEventId, eventUrl, title, hintPayload];
+}
+
+/// Response returned from deep scraping selected events.
+class DeepScrapeResultItem extends Equatable {
+  final String source;
+  final String sourceEventId;
+  final int? stagingId;
+  final String title;
+  final String status;
+  final String validationStatus;
+  final bool isDuplicate;
+  final int? duplicateOf;
+  final String? message;
+
+  const DeepScrapeResultItem({
+    required this.source,
+    required this.sourceEventId,
+    this.stagingId,
+    required this.title,
+    required this.status,
+    required this.validationStatus,
+    this.isDuplicate = false,
+    this.duplicateOf,
+    this.message,
+  });
+
+  factory DeepScrapeResultItem.fromJson(Map<String, dynamic> json) {
+    return DeepScrapeResultItem(
+      source: json['source'] as String? ?? '',
+      sourceEventId: json['source_event_id'] as String? ?? json['sourceEventId'] as String? ?? '',
+      stagingId: json['staging_id'] as int? ?? json['stagingId'] as int?,
+      title: json['title'] as String? ?? '',
+      status: json['status'] as String? ?? 'PENDING_REVIEW',
+      validationStatus: json['validation_status'] as String? ?? json['validationStatus'] as String? ?? 'VALID',
+      isDuplicate: json['is_duplicate'] as bool? ?? json['isDuplicate'] as bool? ?? false,
+      duplicateOf: json['duplicate_of'] as int? ?? json['duplicateOf'] as int?,
+      message: json['message'] as String?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        source,
+        sourceEventId,
+        stagingId,
+        title,
+        status,
+        validationStatus,
+        isDuplicate,
+        duplicateOf,
+        message,
+      ];
+}
+
+class DeepScrapeResponse extends Equatable {
+  final bool success;
+  final int totalRequested;
+  final int totalStaged;
+  final int totalDuplicates;
+  final int totalFailed;
+  final List<DeepScrapeResultItem> results;
+  final String message;
+
+  const DeepScrapeResponse({
+    required this.success,
+    required this.totalRequested,
+    required this.totalStaged,
+    required this.totalDuplicates,
+    required this.totalFailed,
+    required this.results,
+    required this.message,
+  });
+
+  factory DeepScrapeResponse.fromJson(Map<String, dynamic> json) {
+    final resList = json['results'] as List? ?? [];
+    return DeepScrapeResponse(
+      success: json['success'] as bool? ?? false,
+      totalRequested: json['total_requested'] as int? ?? json['totalRequested'] as int? ?? 0,
+      totalStaged: json['total_staged'] as int? ?? json['totalStaged'] as int? ?? 0,
+      totalDuplicates: json['total_duplicates'] as int? ?? json['totalDuplicates'] as int? ?? 0,
+      totalFailed: json['total_failed'] as int? ?? json['totalFailed'] as int? ?? 0,
+      results: resList.map((e) => DeepScrapeResultItem.fromJson(e as Map<String, dynamic>)).toList(),
+      message: json['message'] as String? ?? '',
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        success,
+        totalRequested,
+        totalStaged,
+        totalDuplicates,
+        totalFailed,
+        results,
+        message,
+      ];
 }
 
 /// Phase 2 Import Batch Result DTO returned by Spring Boot.
