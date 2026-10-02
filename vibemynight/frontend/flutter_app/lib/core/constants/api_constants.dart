@@ -17,6 +17,14 @@ class ApiConstants {
     return raw.endsWith('/') ? '${raw}api/v1' : '$raw/api/v1';
   }
 
+  static String get publicAppUrl {
+    const raw = String.fromEnvironment(
+      'PUBLIC_APP_URL',
+      defaultValue: 'https://vibemynight.in',
+    );
+    return raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+  }
+
   // ---- Public ----
   static const String events = '/events';
   static String eventBySlug(String slug) => '/events/$slug';

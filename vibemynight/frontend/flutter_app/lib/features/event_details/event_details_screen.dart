@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/constants/api_constants.dart';
 import '../../core/providers/data_providers.dart';
 import '../../core/providers/dome_layout_provider.dart';
 import '../../core/providers/service_providers.dart';
@@ -82,7 +83,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   void _shareEvent(EventDetail event) {
-    Clipboard.setData(ClipboardData(text: 'https://vibemynight.com/events/${event.slug}'));
+    Clipboard.setData(ClipboardData(text: '${ApiConstants.publicAppUrl}/events/${event.slug}'));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Link copied to clipboard! 📋'),

@@ -89,11 +89,11 @@ public class WebPageMetaController {
                 imageUrl = "https://vibemynight.onrender.com" + imageUrl;
             }
             if (imageUrl == null || imageUrl.isBlank()) {
-                imageUrl = "https://vibemynight.com/favicon.png";
+                imageUrl = "https://vibemynight.in/favicon.png";
             }
             imageUrl = escapeHtml(imageUrl);
 
-            String pageUrl = escapeHtml("https://vibemynight.com/events/" + slug);
+            String pageUrl = escapeHtml("https://vibemynight.in/events/" + slug);
 
             String html = "<!DOCTYPE html>\n" +
                     "<html lang=\"en\">\n" +

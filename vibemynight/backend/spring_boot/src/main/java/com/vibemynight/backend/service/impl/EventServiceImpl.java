@@ -30,7 +30,25 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     @Cacheable(value = "events")
     public List<Event> findPublished() {
-        return eventRepository.findByStatus(EventStatus.PUBLISHED);
+        List<Event> events = eventRepository.findByStatus(EventStatus.PUBLISHED);
+        events.forEach(this::initializeEventSummaryCollections);
+        return events;
+    }
+
+    private void initializeEventSummaryCollections(Event event) {
+        if (event == null || event.getEventDays() == null) return;
+        for (var day : event.getEventDays()) {
+            if (day.getTicketCategories() != null) {
+                day.getTicketCategories().size();
+            }
+            if (day.getEventDayArtists() != null) {
+                for (var eda : day.getEventDayArtists()) {
+                    if (eda.getArtist() != null) {
+                        eda.getArtist().getName();
+                    }
+                }
+            }
+        }
     }
 
     @Override
