@@ -115,6 +115,38 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
     }
   }
 
+  Future<void> _handleResetAndFetch() async {
+    ref.read(isSyncingStagedProvider.notifier).state = true;
+    try {
+      final service = ref.read(stagingServiceProvider);
+      final result = await service.resetAndFetchStagedEvents();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['message']?.toString() ?? 'Staging reset and fresh events loaded!',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+      await _refreshAll();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Reset failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        ref.read(isSyncingStagedProvider.notifier).state = false;
+      }
+    }
+  }
+
   void _toggleSelectAll(List<StagedEvent> events) {
     final selectedSet = ref.read(selectedStagedEventIdsProvider);
     final allIds = events.map((e) => e.id).toSet();
@@ -453,22 +485,38 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      icon: isSyncing
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Icon(Icons.bolt_rounded, size: 16),
-                      label: Text(isSyncing ? 'Syncing...' : 'Fetch Now'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.neonPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: isSyncing ? null : _handleSyncNow,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ElevatedButton.icon(
+                          icon: isSyncing
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.bolt_rounded, size: 16),
+                          label: Text(isSyncing ? 'Syncing...' : 'Fetch All'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.neonPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: isSyncing ? null : () => _handleSyncNow(source: 'all'),
+                        ),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.restart_alt_rounded, size: 16, color: AppColors.neonPink),
+                          label: const Text('Reset & Re-sync Fresh', style: TextStyle(color: AppColors.neonPink)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.neonPink),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: isSyncing ? null : _handleResetAndFetch,
+                        ),
+                      ],
                     ),
                   ],
                 ),

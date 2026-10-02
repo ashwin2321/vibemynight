@@ -153,7 +153,7 @@ class StagingService {
   }
 
   /// Triggers an immediate ingestion fetch from external sources (e.g. Showmates).
-  Future<Map<String, dynamic>> triggerSyncFetch({String source = 'showmates'}) async {
+  Future<Map<String, dynamic>> triggerSyncFetch({String source = 'all'}) async {
     try {
       final response = await _stagingDio.post(
         ApiConstants.syncFetchNow,
@@ -179,6 +179,23 @@ class StagingService {
         message,
         statusCode: e.response?.statusCode,
       );
+    }
+  }
+
+  /// Clears non-imported staging events and re-fetches fresh multi-source events.
+  Future<Map<String, dynamic>> resetAndFetchStagedEvents() async {
+    try {
+      final response = await _stagingDio.post('/sync/reset-and-fetch');
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return {'success': true, 'message': 'Reset & re-fetch completed'};
+    } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to reset and fetch events';
+      throw ApiException(message, statusCode: e.response?.statusCode);
     }
   }
 

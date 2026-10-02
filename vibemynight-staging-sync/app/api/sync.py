@@ -64,6 +64,37 @@ def get_staging_stats(db: Session = Depends(get_db)):
         }
 
 
+@router.delete("/events/clear")
+def clear_staging_events(
+    force: bool = Query(False, description="Clear all staged events including duplicates"),
+    db: Session = Depends(get_db)
+):
+    """Clears pending and duplicate staged events to reset the staging hub cleanly."""
+    try:
+        deleted = db.query(StagingEvent).filter(StagingEvent.status != StagingEventStatus.IMPORTED).delete()
+        db.commit()
+        return {"success": True, "deleted": deleted, "message": f"Cleared {deleted} staged events."}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error clearing staged events: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/reset-and-fetch", response_model=SyncFetchResponse)
+async def reset_and_fetch_events(
+    db: Session = Depends(get_db)
+):
+    """Resets un-imported staged events and re-ingests fresh multi-source events."""
+    try:
+        db.query(StagingEvent).filter(StagingEvent.status != StagingEventStatus.IMPORTED).delete()
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.warning(f"Error resetting before fetch: {e}")
+
+    return await fetch_and_stage_events(source="all", payload=None, db=db)
+
+
 @router.post("/fetch", response_model=SyncFetchResponse)
 @router.post("/fetch-now", response_model=SyncFetchResponse)
 async def fetch_and_stage_events(

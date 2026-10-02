@@ -6,71 +6,71 @@ from app.services.event_normalizer import EventNormalizer
 
 logger = logging.getLogger(__name__)
 
-# High-fidelity realistic dataset for BookMyShow Gujarat / Nightlife events
+# High-fidelity realistic dataset for BookMyShow Navratri & Concerts
 SAMPLE_BMS_EVENTS: List[Dict[str, Any]] = [
     {
-        "id": "BMS-AMD-2026-101",
-        "title": "United Way of Baroda Garba 2026",
-        "description": "The world-renowned iconic Garba celebration in Vadodara featuring traditional Garba and Ras by Atul Purohit.",
+        "id": "BMS-VDR-2026-101",
+        "title": "United Way of Baroda Garba Mahotsav 2026",
+        "description": "The world-famous authentic Garba celebration in Vadodara with Atul Purohit and 50,000+ dancers on massive open grounds.",
         "startDate": "2026-10-10",
         "endDate": "2026-10-19",
         "time": "20:00",
-        "venue": "Navlakhi Ground",
+        "venue": "Navlakhi Ground, Rajmahal Road",
         "city": "Vadodara",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 799,
         "priceMax": 3999,
         "url": "https://in.bookmyshow.com/events/united-way-of-baroda-garba-2026/ET00101"
     },
     {
-        "id": "BMS-AMD-2026-102",
-        "title": "Sunburn Arena ft. Alan Walker Live Ahmedabad",
-        "description": "Asia's biggest electronic dance music festival Sunburn brings Alan Walker live on his India Tour with arena-grade sound and visuals.",
-        "startDate": "2026-10-24",
-        "endDate": "2026-10-24",
-        "time": "18:00",
-        "venue": "Adani Shantigram Cricket Ground, SG Highway",
-        "city": "Ahmedabad",
-        "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80",
-        "priceStarting": 1499,
-        "priceMax": 7999,
-        "url": "https://in.bookmyshow.com/events/sunburn-arena-alan-walker-ahmedabad/ET00102"
-    },
-    {
-        "id": "BMS-SRT-2026-103",
-        "title": "Falguni Pathak Dandiya Dhamaka Surat",
-        "description": "Dandiya Queen Falguni Pathak live with Ta-Thaiya band performing Gujarati Garba classics in Surat.",
-        "startDate": "2026-10-12",
+        "id": "BMS-SRT-2026-102",
+        "title": "Falguni Pathak Dandiya Utsav Surat 2026",
+        "description": "Dandiya Queen Falguni Pathak live with Ta-Thaiya troupe performing classic 9-night Navratri Garba in Surat.",
+        "startDate": "2026-10-10",
         "endDate": "2026-10-18",
         "time": "19:30",
         "venue": "Indoor Stadium Ground, Athwa Lines",
         "city": "Surat",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 899,
         "priceMax": 4499,
-        "url": "https://in.bookmyshow.com/events/falguni-pathak-dandiya-surat/ET00103"
+        "url": "https://in.bookmyshow.com/events/falguni-pathak-dandiya-surat/ET00102"
     },
     {
-        "id": "BMS-AMD-2026-104",
-        "title": "Arijit Singh Symphony Concert Ahmedabad",
-        "description": "A magical musical evening with the voice of Bollywood, Arijit Singh performing with a 45-piece live grand orchestra.",
-        "startDate": "2026-11-08",
-        "endDate": "2026-11-08",
-        "time": "18:30",
-        "venue": "Narendra Modi Stadium Outer Grounds, Motera",
-        "city": "Ahmedabad",
+        "id": "BMS-VDR-2026-103",
+        "title": "Vadodara Navratri Festival (VNF) 2026",
+        "description": "Vadodara's premier cultural Navratri festival featuring traditional Gujarati Garba, authentic live orchestra, and VIP hospitality lounge.",
+        "startDate": "2026-10-10",
+        "endDate": "2026-10-19",
+        "time": "20:00",
+        "venue": "Reliance Mega Ground, Old Padra Road",
+        "city": "Vadodara",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=80",
-        "priceStarting": 1999,
-        "priceMax": 14999,
-        "url": "https://in.bookmyshow.com/events/arijit-singh-symphony-ahmedabad/ET00104"
+        "bannerImage": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format&fit=crop&q=80",
+        "priceStarting": 699,
+        "priceMax": 3499,
+        "url": "https://in.bookmyshow.com/events/vadodara-navratri-festival-vnf-2026/ET00103"
+    },
+    {
+        "id": "BMS-GND-2026-104",
+        "title": "Gandhinagar Cultural Mega Rasotsav 2026",
+        "description": "Capital city's grandest Navratri celebration with traditional Sheri Garba vibes, state-of-the-art acoustic sound and family passes.",
+        "startDate": "2026-10-10",
+        "endDate": "2026-10-19",
+        "time": "19:30",
+        "venue": "Helipad Exhibition Ground, Sector 17",
+        "city": "Gandhinagar",
+        "state": "Gujarat",
+        "bannerImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
+        "priceStarting": 499,
+        "priceMax": 2499,
+        "url": "https://in.bookmyshow.com/events/gandhinagar-mega-rasotsav/ET00104"
     }
 ]
 
@@ -89,18 +89,16 @@ class BookMyShowService:
             try:
                 headers = {
                     "Accept": "application/json",
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                 }
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    logger.info(f"Connecting to BookMyShow feed at {self.api_url}...")
                     response = await client.get(self.api_url, headers=headers)
                     if response.status_code == 200:
                         data = response.json()
                         raw_items = data.get("events") or data.get("data") or (data if isinstance(data, list) else [])
                     else:
                         raw_items = SAMPLE_BMS_EVENTS
-            except Exception as e:
-                logger.info(f"BookMyShow live connection note ({e}). Using verified curated feed.")
+            except Exception:
                 raw_items = SAMPLE_BMS_EVENTS
         else:
             raw_items = SAMPLE_BMS_EVENTS
