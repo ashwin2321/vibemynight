@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 echo "==> [Vercel Build] Initializing build environment..."
 git config --global --add safe.directory "*" || true
@@ -14,21 +13,18 @@ if command -v flutter &> /dev/null; then
 elif [ -x "$FLUTTER_DIR/bin/flutter" ]; then
   echo "==> Flutter found in $FLUTTER_DIR"
   export PATH="$FLUTTER_DIR/bin:$PATH"
-elif [ -x "$ORIGIN_DIR/flutter/bin/flutter" ]; then
-  echo "==> Flutter found in $ORIGIN_DIR/flutter"
-  export PATH="$ORIGIN_DIR/flutter/bin:$PATH"
 else
   echo "==> Downloading Flutter SDK stable..."
   rm -rf "$FLUTTER_DIR" "$ORIGIN_DIR/flutter" || true
-  git clone --depth 1 -b stable https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+  git clone --depth 1 -b stable https://github.com/flutter/flutter.git "$FLUTTER_DIR" || git clone -b stable https://github.com/flutter/flutter.git "$FLUTTER_DIR"
   export PATH="$FLUTTER_DIR/bin:$PATH"
 fi
 
+export PATH="$FLUTTER_DIR/bin:$PATH"
 git config --global --add safe.directory "$FLUTTER_DIR" || true
-git config --global --add safe.directory "$ORIGIN_DIR/flutter" || true
+git config --global --add safe.directory "$ORIGIN_DIR" || true
 
-flutter config --no-analytics
-flutter --version
+flutter --version || true
 
 echo "==> [Vercel Build] Locating Flutter App directory..."
 APP_DIR=""
@@ -52,12 +48,13 @@ flutter build web --release --no-tree-shake-icons
 
 echo "==> Build successful! Syncing output directories..."
 if [ -d "$APP_DIR/build/web" ]; then
-  echo "==> Output directory $APP_DIR/build/web has $(ls "$APP_DIR/build/web" | wc -l) files."
-  # Mirror to both possible Vercel output directories
+  echo "==> Found build output in $APP_DIR/build/web"
   mkdir -p "$ORIGIN_DIR/vibemynight/frontend/flutter_app/build"
-  cp -r "$APP_DIR/build/web" "$ORIGIN_DIR/vibemynight/frontend/flutter_app/build/" || true
+  cp -rf "$APP_DIR/build/web" "$ORIGIN_DIR/vibemynight/frontend/flutter_app/build/" || true
   mkdir -p "$ORIGIN_DIR/frontend/flutter_app/build"
-  cp -r "$APP_DIR/build/web" "$ORIGIN_DIR/frontend/flutter_app/build/" || true
+  cp -rf "$APP_DIR/build/web" "$ORIGIN_DIR/frontend/flutter_app/build/" || true
+  mkdir -p "$ORIGIN_DIR/build"
+  cp -rf "$APP_DIR/build/web" "$ORIGIN_DIR/build/" || true
 fi
 
 cd "$ORIGIN_DIR"
