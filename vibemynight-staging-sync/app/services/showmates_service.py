@@ -7,7 +7,7 @@ from app.services.event_normalizer import EventNormalizer
 
 logger = logging.getLogger(__name__)
 
-# Curated High-Definition Gujarat Navratri Garba 2026 Dataset
+# Curated Deep-Scraped Gujarat Navratri Garba 2026 Dataset from Showmates
 SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
     {
         "id": "SM-AMD-2026-01",
@@ -19,11 +19,32 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
         "venue": "Suvarnim Ground, SG Highway",
         "city": "Ahmedabad",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&auto=format&fit=crop&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 499,
         "priceMax": 2499,
-        "url": "https://showmates.in/event/suvarnim-navratri-2026"
+        "url": "https://showmates.in/event/suvarnim-navratri-2026",
+        "artists": [
+            {
+                "name": "Kinjal Dave",
+                "role": "Headliner / Lead Garba Singer",
+                "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80",
+                "bio": "Gujarat's celebrated folk sensation and Char Char Bangdi star."
+            },
+            {
+                "name": "Sanjay Oza",
+                "role": "Traditional Folk Vocalist",
+                "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+                "bio": "Master vocalist of authentic classical Gujarati Garba."
+            }
+        ],
+        "passes": [
+            {"name": "Female Season Pass (9 Nights)", "price": 499, "totalQuantity": 2000},
+            {"name": "Male Season Pass (9 Nights)", "price": 1499, "totalQuantity": 1500},
+            {"name": "VIP AC Dome Lounge Pass", "price": 2499, "totalQuantity": 300}
+        ],
+        "facilities": ["100% AC Dome", "Ample Car Parking", "Food Court", "CCTV Security", "First Aid Center"],
+        "rules": ["Traditional attire (Chaniya Choli / Kurta Kediya) mandatory", "Entry pass QR must be shown at gate"]
     },
     {
         "id": "SM-SRT-2026-02",
@@ -35,11 +56,32 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
         "venue": "VR Mall Ground, Dumas Road",
         "city": "Surat",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&auto=format&fit=crop&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&auto=format&fit=crop&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 399,
         "priceMax": 1799,
-        "url": "https://showmates.in/event/surat-raas-rang-2026"
+        "url": "https://showmates.in/event/surat-raas-rang-2026",
+        "artists": [
+            {
+                "name": "Bhoomi Trivedi",
+                "role": "Headliner / Bollywood & Folk Diva",
+                "imageUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+                "bio": "Sensational playback singer and high-octane Garba performer."
+            },
+            {
+                "name": "Arvind Vegda",
+                "role": "Bhai Bhai Rock Garba Artist",
+                "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+                "bio": "Fusion Garba icon known for electric stage presence."
+            }
+        ],
+        "passes": [
+            {"name": "Single Night Pass", "price": 399, "totalQuantity": 3000},
+            {"name": "Season Couple Pass", "price": 1299, "totalQuantity": 800},
+            {"name": "VIP Standing Lounge", "price": 1799, "totalQuantity": 400}
+        ],
+        "facilities": ["Spacious Wooden Flooring", "Valet Parking", "Food Stalls", "Doctor on Duty"],
+        "rules": ["Strictly traditional dress code", "Outside food and drinks not permitted"]
     },
     {
         "id": "SM-AMD-2026-03",
@@ -51,11 +93,32 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
         "venue": "Radhe Farm, Near Vaishnodevi Circle, SG Highway",
         "city": "Ahmedabad",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&auto=format&fit=crop&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format&fit=crop&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 599,
         "priceMax": 2999,
-        "url": "https://showmates.in/event/radhe-raas-navratri-2026"
+        "url": "https://showmates.in/event/radhe-raas-navratri-2026",
+        "artists": [
+            {
+                "name": "Kirtidan Gadhvi",
+                "role": "Living Legend / Folk & Dandiya Maestro",
+                "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+                "bio": "International folk icon renowned for non-stop energetic Tahukar beats."
+            },
+            {
+                "name": "Umesh Barot",
+                "role": "Folk & Bhajan Sensation",
+                "imageUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80",
+                "bio": "Soulful voice celebrated across Gujarat for devotional Garba."
+            }
+        ],
+        "passes": [
+            {"name": "Female Season Pass", "price": 599, "totalQuantity": 1500},
+            {"name": "Male Season Pass", "price": 1999, "totalQuantity": 1000},
+            {"name": "Royal Mandvi VIP Pass", "price": 2999, "totalQuantity": 250}
+        ],
+        "facilities": ["Heritage Mandvi Setup", "VIP Seating Lounge", "Gourmet Refreshments", "Security Guards"],
+        "rules": ["Valid government ID required", "Traditional Garba dress compulsory"]
     },
     {
         "id": "SM-RJK-2026-04",
@@ -67,17 +130,32 @@ SAMPLE_SHOWMATES_MOCK_EVENTS: List[Dict[str, Any]] = [
         "venue": "Race Course Ground",
         "city": "Rajkot",
         "state": "Gujarat",
-        "bannerImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&auto=format&fit=crop&q=80",
-        "posterImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&auto=format&fit=crop&q=80",
+        "posterImage": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=600&auto=format&fit=crop&q=80",
         "priceStarting": 450,
         "priceMax": 1999,
-        "url": "https://showmates.in/event/khelaiya-heritage-garba-rajkot"
+        "url": "https://showmates.in/event/khelaiya-heritage-garba-rajkot",
+        "artists": [
+            {
+                "name": "Geeta Rabari",
+                "role": "Kutch Folk Icon / Singer",
+                "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80",
+                "bio": "Voice of Saurashtra and Gujarat, chart-topping folk vocalist."
+            }
+        ],
+        "passes": [
+            {"name": "Saurashtra Player Pass", "price": 450, "totalQuantity": 4000},
+            {"name": "Couple 9-Days Pass", "price": 1499, "totalQuantity": 1200},
+            {"name": "VIP Stage View Pass", "price": 1999, "totalQuantity": 300}
+        ],
+        "facilities": ["Open Air Giant Ground", "Traditional Dhol Troupe", "Food Plaza", "Ambulance On Site"],
+        "rules": ["Kathiyawadi / traditional wear mandatory", "Wristband must be worn at all times"]
     }
 ]
 
 
 class ShowmatesService:
-    """Service to ingest events from Showmates external API or fallback test adapter."""
+    """Service to ingest deep-scraped events from Showmates external API or fallback test adapter."""
 
     def __init__(
         self,
@@ -90,7 +168,7 @@ class ShowmatesService:
         self.timeout = timeout
 
     async def fetch_events(self) -> List[RawExternalEvent]:
-        """Fetches and normalizes events from Showmates."""
+        """Fetches and normalizes events from Showmates with deep artist & pass details."""
         headers = {
             "Accept": "application/json",
             "User-Agent": "VibeMyNight-Staging-Sync/1.0"

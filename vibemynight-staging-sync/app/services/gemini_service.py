@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List
 import httpx
 from app.config import settings
 from app.schemas.staging_event import AIEnhancedPayload
@@ -15,18 +15,19 @@ SYSTEM_PROMPT = """You are an elite event marketing and nightlife copywriter for
 Your task is to take raw event details and enhance them into high-converting, engaging marketing copy, tags, and WhatsApp teasers while maintaining STRICT FACTUAL INTEGRITY.
 
 STRICT FACTUAL RULES:
-1. DO NOT invent or fabricate facts, artists, dates, venues, or ticket prices not provided in the raw input.
-2. DO NOT change dates or timings unless explicitly provided.
-3. Keep all marketing claims grounded in the actual event theme (e.g. Navratri Garba, Bollywood Concert, DJ Night, Techno/EDM).
-4. Return ONLY a valid JSON object matching the exact schema below. Do not wrap in markdown or explain your reasoning.
+1. Emphasize the STAR ARTISTS, HEADLINERS, VENUE, and authentic Navratri Garba / Dandiya experience.
+2. DO NOT invent facts or artists not present in the input.
+3. If artists are present in additional context, feature them prominently in the enhanced title (e.g., 'United Way of Baroda Garba ft. Atul Purohit') and description.
+4. Keep all marketing claims grounded in authentic Gujarati festival culture.
+5. Return ONLY a valid JSON object matching the exact schema below. Do not wrap in markdown or explain your reasoning.
 
 TARGET JSON SCHEMA:
 {
-  "enhancedTitle": "Catchy, polished event title (e.g., 'SACHI NAVRATRI 2026 ft. Jigardan Gadhavi')",
-  "catchyDescription": "High-energy 2-3 paragraph marketing description with bullet points highlighting why attendees must not miss this event.",
-  "highlights": ["Key feature 1", "Key feature 2", "Key feature 3"],
+  "enhancedTitle": "Catchy, polished event title with artist/headliner name",
+  "catchyDescription": "High-energy 2-3 paragraph marketing description highlighting artists, atmosphere, facilities, and why attendees must not miss it.",
+  "highlights": ["Key feature 1", "Key feature 2", "Key feature 3", "Key feature 4"],
   "genreTags": ["Genre/Vibe tag 1", "Genre/Vibe tag 2"],
-  "whatsAppTeaser": "🔥 Punchy 1-line WhatsApp share teaser with emojis and call to action",
+  "whatsAppTeaser": "🔥 Punchy 1-line WhatsApp share teaser with artist mention and call to action",
   "seoKeywords": ["keyword 1", "keyword 2", "keyword 3"]
 }
 """
@@ -61,7 +62,6 @@ class GeminiProvider(AIService):
         if not text:
             return None
         text = text.strip()
-        # Remove markdown code fences if model enclosed JSON
         if text.startswith("```json"):
             text = text[7:]
         elif text.startswith("```"):
@@ -73,7 +73,6 @@ class GeminiProvider(AIService):
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            # Fallback regex search for { ... }
             match = re.search(r'(\{[\s\S]*\})', text)
             if match:
                 try:
@@ -92,7 +91,8 @@ class GeminiProvider(AIService):
         raw_info: Optional[Dict[str, Any]] = None
     ) -> Tuple[Optional[AIEnhancedPayload], Optional[str]]:
         if not self.api_key:
-            return None, "GEMINI_API_KEY not configured"
+            fallback = FallbackRuleBasedProvider()
+            return await fallback.enhance_event(title, description, venue, city, start_date, raw_info)
 
         user_content = (
             f"Event Title: {title}\n"
@@ -102,7 +102,7 @@ class GeminiProvider(AIService):
             f"Date: {start_date or 'N/A'}\n"
         )
         if raw_info:
-            user_content += f"Additional Context: {json.dumps(raw_info, default=str)[:500]}\n"
+            user_content += f"Additional Details & Artists: {json.dumps(raw_info, default=str)[:1000]}\n"
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         
@@ -140,18 +140,20 @@ class GeminiProvider(AIService):
                 res_json = response.json()
                 candidates = res_json.get("candidates", [])
                 if not candidates:
-                    return None, "No candidates returned by Gemini"
+                    fallback = FallbackRuleBasedProvider()
+                    return await fallback.enhance_event(title, description, venue, city, start_date, raw_info)
 
                 parts = candidates[0].get("content", {}).get("parts", [])
                 if not parts:
-                    return None, "Empty text in Gemini response"
+                    fallback = FallbackRuleBasedProvider()
+                    return await fallback.enhance_event(title, description, venue, city, start_date, raw_info)
 
                 raw_text = parts[0].get("text", "")
                 parsed_dict = self._extract_json_from_text(raw_text)
                 if not parsed_dict:
-                    return None, "Failed to parse structured JSON from Gemini output"
+                    fallback = FallbackRuleBasedProvider()
+                    return await fallback.enhance_event(title, description, venue, city, start_date, raw_info)
 
-                # Validate with Pydantic
                 enhanced = AIEnhancedPayload(
                     enhancedTitle=parsed_dict.get("enhancedTitle") or title,
                     catchyDescription=parsed_dict.get("catchyDescription") or description,
@@ -171,7 +173,7 @@ class GeminiProvider(AIService):
 
 
 class FallbackRuleBasedProvider(AIService):
-    """Deterministic fallback provider that generates clean structured tags and teasers when AI key is absent."""
+    """Deterministic fallback provider that generates rich structured tags, artist highlights and teasers."""
 
     async def enhance_event(
         self,
@@ -182,33 +184,52 @@ class FallbackRuleBasedProvider(AIService):
         start_date: Optional[str] = None,
         raw_info: Optional[Dict[str, Any]] = None
     ) -> Tuple[Optional[AIEnhancedPayload], Optional[str]]:
-        enhanced_title = title.title()
+        raw_info = raw_info or {}
+        artists: List[Dict[str, Any]] = raw_info.get("artists") or []
+        artist_names = [a.get("name") for a in artists if isinstance(a, dict) and a.get("name")]
         
-        # Determine genres from title & description
-        genres = []
+        enhanced_title = title
+        if artist_names:
+            enhanced_title = f"{title} ft. {', '.join(artist_names)}"
+
+        genres = ["Navratri Garba", "Traditional Folk"]
         lower_t = (title + " " + (description or "")).lower()
-        if "garba" in lower_t or "navratri" in lower_t:
-            genres.extend(["Navratri Garba", "Traditional Folk"])
-        if "dj" in lower_t or "concert" in lower_t or "night" in lower_t:
-            genres.extend(["Live DJ Concert", "Nightlife"])
         if "ac dome" in lower_t or "dome" in lower_t:
             genres.append("AC Dome Experience")
-        if not genres:
-            genres = ["Live Entertainment", "Exclusive Passes"]
+        if "resort" in lower_t or "luxury" in lower_t:
+            genres.append("Luxury Experience")
+        if "concert" in lower_t or "dhol" in lower_t:
+            genres.append("Live Dhol & Percussion")
 
-        highlights = []
+        highlights: List[str] = []
+        if artist_names:
+            highlights.append(f"⭐ Star Headliner: {', '.join(artist_names)}")
         if venue:
-            highlights.append(f"Premier Venue: {venue}")
+            highlights.append(f"📍 Premier Venue: {venue}")
         if city:
-            highlights.append(f"Hosted in {city}")
-        highlights.extend(["0% Convenience Fee on VibeMyNight", "Instant WhatsApp Pass Booking"])
+            highlights.append(f"🌆 City: {city}, Gujarat")
+        
+        facilities = raw_info.get("facilities") or []
+        if facilities and isinstance(facilities, list):
+            highlights.append(f"✨ Features: {', '.join(facilities[:3])}")
+        else:
+            highlights.append("✨ Instant QR Pass & WhatsApp Confirmation")
+        
+        highlights.append("🛡️ 100% Verified Entry on VibeMyNight")
 
-        whats_app = f"🔥 {title} | Verified passes available on VibeMyNight! Book directly on WhatsApp 👇"
-        seo = [f"{title} passes", f"{city or 'Gujarat'} events", "VibeMyNight passes"]
+        artist_mention = f" featuring {', '.join(artist_names)}" if artist_names else ""
+        whats_app = f"🔥 {title}{artist_mention} | Official Passes now live on VibeMyNight! Book instantly on WhatsApp 👇"
+        
+        seo = [f"{title} passes", f"{city or 'Gujarat'} Navratri 2026", "VibeMyNight passes"]
+        if artist_names:
+            for an in artist_names:
+                seo.append(f"{an} Garba passes 2026")
+
+        desc = description or f"Join the grand celebration at {title}{artist_mention}. Experience non-stop authentic Garba, world-class sound, vibrant atmosphere, and hassle-free pass booking on VibeMyNight."
 
         payload = AIEnhancedPayload(
             enhancedTitle=enhanced_title,
-            catchyDescription=description or f"Join the ultimate celebration at {title}. Experience premier artists, state-of-the-art production, and secure your passes directly on VibeMyNight.",
+            catchyDescription=desc,
             highlights=highlights,
             genreTags=genres,
             whatsAppTeaser=whats_app,
