@@ -24,6 +24,13 @@ class Settings(BaseSettings):
         description="Database connection URL"
     )
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: str) -> str:
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
+
     # AI Integration
     AI_PROVIDER: str = "gemini"
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
