@@ -123,15 +123,19 @@ class GeminiProvider(AIService):
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(url, json=payload)
                 
-                if response.status_code == 429:
-                    logger.warning("Gemini API rate limited (429)")
-                    return None, "Rate limit exceeded (HTTP 429)"
-                elif response.status_code == 400 or response.status_code == 403:
-                    logger.warning("Gemini API authentication / parameter error")
-                    return None, f"Gemini API error (HTTP {response.status_code})"
-                elif response.status_code != 200:
-                    logger.warning(f"Gemini API returned HTTP {response.status_code}")
-                    return None, f"Gemini server error (HTTP {response.status_code})"
+                if response.status_code != 200:
+                    logger.warning(
+                        f"Gemini API returned HTTP {response.status_code} ({response.text[:200]}). Falling back to rule-based engine."
+                    )
+                    fallback = FallbackRuleBasedProvider()
+                    return await fallback.enhance_event(
+                        title=title,
+                        description=description,
+                        venue=venue,
+                        city=city,
+                        start_date=start_date,
+                        raw_info=raw_info,
+                    )
 
                 res_json = response.json()
                 candidates = res_json.get("candidates", [])
