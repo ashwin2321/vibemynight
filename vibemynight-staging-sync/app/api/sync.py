@@ -22,7 +22,30 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/sync", tags=["Staging & Sync"])
 
 
+@router.get("/stats")
+def get_staging_stats(db: Session = Depends(get_db)):
+    """Returns aggregated count statistics for staged events."""
+    total = db.query(StagingEvent).count()
+    pending = db.query(StagingEvent).filter(StagingEvent.status == StagingEventStatus.PENDING_REVIEW).count()
+    imported = db.query(StagingEvent).filter(StagingEvent.status == StagingEventStatus.IMPORTED).count()
+    rejected = db.query(StagingEvent).filter(StagingEvent.status == StagingEventStatus.REJECTED).count()
+    conflicts = db.query(StagingEvent).filter(
+        or_(
+            StagingEvent.status == StagingEventStatus.DUPLICATE,
+            StagingEvent.status == StagingEventStatus.AI_PROCESSING_FAILED
+        )
+    ).count()
+    return {
+        "total": total,
+        "pending": pending,
+        "imported": imported,
+        "rejected": rejected,
+        "conflicts": conflicts
+    }
+
+
 @router.post("/fetch", response_model=SyncFetchResponse)
+@router.post("/fetch-now", response_model=SyncFetchResponse)
 async def fetch_and_stage_events(
     db: Session = Depends(get_db)
 ):
