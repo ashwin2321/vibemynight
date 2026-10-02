@@ -4,7 +4,7 @@
   "buildCommand": "export PATH=$PATH:$(pwd)/flutter/bin && cd frontend/flutter_app && flutter pub get && flutter build web --release --no-tree-shake-icons",
   "rewrites": [
     {
-      "source": "/events/:slug*",
+      "source": "/events/(.*)",
       "has": [
         {
           "type": "header",
@@ -12,7 +12,7 @@
           "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|SkypeUriPreview|Googlebot|bingbot|Pinterestbot|quora|vkShare|Embedly|outbrain).*"
         }
       ],
-      "destination": "https://vibemynight.onrender.com/events/:slug*"
+      "destination": "https://vibemynight.onrender.com/events/$1"
     },
     {
       "source": "/(.*)",
