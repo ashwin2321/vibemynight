@@ -24,7 +24,8 @@ public class WebPageMetaController {
     private static final String[] SOCIAL_CRAWLER_KEYWORDS = {
             "whatsapp", "facebookexternalhit", "facebot", "twitterbot",
             "telegrambot", "linkedinbot", "slackbot", "discordbot",
-            "skypeuripreview", "googlebot", "bingbot"
+            "skypeuripreview", "googlebot", "bingbot", "pinterestbot",
+            "vkshare", "quora", "outbrain", "embedly", "bitlybot"
     };
 
     private boolean isSocialCrawler(HttpServletRequest request) {
