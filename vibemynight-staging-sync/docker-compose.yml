@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  staging-db:
+    image: postgres:16-alpine
+    container_name: vibemynight-staging-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: vibemynight_staging
+    ports:
+      - "5433:5432"
+    volumes:
+      - staging_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  staging-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vibemynight-staging-sync-app
+    restart: unless-stopped
+    depends_on:
+      staging-db:
+        condition: service_healthy
+    environment:
+      APP_ENV: development
+      PORT: 8000
+      DATABASE_URL: postgresql+psycopg://postgres:postgrespassword@staging-db:5432/vibemynight_staging
+      AI_PROVIDER: gemini
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: gemini-1.5-flash
+      SHOWMATES_API_URL: ${SHOWMATES_API_URL:-https://api.showmates.in/v1/events}
+      SHOWMATES_API_KEY: ${SHOWMATES_API_KEY:-}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5000,http://localhost:8000,https://vibemynight.in,https://www.vibemynight.in
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+
+volumes:
+  staging_pgdata:

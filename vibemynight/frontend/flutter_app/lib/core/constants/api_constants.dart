@@ -79,4 +79,23 @@ class ApiConstants {
   static const String adminInquiries = '/admin/inquiries';
   static String adminInquiryById(int id) => '/admin/inquiries/$id';
   static String adminInquiryStatus(int id) => '/admin/inquiries/$id/status';
+
+  // ---- Phase 2 & 3: Staging & Sync Hub ----
+  static const String adminStagedEventsImport = '/admin/events/import-staged';
+
+  static String get stagingSyncBaseUrl {
+    const raw = String.fromEnvironment(
+      'STAGING_SYNC_URL',
+      defaultValue: 'https://vibemynight-staging.up.railway.app/api/v1',
+    );
+    if (raw.endsWith('/api/v1')) {
+      return raw;
+    }
+    return raw.endsWith('/') ? '${raw}api/v1' : '$raw/api/v1';
+  }
+
+  static const String syncEvents = '/sync/events';
+  static String syncEventById(int id) => '/sync/events/$id';
+  static const String syncFetchNow = '/sync/fetch-now';
+  static const String syncStats = '/sync/stats';
 }

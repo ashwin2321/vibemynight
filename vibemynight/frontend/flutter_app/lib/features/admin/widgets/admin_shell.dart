@@ -29,6 +29,7 @@ class AdminShell extends ConsumerWidget {
   static const _navItems = [
     (label: 'Dashboard', route: '/admin/dashboard', icon: Icons.dashboard_rounded),
     (label: 'Events', route: '/admin/events', icon: Icons.celebration_rounded),
+    (label: 'Import & Sync Hub', route: '/admin/import-hub', icon: Icons.cloud_sync_rounded),
     (label: 'Artists', route: '/admin/artists', icon: Icons.mic_external_on_rounded),
     (label: 'Pass Catalog & Prices', route: '/admin/pass-templates', icon: Icons.confirmation_number_rounded),
     (label: 'Facilities', route: '/admin/facilities', icon: Icons.stars_rounded),
@@ -36,6 +37,7 @@ class AdminShell extends ConsumerWidget {
     (label: 'Billing & Invoices', route: '/admin/billing', icon: Icons.receipt_long_rounded),
     (label: 'Settings', route: '/admin/settings', icon: Icons.settings_suggest_rounded),
   ];
+
 
   bool _isWide(BuildContext context) => MediaQuery.of(context).size.width >= 900;
 
@@ -126,7 +128,7 @@ class _NavList extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: VmnLogo(size: 34, fontSize: 19),
+          child: VmnLogo(size: 30, fontSize: 16),
         ),
         const SizedBox(height: 8),
         Container(
