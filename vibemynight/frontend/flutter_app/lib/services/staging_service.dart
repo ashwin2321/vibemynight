@@ -27,6 +27,7 @@ class StagingService {
   /// Fetches paginated staged events from the Staging & Sync API with optional filters.
   Future<StagedEventListResponse> fetchStagedEvents({
     StagedStatus? status,
+    String? source,
     String? city,
     String? search,
     int page = 1,
@@ -39,6 +40,9 @@ class StagingService {
       };
       if (status != null) {
         queryParams['status'] = status.toApiString();
+      }
+      if (source != null && source.trim().isNotEmpty && source.toUpperCase() != 'ALL') {
+        queryParams['source'] = source.trim().toLowerCase();
       }
       if (city != null && city.trim().isNotEmpty && city.toUpperCase() != 'ALL') {
         queryParams['city'] = city.trim();

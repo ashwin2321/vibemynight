@@ -18,7 +18,7 @@ def test_sync_fetch_pipeline(client: TestClient, db_session: Session):
     for ev in staged_events:
         assert ev.status in [StagingEventStatus.PENDING_REVIEW, StagingEventStatus.AI_PROCESSING_FAILED]
         assert ev.title is not None
-        assert ev.source == "showmates"
+        assert ev.source in ["showmates", "bookmyshow", "district"]
 
     # Running fetch again should detect duplicates
     second_fetch = client.post("/api/v1/sync/fetch")

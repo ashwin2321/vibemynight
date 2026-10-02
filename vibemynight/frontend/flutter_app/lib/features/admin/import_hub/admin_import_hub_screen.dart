@@ -33,11 +33,20 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
     'ALL',
     'SURAT',
     'AHMEDABAD',
+    'VADODARA',
+    'RAJKOT',
+    'GANDHINAGAR',
     'MUMBAI',
     'GOA',
-    'VADODARA',
     'PUNE',
     'DELHI',
+  ];
+
+  static const List<String> _sources = [
+    'ALL',
+    'SHOWMATES',
+    'BOOKMYSHOW',
+    'DISTRICT',
   ];
 
   @override
@@ -74,16 +83,16 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
     ref.invalidate(stagedStatsProvider);
   }
 
-  Future<void> _handleSyncNow() async {
+  Future<void> _handleSyncNow({String source = 'all'}) async {
     ref.read(isSyncingStagedProvider.notifier).state = true;
     try {
       final service = ref.read(stagingServiceProvider);
-      final result = await service.triggerSyncFetch();
+      final result = await service.triggerSyncFetch(source: source);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              result['message']?.toString() ?? 'External event sync complete!',
+              result['message']?.toString() ?? 'Multi-source event sync complete!',
             ),
             backgroundColor: AppColors.success,
           ),
@@ -544,6 +553,44 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
           ),
         );
 
+        final sourceDropdown = Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFF161026),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: (filter.source != null && _sources.contains(filter.source!.toUpperCase()))
+                  ? filter.source!.toUpperCase()
+                  : 'ALL',
+              dropdownColor: AppColors.surface,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              items: _sources.map(
+                (s) => DropdownMenuItem(
+                  value: s,
+                  child: Text(s == 'ALL'
+                      ? 'All Sources'
+                      : s == 'SHOWMATES'
+                          ? 'Showmates'
+                          : s == 'BOOKMYSHOW'
+                              ? 'BookMyShow'
+                              : 'District'),
+                ),
+              ).toList(),
+              onChanged: (val) {
+                final sourceVal = (val == null || val == 'ALL') ? null : val.toLowerCase();
+                ref.read(stagedFilterStateProvider.notifier).state = filter.copyWith(
+                  source: sourceVal,
+                  clearSource: sourceVal == null,
+                  page: 1,
+                );
+              },
+            ),
+          ),
+        );
+
         final cityDropdown = Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
           decoration: BoxDecoration(
@@ -589,11 +636,13 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
                   children: [
                     searchField,
                     const SizedBox(height: 8),
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        Expanded(child: statusDropdown),
-                        const SizedBox(width: 8),
-                        Expanded(child: cityDropdown),
+                        statusDropdown,
+                        sourceDropdown,
+                        cityDropdown,
                       ],
                     ),
                   ],
@@ -601,9 +650,11 @@ class _AdminImportHubScreenState extends ConsumerState<AdminImportHubScreen> {
               : Row(
                   children: [
                     Expanded(flex: 2, child: searchField),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     statusDropdown,
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
+                    sourceDropdown,
+                    const SizedBox(width: 10),
                     cityDropdown,
                   ],
                 ),

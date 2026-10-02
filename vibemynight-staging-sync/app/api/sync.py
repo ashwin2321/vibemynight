@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc
@@ -13,6 +13,8 @@ from app.schemas.staging_event import (
     SyncFetchResponse
 )
 from app.services.showmates_service import ShowmatesService
+from app.services.bookmyshow_service import BookMyShowService
+from app.services.district_service import DistrictService
 from app.services.duplicate_detector import DuplicateDetector
 from app.services.gemini_service import get_ai_service
 from app.config import settings
@@ -40,7 +42,8 @@ def get_staging_stats(db: Session = Depends(get_db)):
             or_(
                 StagingEvent.status == StagingEventStatus.DUPLICATE,
                 StagingEvent.status == StagingEventStatus.AI_PROCESSING_FAILED,
-                StagingEvent.status == StagingEventStatus.SYNC_FAILED
+                StagingEvent.status == StagingEventStatus.SYNC_FAILED,
+                StagingEvent.status == StagingEventStatus.CONFLICT
             )
         ).count()
         return {
@@ -64,20 +67,32 @@ def get_staging_stats(db: Session = Depends(get_db)):
 @router.post("/fetch", response_model=SyncFetchResponse)
 @router.post("/fetch-now", response_model=SyncFetchResponse)
 async def fetch_and_stage_events(
+    source: Optional[str] = Query("all", description="Source: 'all', 'showmates', 'bookmyshow', 'district'"),
+    payload: Optional[dict] = None,
     db: Session = Depends(get_db)
 ):
     """
-    Ingestion Pipeline:
-    1. Fetch latest raw events from Showmates.
-    2. Check duplicate detection against staging DB.
-    3. Run Gemini AI enhancement on new records.
-    4. Persist enriched event in staging database with PENDING_REVIEW status.
+    Multi-Source Ingestion Pipeline:
+    Ingests events from Showmates, BookMyShow, and District (Zomato District).
+    Runs duplicate detection and AI enrichment before storing in staging DB.
     """
-    logger.info("Starting staging sync pipeline...")
-    showmates = ShowmatesService()
+    selected_source = "all"
+    if payload and isinstance(payload, dict) and payload.get("source"):
+        selected_source = str(payload.get("source")).lower()
+    elif source:
+        selected_source = str(source).lower()
+
+    logger.info(f"Starting staging sync pipeline for source: {selected_source}...")
     ai_service = get_ai_service()
 
-    raw_events = await showmates.fetch_events()
+    raw_events = []
+    if selected_source in ("all", "showmates"):
+        raw_events.extend(await ShowmatesService().fetch_events())
+    if selected_source in ("all", "bookmyshow", "bms"):
+        raw_events.extend(await BookMyShowService().fetch_events())
+    if selected_source in ("all", "district", "zomato"):
+        raw_events.extend(await DistrictService().fetch_events())
+
     fetched_count = len(raw_events)
     processed_count = 0
     duplicate_count = 0
@@ -174,24 +189,42 @@ async def fetch_and_stage_events(
         processed=processed_count,
         duplicates=duplicate_count,
         failed=failed_count,
-        message=f"Sync cycle completed: {processed_count} staged, {duplicate_count} duplicates detected, {failed_count} errors."
+        message=f"Sync cycle completed: {processed_count} staged from {selected_source.upper()}, {duplicate_count} duplicates detected, {failed_count} errors."
     )
 
 
 @router.get("/events", response_model=StagingEventListResponse)
 def list_staged_events(
-    status: Optional[StagingEventStatus] = Query(None, description="Filter by status"),
+    status: Optional[str] = Query(None, description="Filter by status (PENDING_REVIEW, APPROVED, CONFLICT, etc.)"),
+    source: Optional[str] = Query(None, description="Filter by source (showmates, bookmyshow, district)"),
     city: Optional[str] = Query(None, description="Filter by city"),
     search: Optional[str] = Query(None, description="Search in title or venue"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db)
 ):
-    """Lists staged events with pagination, status filtering, and search capabilities."""
+    """Lists staged events with pagination, status filtering, source filtering, and search capabilities."""
     query = db.query(StagingEvent)
 
     if status:
-        query = query.filter(StagingEvent.status == status)
+        status_clean = status.strip().upper()
+        if status_clean in ("CONFLICT", "CONFLICTS"):
+            query = query.filter(
+                or_(
+                    StagingEvent.status == StagingEventStatus.DUPLICATE,
+                    StagingEvent.status == StagingEventStatus.AI_PROCESSING_FAILED,
+                    StagingEvent.status == StagingEventStatus.SYNC_FAILED,
+                    StagingEvent.status == StagingEventStatus.CONFLICT
+                )
+            )
+        elif status_clean in StagingEventStatus.__members__:
+            query = query.filter(StagingEvent.status == StagingEventStatus[status_clean])
+        else:
+            query = query.filter(StagingEvent.status == status_clean)
+
+    if source and source.strip().lower() != "all":
+        query = query.filter(StagingEvent.source.ilike(f"%{source.strip()}%"))
+
     if city:
         query = query.filter(StagingEvent.city.ilike(f"%{city}%"))
     if search:

@@ -6,6 +6,7 @@ import 'service_providers.dart';
 /// Filter parameters for querying staged events.
 class StagedEventFilterParams {
   final StagedStatus? status;
+  final String? source;
   final String? city;
   final String? search;
   final int page;
@@ -13,6 +14,7 @@ class StagedEventFilterParams {
 
   const StagedEventFilterParams({
     this.status,
+    this.source,
     this.city,
     this.search,
     this.page = 1,
@@ -21,16 +23,19 @@ class StagedEventFilterParams {
 
   StagedEventFilterParams copyWith({
     StagedStatus? status,
+    String? source,
     String? city,
     String? search,
     int? page,
     int? pageSize,
     bool clearStatus = false,
+    bool clearSource = false,
     bool clearCity = false,
     bool clearSearch = false,
   }) {
     return StagedEventFilterParams(
       status: clearStatus ? null : (status ?? this.status),
+      source: clearSource ? null : (source ?? this.source),
       city: clearCity ? null : (city ?? this.city),
       search: clearSearch ? null : (search ?? this.search),
       page: page ?? this.page,
@@ -44,13 +49,14 @@ class StagedEventFilterParams {
       other is StagedEventFilterParams &&
           runtimeType == other.runtimeType &&
           status == other.status &&
+          source == other.source &&
           city == other.city &&
           search == other.search &&
           page == other.page &&
           pageSize == other.pageSize;
 
   @override
-  int get hashCode => Object.hash(status, city, search, page, pageSize);
+  int get hashCode => Object.hash(status, source, city, search, page, pageSize);
 }
 
 /// Active filter state on the Admin Import Hub screen.
@@ -66,6 +72,7 @@ final stagedEventsListProvider =
   final service = ref.watch(stagingServiceProvider);
   return service.fetchStagedEvents(
     status: filter.status,
+    source: filter.source,
     city: filter.city,
     search: filter.search,
     page: filter.page,
