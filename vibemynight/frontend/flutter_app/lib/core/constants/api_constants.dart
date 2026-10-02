@@ -86,7 +86,7 @@ class ApiConstants {
   static String get stagingSyncBaseUrl {
     const raw = String.fromEnvironment(
       'STAGING_SYNC_URL',
-      defaultValue: 'https://vibemynight-staging.up.railway.app/api/v1',
+      defaultValue: 'https://vibemynight.up.railway.app/api/v1',
     );
     if (raw.endsWith('/api/v1')) {
       return raw;

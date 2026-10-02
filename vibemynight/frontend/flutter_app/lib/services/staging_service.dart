@@ -57,11 +57,21 @@ class StagingService {
       }
       throw const ApiException('Invalid response format from Staging API');
     } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to fetch staged events';
+
+      if (e.type == DioExceptionType.connectionError ||
+          message.contains('XMLHttpRequest') ||
+          message.contains('Failed to fetch') ||
+          message.contains('NetworkError')) {
+        message =
+            'Unable to reach Railway Staging Service at ${ApiConstants.stagingSyncBaseUrl}. Please ensure the Railway staging service is running and CORS is enabled.';
+      }
+
       throw ApiException(
-        e.response?.data?['detail']?.toString() ??
-            e.response?.data?['message']?.toString() ??
-            e.message ??
-            'Failed to fetch staged events',
+        message,
         statusCode: e.response?.statusCode,
       );
     }
@@ -76,11 +86,19 @@ class StagingService {
       }
       throw const ApiException('Invalid staged event payload');
     } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to fetch staged event details';
+      if (e.type == DioExceptionType.connectionError ||
+          message.contains('XMLHttpRequest') ||
+          message.contains('Failed to fetch') ||
+          message.contains('NetworkError')) {
+        message =
+            'Unable to reach Railway Staging Service at ${ApiConstants.stagingSyncBaseUrl}.';
+      }
       throw ApiException(
-        e.response?.data?['detail']?.toString() ??
-            e.response?.data?['message']?.toString() ??
-            e.message ??
-            'Failed to fetch staged event details',
+        message,
         statusCode: e.response?.statusCode,
       );
     }
@@ -98,11 +116,19 @@ class StagingService {
       }
       throw const ApiException('Invalid update response from Staging API');
     } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to update staged event';
+      if (e.type == DioExceptionType.connectionError ||
+          message.contains('XMLHttpRequest') ||
+          message.contains('Failed to fetch') ||
+          message.contains('NetworkError')) {
+        message =
+            'Unable to reach Railway Staging Service at ${ApiConstants.stagingSyncBaseUrl}.';
+      }
       throw ApiException(
-        e.response?.data?['detail']?.toString() ??
-            e.response?.data?['message']?.toString() ??
-            e.message ??
-            'Failed to update staged event',
+        message,
         statusCode: e.response?.statusCode,
       );
     }
@@ -134,11 +160,19 @@ class StagingService {
       }
       return {'success': true, 'message': 'Sync completed'};
     } on DioException catch (e) {
+      String message = e.response?.data?['detail']?.toString() ??
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'Failed to trigger sync job';
+      if (e.type == DioExceptionType.connectionError ||
+          message.contains('XMLHttpRequest') ||
+          message.contains('Failed to fetch') ||
+          message.contains('NetworkError')) {
+        message =
+            'Unable to reach Railway Staging Service at ${ApiConstants.stagingSyncBaseUrl}. Please ensure the Railway service is deployed.';
+      }
       throw ApiException(
-        e.response?.data?['detail']?.toString() ??
-            e.response?.data?['message']?.toString() ??
-            e.message ??
-            'Failed to trigger sync job',
+        message,
         statusCode: e.response?.statusCode,
       );
     }
