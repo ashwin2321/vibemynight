@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": "vibemynight/frontend/flutter_app/build/web",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [

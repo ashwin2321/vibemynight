@@ -1,4 +1,4 @@
-﻿# Environment & Secret files
+# Environment & Secret files
 .env
 .env.*
 !.env.example
@@ -21,6 +21,8 @@ backend/spring_boot/target/
 frontend/flutter_app/.dart_tool/
 build/
 frontend/flutter_app/build/
+!frontend/flutter_app/build/web/
+!frontend/flutter_app/build/web/**
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages

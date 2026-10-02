@@ -3,11 +3,16 @@
 *.iml
 .DS_Store
 target/
-build/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+
+# Allow production web build for Vercel / hosting deployment
+build/
+!vibemynight/frontend/flutter_app/build/
+!vibemynight/frontend/flutter_app/build/web/
+!vibemynight/frontend/flutter_app/build/web/**
 
 # Old prototypes and local office documentation
 documentation/
