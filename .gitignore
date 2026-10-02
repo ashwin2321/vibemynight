@@ -21,3 +21,5 @@ VibeMyNight App Development (1)/
 ~$*.docx
 *.tmp
 *.mp4
+*.db
+.pytest_cache/
