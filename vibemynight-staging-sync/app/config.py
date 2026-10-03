@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     # CORS
     CORS_ALLOWED_ORIGINS: str = (
         "http://localhost:3000,http://localhost:5000,http://localhost:8000,"
-        "https://vibemynight.in,https://www.vibemynight.in,https://vibemynight.vercel.app"
+        "https://vibemynight.in,https://www.vibemynight.in,https://vibemynight.vercel.app,https://vibemynight.up.railway.app"
     )
 
     @property
