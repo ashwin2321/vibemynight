@@ -8,7 +8,6 @@ import '../../services/facility_service.dart';
 import '../../services/inquiry_service.dart';
 import '../../services/payment_service.dart';
 import '../../services/settings_service.dart';
-import '../../services/staging_service.dart';
 import '../network/api_client.dart';
 
 /// Single ApiClient instance shared by every service - all HTTP traffic
@@ -35,10 +34,6 @@ final paymentServiceProvider =
 
 final authServiceProvider =
     Provider<AuthService>((ref) => AuthService(ref.watch(apiClientProvider)));
-
-/// Staging & Sync Service for external events and AI processing.
-final stagingServiceProvider =
-    Provider<StagingService>((ref) => StagingService(ref.watch(apiClientProvider)));
 
 /// All admin read/write operations (Events, Days, Artists, Facilities,
 /// Passes, Gallery/Highlights/Rules, Inquiries, Settings) - see

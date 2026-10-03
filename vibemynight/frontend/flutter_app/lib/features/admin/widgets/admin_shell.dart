@@ -29,7 +29,6 @@ class AdminShell extends ConsumerWidget {
   static const _navItems = [
     (label: 'Dashboard', route: '/admin/dashboard', icon: Icons.dashboard_rounded),
     (label: 'Events', route: '/admin/events', icon: Icons.celebration_rounded),
-    (label: 'Import & Sync Hub', route: '/admin/import-hub', icon: Icons.cloud_sync_rounded),
     (label: 'Artists', route: '/admin/artists', icon: Icons.mic_external_on_rounded),
     (label: 'Pass Catalog & Prices', route: '/admin/pass-templates', icon: Icons.confirmation_number_rounded),
     (label: 'Facilities', route: '/admin/facilities', icon: Icons.stars_rounded),

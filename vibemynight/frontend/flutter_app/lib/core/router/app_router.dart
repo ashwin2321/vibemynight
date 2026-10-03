@@ -14,7 +14,6 @@ import '../../features/admin/events/admin_event_import_screen.dart';
 import '../../features/admin/events/admin_events_screen.dart';
 import '../../features/admin/events/admin_passes_screen.dart';
 import '../../features/admin/facilities/admin_facilities_screen.dart';
-import '../../features/admin/import_hub/admin_import_hub_screen.dart';
 import '../../features/admin/inquiries/admin_inquiries_screen.dart';
 import '../../features/admin/inquiries/admin_inquiry_details_screen.dart';
 import '../../features/admin/passes/admin_pass_catalog_screen.dart';
@@ -142,10 +141,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/events',
         builder: (context, state) => const AdminEventsScreen(),
-      ),
-      GoRoute(
-        path: '/admin/import-hub',
-        builder: (context, state) => const AdminImportHubScreen(),
       ),
       GoRoute(
         path: '/admin/events/import',

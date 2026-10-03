@@ -9,7 +9,6 @@ import '../models/facility.dart';
 import '../models/inquiry.dart';
 import '../models/inquiry_admin_summary.dart';
 import '../models/settings.dart';
-import '../models/staged_event_models.dart';
 
 /// All admin write/read operations in one place, mirroring the
 /// `/api/v1/admin/**` routes from Phase 5-6. Kept as a single service
@@ -243,15 +242,5 @@ class AdminService {
       body: preview.toJson(),
     );
     return EventDetail.fromJson(data as Map<String, dynamic>);
-  }
-
-  /// Phase 2 & 3: Secure Production Import Bridge
-  /// Imports approved staged events into live VibeMyNight database
-  Future<StagedImportBatchResult> importStagedEvents(List<int> stagedEventIds) async {
-    final data = await _client.post(
-      ApiConstants.adminStagedEventsImport,
-      body: {'stagedEventIds': stagedEventIds},
-    );
-    return StagedImportBatchResult.fromJson(data as Map<String, dynamic>);
   }
 }

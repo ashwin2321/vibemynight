@@ -275,16 +275,6 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen> {
       currentPath: '/admin/events',
       actions: [
         OutlinedButton.icon(
-          icon: const Icon(Icons.cloud_sync_rounded, size: 16),
-          label: const Text('Import & Sync Hub'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.neonPink,
-            side: const BorderSide(color: AppColors.neonPink),
-          ),
-          onPressed: () => context.push('/admin/import-hub'),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
           icon: const Icon(Icons.auto_awesome, size: 16),
           label: const Text('Import Event (Excel)'),
           style: OutlinedButton.styleFrom(
