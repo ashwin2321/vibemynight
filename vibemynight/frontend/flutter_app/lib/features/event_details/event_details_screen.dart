@@ -21,6 +21,7 @@ import '../../models/event_detail.dart';
 import '../../models/settings.dart';
 import '../../models/ticket_category.dart';
 import 'widgets/interactive_venue_layout_map.dart';
+import 'widgets/quick_booking_modal.dart';
 
 /// District.in & Showmates-inspired Modern Event Details Screen:
 /// - 16:9 Clean Hero Banner with quick Share & Favorite actions
@@ -103,19 +104,13 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
+
   void _proceedToInquiry(EventDetail event, EventDayDetail day, TicketCategory? pass) {
-    if (pass == null) {
-      _scrollToDaySection();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a pass category first!'),
-          backgroundColor: AppColors.neonPink,
-        ),
-      );
-      return;
-    }
-    context.push(
-      '/inquiry?eventDayId=${day.id}&ticketCategoryId=${pass.id}&quantity=$_quantity',
+    QuickBookingModal.show(
+      context,
+      event: event,
+      initialDayIndex: _selectedDayIndex,
+      initialPassId: pass?.id ?? _selectedPassId,
     );
   }
 

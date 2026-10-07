@@ -11,6 +11,7 @@ import '../../core/widgets/app_navbar.dart';
 import '../../core/widgets/error_view.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../core/widgets/network_image_box.dart';
 import '../../models/inquiry.dart';
 
 /// Streamlined, Zero-Scroll Fast Booking & Inquiry Form:
@@ -194,6 +195,7 @@ class _InquiryScreenState extends ConsumerState<InquiryScreen> {
                             ),
                           ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -250,6 +252,42 @@ class _InquiryScreenState extends ConsumerState<InquiryScreen> {
                                   ),
                                 ],
                               ),
+                              if (day.primaryArtist != null) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ClipOval(
+                                        child: SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: day.primaryArtist!.photoUrl != null && day.primaryArtist!.photoUrl!.isNotEmpty
+                                              ? NetworkImageBox(url: day.primaryArtist!.photoUrl, fit: BoxFit.cover)
+                                              : Container(
+                                                  color: const Color(0xFF8B5CF6),
+                                                  child: const Icon(Icons.mic, color: Colors.white, size: 12),
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '⭐ ${day.primaryArtist!.name}',
+                                        style: const TextStyle(
+                                          color: Color(0xFFE9D5FF),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         );
