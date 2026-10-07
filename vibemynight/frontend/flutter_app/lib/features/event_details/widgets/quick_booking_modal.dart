@@ -14,17 +14,9 @@ import '../../../models/inquiry.dart';
 import '../../../models/settings.dart';
 import '../../../models/ticket_category.dart';
 
-/// Interactive, High-Converting Fast Pass Booking Modal
-/// Features:
-/// 1. Compact Header with Event Poster, Category Pill, Venue & Close Button.
-/// 2. Stepper Indicator: (1) Date & Time -> (2) Pass & Artist -> (3) Details & Booking.
-/// 3. Interactive Multi-Day Calendar Strip with live availability dots.
-/// 4. Selected Night Headliner Artist Spotlight with Photo & Tag.
-/// 5. Dynamic Pass Selector with live day-by-day pricing.
-/// 6. Quantity Counter [-] [ Qty ] [+].
-/// 7. Customer Contact Details (Full Name & 10-digit WhatsApp Mobile).
-/// 8. Dynamic Total Computation & Dual Action Buttons (WhatsApp Booking & Instant UPI).
-/// 9. Perfectly responsive for both Mobile & Desktop with VibeMyNight Dark Glassmorphism.
+/// High-Converting Mobile-First 2-Step Pass Booking Modal:
+/// Step 1: 📅 Select Date -> Shows Nightly Artist Spotlight + Pass Type & Prices + Quantity.
+/// Step 2: 👤 Enter Customer Name & Mobile -> Instant 1-Tap WhatsApp Booking & Instant UPI.
 class QuickBookingModal extends ConsumerStatefulWidget {
   final EventDetail event;
   final int initialDayIndex;
@@ -52,7 +44,7 @@ class QuickBookingModal extends ConsumerStatefulWidget {
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560, maxHeight: 820),
+            constraints: const BoxConstraints(maxWidth: 540, maxHeight: 760),
             child: QuickBookingModal(
               event: event,
               initialDayIndex: initialDayIndex,
@@ -92,6 +84,7 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
 
+  int _currentStep = 0; // 0 = Date, Artist & Pass Selection; 1 = Customer Details & Booking
   late int _selectedDayIndex;
   int? _selectedPassId;
   int _quantity = 1;
@@ -131,7 +124,6 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
   }
 
   Map<String, String> _parseDateComponents(String dateStr) {
-    // Examples: "2026-10-12", "12 Oct 2026", "12 Oct", "Mon, 12 Oct"
     try {
       if (dateStr.contains('-')) {
         final parts = dateStr.split('-');
@@ -167,6 +159,7 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
       return;
     }
     if (daySummary == null || pass == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an event date and pass type to continue.'),
@@ -430,10 +423,10 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ══════════════════════════════════════════════════════════════════
-              // 1. MODAL HEADER (Poster, Category, Title, Venue & Close)
+              // 1. MODAL HEADER (Poster, Title, Category Pill & Close)
               // ══════════════════════════════════════════════════════════════════
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 12, 14),
+                padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
                 decoration: const BoxDecoration(
                   color: Color(0xFF140E2E),
                   border: Border(bottom: BorderSide(color: Color(0xFF281C54), width: 1)),
@@ -441,19 +434,36 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Back button on Step 1 to return to Step 0
+                    if (_currentStep > 0) ...[
+                      InkWell(
+                        onTap: () => setState(() => _currentStep = 0),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ],
+
                     // Event Poster
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: SizedBox(
-                        width: 50,
-                        height: 66,
+                        width: 44,
+                        height: 58,
                         child: NetworkImageBox(
                           url: widget.event.mainImage ?? widget.event.thumbnail,
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
 
                     // Event Info
                     Expanded(
@@ -462,49 +472,49 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
                         children: [
                           // Category Pill
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
                               color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.6), width: 0.8),
                             ),
                             child: Text(
                               category,
                               style: const TextStyle(
                                 color: Color(0xFFFFDF78),
-                                fontSize: 9.5,
+                                fontSize: 9,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 3),
 
                           // Event Title
                           Text(
                             widget.event.name,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.2,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 1),
 
                           // Venue
                           Row(
                             children: [
-                              const Icon(Icons.location_on, color: AppColors.textSecondary, size: 12),
+                              const Icon(Icons.location_on, color: AppColors.textSecondary, size: 11),
                               const SizedBox(width: 3),
                               Expanded(
                                 child: Text(
                                   widget.event.venue ?? widget.event.location ?? 'Ahmedabad, Gujarat',
                                   style: const TextStyle(
                                     color: AppColors.textSecondary,
-                                    fontSize: 11.5,
+                                    fontSize: 11,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -537,7 +547,7 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
               // 2. STEPPER BREADCRUMB INDICATOR
               // ══════════════════════════════════════════════════════════════════
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: const BoxDecoration(
                   color: Color(0xFF0F0A24),
                   border: Border(bottom: BorderSide(color: Color(0xFF221646), width: 1)),
@@ -545,550 +555,47 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildStepPill('1', 'Date & Time', isActive: true),
+                    InkWell(
+                      onTap: () => setState(() => _currentStep = 0),
+                      child: _buildStepPill('1', 'Date, Artist & Pass', isActive: _currentStep == 0, isDone: _currentStep > 0),
+                    ),
                     _buildStepDivider(),
-                    _buildStepPill('2', 'Pass & Artist', isActive: true),
-                    _buildStepDivider(),
-                    _buildStepPill('3', 'Details & Booking', isActive: true),
+                    _buildStepPill('2', 'Contact & Booking', isActive: _currentStep == 1, isDone: false),
                   ],
                 ),
               ),
 
               // ══════════════════════════════════════════════════════════════════
-              // SCROLLABLE INTERACTIVE BODY
+              // 3. STEP CONTENT BODY (MOBILE-OPTIMIZED)
               // ══════════════════════════════════════════════════════════════════
               Flexible(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Availability Status Legend
-                      Row(
-                        children: [
-                          const Text(
-                            'SELECT DATE',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                          const Spacer(),
-                          _buildLegendItem(const Color(0xFF10B981), 'Available'),
-                          const SizedBox(width: 12),
-                          _buildLegendItem(const Color(0xFFF97316), 'Fast filling'),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ══════════════════════════════════════════════════════════
-                      // 3. MULTI-DAY HORIZONTAL SELECTOR GRID
-                      // ══════════════════════════════════════════════════════════
-                      if (widget.event.days.isNotEmpty)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: List.generate(widget.event.days.length, (index) {
-                            final day = widget.event.days[index];
-                            final isSelected = _selectedDayIndex == index;
-                            final dateInfo = _parseDateComponents(day.date);
-                            final isFastFilling = index % 3 == 0; // Dynamic fast filling indicator
-
-                            return InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _selectedDayIndex = index;
-                                  _selectedPassId = null; // reset pass selection for new day
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                width: 76,
-                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFF281C54)
-                                      : const Color(0xFF130D2C),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFF2E225C),
-                                    width: isSelected ? 1.8 : 1,
-                                  ),
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: const Color(0xFF10B981).withValues(alpha: 0.35),
-                                            blurRadius: 10,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Stack(
-                                  children: [
-                                    Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            dateInfo['weekday']!,
-                                            style: TextStyle(
-                                              fontSize: 10.5,
-                                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                                              color: isSelected ? const Color(0xFF34D399) : AppColors.textSecondary,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            dateInfo['dayMonth']!,
-                                            style: TextStyle(
-                                              fontSize: 12.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: isSelected ? Colors.white : Colors.white70,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: -2,
-                                      right: -2,
-                                      child: Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: isFastFilling ? const Color(0xFFF97316) : const Color(0xFF10B981),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: _currentStep == 0
+                      ? _buildStep1DateArtistPass(
+                          currentDay: currentDay,
+                          dayDetailAsync: dayDetailAsync,
+                          dayDetail: dayDetail,
+                          passes: passes,
+                          selectedPass: selectedPass,
+                          primaryArtist: primaryArtist,
+                          passPrice: passPrice,
                         )
-                      else
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'All Event Dates Open for Booking',
-                            style: TextStyle(color: Colors.white70, fontSize: 13),
-                          ),
+                      : _buildStep2CustomerDetails(
+                          currentDay: currentDay,
+                          dayDetail: dayDetail,
+                          selectedPass: selectedPass,
+                          totalAmount: totalAmount,
                         ),
-
-                      const SizedBox(height: 16),
-
-                      // ══════════════════════════════════════════════════════════
-                      // 4. SELECTED NIGHT HEADLINER ARTIST SPOTLIGHT
-                      // ══════════════════════════════════════════════════════════
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFF24164C).withValues(alpha: 0.7),
-                              const Color(0xFF150D30).withValues(alpha: 0.9),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFF4C338A), width: 1),
-                        ),
-                        child: Row(
-                          children: [
-                            // Artist Avatar / Icon
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.neonPurple, width: 1.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.neonPurple.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                  ),
-                                ],
-                              ),
-                              child: ClipOval(
-                                child: primaryArtist?.photoUrl != null && primaryArtist!.photoUrl!.isNotEmpty
-                                    ? NetworkImageBox(url: primaryArtist.photoUrl, fit: BoxFit.cover)
-                                    : (currentDay?.primaryArtistPhotoUrl != null && currentDay!.primaryArtistPhotoUrl!.isNotEmpty)
-                                        ? NetworkImageBox(url: currentDay.primaryArtistPhotoUrl, fit: BoxFit.cover)
-                                        : Container(
-                                            color: const Color(0xFF38236B),
-                                            child: const Icon(Icons.mic_external_on, color: Color(0xFFC084FC), size: 22),
-                                          ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-
-                            // Artist Name & Title
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.neonPurple.withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: const Text(
-                                          '⭐ TONIGHT\'S ARTIST',
-                                          style: TextStyle(
-                                            color: Color(0xFFE9D5FF),
-                                            fontSize: 9.5,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      const Text(
-                                        '• 8:00 PM Live',
-                                        style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    primaryArtist?.name ?? currentDay?.primaryArtistName ?? 'Celebrity Artist & Live Orchestra',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // ══════════════════════════════════════════════════════════
-                      // 5. SELECT PASS TYPE
-                      // ══════════════════════════════════════════════════════════
-                      const Text(
-                        'SELECT PASS TYPE',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      if (passes.isNotEmpty)
-                        Column(
-                          children: passes.map((pass) {
-                            final isSelected = selectedPass?.id == pass.id;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedPassId = pass.id;
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? const Color(0xFF22164A)
-                                        : const Color(0xFF130D28),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFF2D2056),
-                                      width: isSelected ? 1.8 : 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        isSelected
-                                            ? Icons.radio_button_checked
-                                            : Icons.radio_button_off,
-                                        color: isSelected
-                                            ? const Color(0xFF10B981)
-                                            : AppColors.textSecondary,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              pass.name,
-                                              style: TextStyle(
-                                                color: isSelected ? Colors.white : Colors.white70,
-                                                fontSize: 14,
-                                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                              ),
-                                            ),
-                                            if (pass.description != null && pass.description!.isNotEmpty)
-                                              Text(
-                                                pass.description!,
-                                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      Text(
-                                        '₹${pass.price.toInt()}',
-                                        style: TextStyle(
-                                          color: isSelected ? const Color(0xFF34D399) : Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        )
-                      else if (dayDetailAsync?.isLoading ?? false)
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          child: const Center(
-                            child: CircularProgressIndicator(color: AppColors.neonPurple, strokeWidth: 2),
-                          ),
-                        )
-                      else
-                        // Fallback generic pass
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1C133C),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF10B981), width: 1.5),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.radio_button_checked, color: Color(0xFF10B981), size: 18),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Text(
-                                  'General Entry Pass',
-                                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              Text(
-                                '₹${passPrice.toInt()}',
-                                style: const TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.w900),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      const SizedBox(height: 14),
-
-                      // ══════════════════════════════════════════════════════════
-                      // 6. NUMBER OF PASSES QUANTITY COUNTER
-                      // ══════════════════════════════════════════════════════════
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF140E2C),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFF281C54)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Number of Passes',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                _buildQtyBtn(
-                                  icon: Icons.remove,
-                                  onTap: _quantity > 1
-                                      ? () => setState(() => _quantity--)
-                                      : null,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Text(
-                                    '$_quantity',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ),
-                                _buildQtyBtn(
-                                  icon: Icons.add,
-                                  onTap: _quantity < 10
-                                      ? () => setState(() => _quantity++)
-                                      : null,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // ══════════════════════════════════════════════════════════
-                      // 7. CUSTOMER CONTACT DETAILS (NAME & MOBILE)
-                      // ══════════════════════════════════════════════════════════
-                      const Text(
-                        'YOUR CONTACT DETAILS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF140E2C),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFF281C54)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1. Full Name
-                            const Text(
-                              'Your Full Name *',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11.5,
-                                color: Colors.white70,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            TextFormField(
-                              controller: _nameController,
-                              style: const TextStyle(color: Colors.white, fontSize: 13.5),
-                              decoration: InputDecoration(
-                                hintText: 'e.g. Rahul Sharma',
-                                hintStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  fontSize: 13,
-                                ),
-                                prefixIcon: const Icon(Icons.person_outline, size: 18, color: Color(0xFFC084FC)),
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                                filled: true,
-                                fillColor: const Color(0xFF0F0A22),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFF2E2055)),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFF2E2055)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5),
-                                ),
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter your full name' : null,
-                            ),
-                            const SizedBox(height: 12),
-
-                            // 2. WhatsApp Mobile Number
-                            const Text(
-                              'WhatsApp Mobile Number *',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11.5,
-                                color: Colors.white70,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            TextFormField(
-                              controller: _mobileController,
-                              keyboardType: TextInputType.phone,
-                              style: const TextStyle(color: Colors.white, fontSize: 13.5),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
-                              ],
-                              decoration: InputDecoration(
-                                hintText: '9876543210',
-                                hintStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  fontSize: 13,
-                                ),
-                                prefixIcon: const Icon(Icons.phone_android_outlined, size: 18, color: Color(0xFF34D399)),
-                                prefixText: '+91 ',
-                                prefixStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13.5,
-                                ),
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                                filled: true,
-                                fillColor: const Color(0xFF0F0A22),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFF2E2055)),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFF2E2055)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5),
-                                ),
-                              ),
-                              validator: (v) => (v == null || v.trim().length != 10) ? 'Enter valid 10-digit mobile number' : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
 
               // ══════════════════════════════════════════════════════════════════
-              // 8. TOTAL AMOUNT & BOOKING ACTION FOOTER
+              // 4. BOTTOM ACTION FOOTER
               // ══════════════════════════════════════════════════════════════════
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 decoration: const BoxDecoration(
                   color: Color(0xFF0F0A24),
                   border: Border(top: BorderSide(color: Color(0xFF281C54), width: 1)),
@@ -1096,143 +603,197 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Total Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'TOTAL AMOUNT',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                    if (_currentStep == 0) ...[
+                      // Step 1 Footer: Total + Next Proceed Button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'TOTAL AMOUNT',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  '₹${totalAmount.toInt()}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: -0.5,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    '₹${totalAmount.toInt()}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                    ),
                                   ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '($_quantity ${_quantity > 1 ? "passes" : "pass"})',
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          InkWell(
+                            onTap: () {
+                              if (selectedPass == null && passes.isNotEmpty) {
+                                setState(() => _selectedPassId = passes.first.id);
+                              }
+                              setState(() => _currentStep = 1);
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '($_quantity ${_quantity > 1 ? "passes" : "pass"})',
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                        // Instant UPI Quick Link
-                        InkWell(
-                          onTap: _submitting
-                              ? null
-                              : () => _openInstantUpiPayment(
-                                    settings,
-                                    currentDay,
-                                    dayDetail,
-                                    selectedPass,
-                                    totalAmount,
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Proceed to Booking',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.bolt, color: Color(0xFF10B981), size: 14),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Instant UPI',
-                                  style: TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                                  SizedBox(width: 6),
+                                  Icon(Icons.arrow_forward, color: Colors.white, size: 16),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
+                        ],
+                      ),
+                    ] else ...[
+                      // Step 2 Footer: Dual Action WhatsApp & UPI
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Payable: ₹${totalAmount.toInt()} ($_quantity passes)',
+                            style: const TextStyle(
+                              color: Color(0xFF34D399),
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: _submitting
+                                ? null
+                                : () => _openInstantUpiPayment(
+                                      settings,
+                                      currentDay,
+                                      dayDetail,
+                                      selectedPass,
+                                      totalAmount,
+                                    ),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.bolt, color: Color(0xFF10B981), size: 13),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'Instant UPI',
+                                    style: TextStyle(
+                                      color: Color(0xFF34D399),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
 
-                    // WhatsApp Primary Action Button
-                    InkWell(
-                      onTap: _submitting
-                          ? null
-                          : () => _sendWhatsAppBooking(
-                                settings,
-                                currentDay,
-                                dayDetail,
-                                selectedPass,
-                                totalAmount,
+                      // WhatsApp Action Button
+                      InkWell(
+                        onTap: _submitting
+                            ? null
+                            : () => _sendWhatsAppBooking(
+                                  settings,
+                                  currentDay,
+                                  dayDetail,
+                                  selectedPass,
+                                  totalAmount,
+                                ),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF25D366),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF25D366).withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
                               ),
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF25D366),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF25D366).withValues(alpha: 0.35),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              _submitting ? 'Connecting WhatsApp...' : 'Send Booking Request on WhatsApp',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.2,
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                _submitting ? 'Connecting WhatsApp...' : 'Send Booking Request on WhatsApp',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
-                    const Text(
-                      'No phone calls please • Pass bookings & confirmations via WhatsApp & Instant UPI',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10.5,
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Pass bookings & confirmations via WhatsApp & Instant UPI',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -1243,7 +804,611 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
     );
   }
 
-  Widget _buildStepPill(String num, String label, {required bool isActive}) {
+  // ════════════════════════════════════════════════════════════════════════════
+  // STEP 1 WIDGET: DATE + ARTIST SPOTLIGHT + PASS & QUANTITY
+  // ════════════════════════════════════════════════════════════════════════════
+  Widget _buildStep1DateArtistPass({
+    required EventDaySummary? currentDay,
+    required AsyncValue<EventDayDetail>? dayDetailAsync,
+    required EventDayDetail? dayDetail,
+    required List<TicketCategory> passes,
+    required TicketCategory? selectedPass,
+    required dynamic primaryArtist,
+    required double passPrice,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. SELECT DATE HEADER
+        Row(
+          children: [
+            const Text(
+              '1. SELECT DATE',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+              ),
+            ),
+            const Spacer(),
+            _buildLegendItem(const Color(0xFF10B981), 'Available'),
+            const SizedBox(width: 10),
+            _buildLegendItem(const Color(0xFFF97316), 'Fast filling'),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Multi-Day Selector Grid
+        if (widget.event.days.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(widget.event.days.length, (index) {
+              final day = widget.event.days[index];
+              final isSelected = _selectedDayIndex == index;
+              final dateInfo = _parseDateComponents(day.date);
+              final isFastFilling = index % 3 == 0;
+
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedDayIndex = index;
+                    _selectedPassId = null;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 74,
+                  padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFF281C54)
+                        : const Color(0xFF130D2C),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFF2E225C),
+                      width: isSelected ? 1.8 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                              blurRadius: 10,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              dateInfo['weekday']!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                                color: isSelected ? const Color(0xFF34D399) : AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              dateInfo['dayMonth']!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: isSelected ? Colors.white : Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: isFastFilling ? const Color(0xFFF97316) : const Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'All Event Dates Open for Booking',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+          ),
+
+        const SizedBox(height: 14),
+
+        // 2. NIGHTLY ARTIST SPOTLIGHT
+        Container(
+          padding: const EdgeInsets.all(11),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF24164C).withValues(alpha: 0.7),
+                const Color(0xFF150D30).withValues(alpha: 0.9),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF4C338A), width: 1),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.neonPurple, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonPurple.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: primaryArtist?.photoUrl != null && primaryArtist!.photoUrl!.isNotEmpty
+                      ? NetworkImageBox(url: primaryArtist.photoUrl, fit: BoxFit.cover)
+                      : (currentDay?.primaryArtistPhotoUrl != null && currentDay!.primaryArtistPhotoUrl!.isNotEmpty)
+                          ? NetworkImageBox(url: currentDay.primaryArtistPhotoUrl, fit: BoxFit.cover)
+                          : Container(
+                              color: const Color(0xFF38236B),
+                              child: const Icon(Icons.mic_external_on, color: Color(0xFFC084FC), size: 20),
+                            ),
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonPurple.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            '⭐ TONIGHT\'S ARTIST',
+                            style: TextStyle(
+                              color: Color(0xFFE9D5FF),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          '• 8:00 PM Live',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      primaryArtist?.name ?? currentDay?.primaryArtistName ?? 'Celebrity Artist & Live Orchestra',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // 3. SELECT PASS TYPE
+        const Text(
+          '2. SELECT PASS TYPE',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.6,
+          ),
+        ),
+        const SizedBox(height: 7),
+
+        if (passes.isNotEmpty)
+          Column(
+            children: passes.map((pass) {
+              final isSelected = selectedPass?.id == pass.id;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 7),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedPassId = pass.id;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF22164A)
+                          : const Color(0xFF130D28),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFF2D2056),
+                        width: isSelected ? 1.8 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isSelected
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: isSelected
+                              ? const Color(0xFF10B981)
+                              : AppColors.textSecondary,
+                          size: 17,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                pass.name,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.white : Colors.white70,
+                                  fontSize: 13.5,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                ),
+                              ),
+                              if (pass.description != null && pass.description!.isNotEmpty)
+                                Text(
+                                  pass.description!,
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 10.5),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '₹${pass.price.toInt()}',
+                          style: TextStyle(
+                            color: isSelected ? const Color(0xFF34D399) : Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          )
+        else if (dayDetailAsync?.isLoading ?? false)
+          Container(
+            padding: const EdgeInsets.all(14),
+            child: const Center(
+              child: CircularProgressIndicator(color: AppColors.neonPurple, strokeWidth: 2),
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C133C),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.radio_button_checked, color: Color(0xFF10B981), size: 17),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'General Entry Pass',
+                    style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Text(
+                  '₹${passPrice.toInt()}',
+                  style: const TextStyle(color: Color(0xFF34D399), fontSize: 15, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
+
+        const SizedBox(height: 12),
+
+        // 4. NUMBER OF PASSES QUANTITY
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF140E2C),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF281C54)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Number of Passes',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Row(
+                children: [
+                  _buildQtyBtn(
+                    icon: Icons.remove,
+                    onTap: _quantity > 1
+                        ? () => setState(() => _quantity--)
+                        : null,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      '$_quantity',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  _buildQtyBtn(
+                    icon: Icons.add,
+                    onTap: _quantity < 10
+                        ? () => setState(() => _quantity++)
+                        : null,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // STEP 2 WIDGET: SUMMARY + CUSTOMER CONTACT DETAILS
+  // ════════════════════════════════════════════════════════════════════════════
+  Widget _buildStep2CustomerDetails({
+    required EventDaySummary? currentDay,
+    required EventDayDetail? dayDetail,
+    required TicketCategory? selectedPass,
+    required double totalAmount,
+  }) {
+    final dayText = currentDay != null ? 'Day ${currentDay.dayNumber} · ${currentDay.date}' : 'Selected Date';
+    final artistName = dayDetail?.primaryArtist?.name ?? currentDay?.primaryArtistName ?? 'Celebrity Artist';
+    final passName = selectedPass?.name ?? 'Standard Pass';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Mini Order Confirmation Banner
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                const Color(0xFFEC4899).withValues(alpha: 0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_month, color: Color(0xFFC084FC), size: 14),
+                      const SizedBox(width: 5),
+                      Text(
+                        dayText,
+                        style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '₹${totalAmount.toInt()}',
+                    style: const TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.w900),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  const Icon(Icons.mic, color: Color(0xFFE9D5FF), size: 12),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Artist: $artistName',
+                      style: const TextStyle(color: Color(0xFFE9D5FF), fontSize: 11.5, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  const Icon(Icons.confirmation_num_outlined, color: Colors.white70, size: 12),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Pass: $passName × $_quantity passes',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Customer Inputs Card
+        const Text(
+          'ENTER CONTACT DETAILS',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.6,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF140E2C),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF281C54)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Full Name
+              const Text(
+                'Your Full Name *',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11.5,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _nameController,
+                style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                decoration: InputDecoration(
+                  hintText: 'e.g. Rahul Sharma',
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(Icons.person_outline, size: 18, color: Color(0xFFC084FC)),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                  filled: true,
+                  fillColor: const Color(0xFF0F0A22),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF2E2055)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF2E2055)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5),
+                  ),
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter your full name' : null,
+              ),
+              const SizedBox(height: 12),
+
+              // WhatsApp Mobile Number
+              const Text(
+                'WhatsApp Mobile Number *',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11.5,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _mobileController,
+                keyboardType: TextInputType.phone,
+                style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                decoration: InputDecoration(
+                  hintText: '9876543210',
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(Icons.phone_android_outlined, size: 18, color: Color(0xFF34D399)),
+                  prefixText: '+91 ',
+                  prefixStyle: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13.5,
+                  ),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                  filled: true,
+                  fillColor: const Color(0xFF0F0A22),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF2E2055)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF2E2055)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5),
+                  ),
+                ),
+                validator: (v) => (v == null || v.trim().length != 10) ? 'Enter valid 10-digit mobile number' : null,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepPill(String num, String label, {required bool isActive, required bool isDone}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1252,22 +1417,26 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
           height: 18,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive ? const Color(0xFF10B981) : Colors.white24,
+            color: isActive
+                ? const Color(0xFF10B981)
+                : (isDone ? const Color(0xFF8B5CF6) : Colors.white24),
           ),
           child: Center(
-            child: Text(
-              num,
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-            ),
+            child: isDone
+                ? const Icon(Icons.check, size: 11, color: Colors.white)
+                : Text(
+                    num,
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
         const SizedBox(width: 5),
         Text(
           label,
           style: TextStyle(
-            color: isActive ? Colors.white : AppColors.textSecondary,
+            color: isActive ? Colors.white : (isDone ? const Color(0xFFC084FC) : AppColors.textSecondary),
             fontSize: 11,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isActive || isDone ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ],
@@ -1276,7 +1445,7 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
 
   Widget _buildStepDivider() {
     return Container(
-      width: 16,
+      width: 14,
       height: 1,
       margin: const EdgeInsets.symmetric(horizontal: 6),
       color: Colors.white24,
@@ -1288,14 +1457,14 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 7,
-          height: 7,
+          width: 6,
+          height: 6,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 10.5),
         ),
       ],
     );
@@ -1307,7 +1476,7 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
           color: isEnabled ? const Color(0xFF281C54) : Colors.white10,
           borderRadius: BorderRadius.circular(8),
@@ -1318,7 +1487,7 @@ class _QuickBookingModalState extends ConsumerState<QuickBookingModal> {
         child: Icon(
           icon,
           color: isEnabled ? Colors.white : Colors.white30,
-          size: 16,
+          size: 15,
         ),
       ),
     );
