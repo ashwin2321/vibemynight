@@ -1,25 +1,27 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "frontend/flutter_app/build/web",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/sitemap.xml",
       "destination": "https://vibemynight.onrender.com/sitemap.xml"
     },
     {
-      "source": "/sitemap-:slug.xml",
-      "destination": "https://vibemynight.onrender.com/sitemap-:slug.xml"
+      "source": "/sitemap-(.*)\\.xml",
+      "destination": "https://vibemynight.onrender.com/sitemap-$1.xml"
     },
     {
       "source": "/robots.txt",
       "destination": "https://vibemynight.onrender.com/robots.txt"
     },
     {
-      "source": "/api/:path*",
-      "destination": "https://vibemynight.onrender.com/api/:path*"
+      "source": "/api/(.*)",
+      "destination": "https://vibemynight.onrender.com/api/$1"
     },
     {
-      "source": "/events/:slug",
+      "source": "/events/(.*)",
       "has": [
         {
           "type": "header",
@@ -27,10 +29,10 @@
           "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
         }
       ],
-      "destination": "https://vibemynight.onrender.com/events/:slug"
+      "destination": "https://vibemynight.onrender.com/events/$1"
     },
     {
-      "source": "/artists/:slug",
+      "source": "/artists/(.*)",
       "has": [
         {
           "type": "header",
@@ -38,23 +40,14 @@
           "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
         }
       ],
-      "destination": "https://vibemynight.onrender.com/artists/:slug"
+      "destination": "https://vibemynight.onrender.com/artists/$1"
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
     {
       "source": "/assets/(.*)",
       "headers": [
