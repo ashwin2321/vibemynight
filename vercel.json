@@ -26,7 +26,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|whatsapp|Twitterbot|twitterbot|TelegramBot|telegrambot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
         }
       ],
       "destination": "https://vibemynight.onrender.com/events/$1"
@@ -37,7 +37,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|whatsapp|Twitterbot|twitterbot|TelegramBot|telegrambot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
         }
       ],
       "destination": "https://vibemynight.onrender.com/artists/$1"
