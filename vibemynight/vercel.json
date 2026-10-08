@@ -5,45 +5,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/sitemap.xml",
-      "destination": "https://vibemynight.onrender.com/sitemap.xml"
-    },
-    {
-      "source": "/sitemap-:slug.xml",
-      "destination": "https://vibemynight.onrender.com/sitemap-:slug.xml"
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "https://vibemynight.onrender.com/robots.txt"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://vibemynight.onrender.com/api/:path*"
-    },
-    {
-      "source": "/events/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
-        }
-      ],
-      "destination": "https://vibemynight.onrender.com/events/:slug"
-    },
-    {
-      "source": "/artists/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
-        }
-      ],
-      "destination": "https://vibemynight.onrender.com/artists/:slug"
-    },
-    {
-      "source": "/:path*",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
