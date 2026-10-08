@@ -48,13 +48,61 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       // ---------- Customer ----------
-      GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
-      GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
-      GoRoute(path: '/contact', builder: (context, state) => const ContactScreen()),
-      GoRoute(path: '/events', builder: (context, state) => const EventsScreen()),
+      GoRoute(
+        path: '/',
+        builder: (context, state) => Title(
+          title: 'VibeMyNight — Nightlife & Cultural Events Pass Booking Platform',
+          color: const Color(0xFF6366F1),
+          child: const HomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/about',
+        builder: (context, state) => Title(
+          title: 'About Us | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: const AboutScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/contact',
+        builder: (context, state) => Title(
+          title: 'Contact & Support | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: const ContactScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/events',
+        builder: (context, state) => Title(
+          title: 'Explore Events & Passes | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: const EventsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/city/:city',
+        builder: (context, state) => Title(
+          title: 'Events in ${state.pathParameters['city'] ?? 'City'} | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: const EventsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/category/:category',
+        builder: (context, state) => Title(
+          title: '${state.pathParameters['category'] ?? 'Category'} Events | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: const EventsScreen(),
+        ),
+      ),
       GoRoute(
         path: '/events/:slug',
-        builder: (context, state) => EventDetailsScreen(slug: state.pathParameters['slug']!),
+        builder: (context, state) => Title(
+          title: 'Event Passes & Schedule | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: EventDetailsScreen(slug: state.pathParameters['slug']!),
+        ),
       ),
       GoRoute(
         path: '/events/:slug/passes',
@@ -66,14 +114,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/event-days/:dayId',
-        builder: (context, state) =>
-            EventDayScreen(dayId: int.parse(state.pathParameters['dayId']!)),
+        builder: (context, state) => Title(
+          title: 'Event Day Schedule | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: EventDayScreen(dayId: int.parse(state.pathParameters['dayId']!)),
+        ),
       ),
-      GoRoute(path: '/artists', builder: (context, state) => const ArtistsScreen()),
+      GoRoute(
+        path: '/artists',
+        builder: (context, state) => Title(
+          title: 'Featured Artists & Performers | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: const ArtistsScreen(),
+        ),
+      ),
       GoRoute(
         path: '/artists/:artistId',
-        builder: (context, state) =>
-            ArtistDetailsScreen(artistId: int.parse(state.pathParameters['artistId']!)),
+        builder: (context, state) => Title(
+          title: 'Artist Profile & Events | VibeMyNight',
+          color: const Color(0xFF6366F1),
+          child: ArtistDetailsScreen(artistId: int.parse(state.pathParameters['artistId']!)),
+        ),
       ),
       GoRoute(
         path: '/inquiry',

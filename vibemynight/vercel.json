@@ -5,6 +5,22 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://vibemynight.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/sitemap-:slug(.*)\\.xml",
+      "destination": "https://vibemynight.onrender.com/sitemap-:slug.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://vibemynight.onrender.com/robots.txt"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "https://vibemynight.onrender.com/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
