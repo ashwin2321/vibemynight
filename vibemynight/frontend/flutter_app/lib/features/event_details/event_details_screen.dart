@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/constants/api_constants.dart';
 import '../../core/providers/data_providers.dart';
 import '../../core/providers/dome_layout_provider.dart';
 import '../../core/providers/service_providers.dart';
@@ -16,6 +15,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/loading_view.dart';
 import '../../core/widgets/network_image_box.dart';
+import '../../core/widgets/share_modal.dart';
 import '../../models/event_day_detail.dart';
 import '../../models/event_detail.dart';
 import '../../models/settings.dart';
@@ -85,13 +85,30 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   void _shareEvent(EventDetail event) {
-    Clipboard.setData(ClipboardData(text: '${ApiConstants.publicAppUrl}/events/${event.slug}'));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Link copied to clipboard! 📋'),
-        duration: Duration(seconds: 2),
-        backgroundColor: AppColors.neonPurple,
-      ),
+    String dateRange = event.startDate;
+    if (event.endDate.isNotEmpty && event.endDate != event.startDate) {
+      dateRange += ' - ${event.endDate}';
+    }
+    String? startingPrice;
+    if (event.days.isNotEmpty) {
+      final prices = event.days
+          .map((d) => d.startingPrice)
+          .whereType<double>()
+          .toList();
+      if (prices.isNotEmpty) {
+        prices.sort();
+        startingPrice = '₹${prices.first.toStringAsFixed(0)}';
+      }
+    }
+
+    ShareModal.show(
+      context,
+      title: event.name,
+      slug: event.slug,
+      imageUrl: event.mainImage ?? event.thumbnail ?? event.banner,
+      date: dateRange,
+      venue: event.venue ?? event.city,
+      startingPrice: startingPrice,
     );
   }
 
