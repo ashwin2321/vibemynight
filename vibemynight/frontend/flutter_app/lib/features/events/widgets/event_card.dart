@@ -169,10 +169,10 @@ class EventCard extends StatelessWidget {
           // 2. LUXURY EVENT DETAILS BODY
           Padding(
             padding: EdgeInsets.fromLTRB(
-              isCompact ? 10 : 12,
               isCompact ? 8 : 10,
-              isCompact ? 10 : 12,
-              isCompact ? 10 : 12,
+              isCompact ? 6 : 8,
+              isCompact ? 8 : 10,
+              isCompact ? 8 : 10,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,10 +183,10 @@ class EventCard extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.calendar_today_rounded,
-                      size: isCompact ? 11 : 12,
+                      size: isCompact ? 10 : 11.5,
                       color: const Color(0xFF4ADE80), // Emerald Green
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 3.5),
                     Expanded(
                       child: Text(
                         dateWithTime,
@@ -194,7 +194,7 @@ class EventCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: const Color(0xFF4ADE80),
-                          fontSize: isCompact ? 10.5 : 11.5,
+                          fontSize: isCompact ? 9.5 : 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.2,
                         ),
@@ -202,7 +202,7 @@ class EventCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: isCompact ? 5 : 6),
+                SizedBox(height: isCompact ? 3.5 : 5),
 
                 // Event Name (Bold, 2 lines max, high contrast)
                 Text(
@@ -210,23 +210,23 @@ class EventCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: isCompact ? 13 : 14.5,
+                    fontSize: isCompact ? 12 : 14,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
-                    height: 1.25,
+                    height: 1.2,
                   ),
                 ),
-                SizedBox(height: isCompact ? 4 : 5),
+                SizedBox(height: isCompact ? 3 : 4),
 
                 // Location / Venue
                 Row(
                   children: [
                     Icon(
                       Icons.location_on_outlined,
-                      size: isCompact ? 11 : 12,
+                      size: isCompact ? 10 : 11.5,
                       color: Colors.white54,
                     ),
-                    const SizedBox(width: 3),
+                    const SizedBox(width: 2.5),
                     Expanded(
                       child: Text(
                         [
@@ -237,13 +237,13 @@ class EventCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.65),
-                          fontSize: isCompact ? 10.5 : 11.5,
+                          fontSize: isCompact ? 9.5 : 11,
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: isCompact ? 8 : 10),
+                SizedBox(height: isCompact ? 6 : 8),
 
                 // Bottom Row: Starting Price & "Book Passes →"
                 Row(
@@ -257,18 +257,18 @@ class EventCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: isCompact ? 12.5 : 14,
+                          fontSize: isCompact ? 11.5 : 13.5,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     InkWell(
                       onTap: () => context.push(targetRoute),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1.5),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -276,14 +276,14 @@ class EventCard extends StatelessWidget {
                               'Passes',
                               style: TextStyle(
                                 color: const Color(0xFFC084FC),
-                                fontSize: isCompact ? 11 : 12,
+                                fontSize: isCompact ? 10 : 11.5,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(width: 2),
+                            const SizedBox(width: 1.5),
                             Icon(
                               Icons.arrow_forward_rounded,
-                              size: isCompact ? 12 : 13,
+                              size: isCompact ? 10.5 : 12,
                               color: const Color(0xFFC084FC),
                             ),
                           ],

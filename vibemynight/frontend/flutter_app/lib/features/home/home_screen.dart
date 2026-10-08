@@ -715,11 +715,11 @@ class _VmnHeroCarouselState extends State<_VmnHeroCarousel> {
         // 3:4 Poster Carousel with Spotlight peek
         LayoutBuilder(
           builder: (context, constraints) {
-            final cardWidth = constraints.maxWidth * 0.72;
+            final cardWidth = constraints.maxWidth * 0.60;
             final cardHeight = cardWidth / (3 / 4);
 
             return SizedBox(
-              height: cardHeight.clamp(280.0, 440.0) + 14,
+              height: cardHeight.clamp(210.0, 360.0) + 12,
               child: PageView.builder(
                 controller: _mobilePageController,
                 itemCount: events.length,
@@ -1054,7 +1054,7 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
     final isDesktop = size.width >= 1000;
     final isTablet = size.width >= 600 && size.width < 1000;
 
-    final cardWidth = isDesktop ? 260.0 : 220.0;
+    final cardWidth = isDesktop ? 225.0 : 190.0;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -1279,9 +1279,9 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                       itemCount: filtered.length,
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.54,
+                        childAspectRatio: 0.58,
                         crossAxisSpacing: 10,
-                        mainAxisSpacing: 14,
+                        mainAxisSpacing: 12,
                       ),
                       itemBuilder: (context, index) {
                         return EventCard(
