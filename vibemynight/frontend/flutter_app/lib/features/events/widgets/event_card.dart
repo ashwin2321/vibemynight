@@ -82,18 +82,15 @@ class EventCard extends StatelessWidget {
           // 1. POSTER IMAGE WITH FLOATING BADGES (3:4 Ratio)
           Stack(
             children: [
-              Hero(
-                tag: 'event-image-${event.id}',
-                child: AspectRatio(
-                  aspectRatio: 3 / 4,
-                  child: NetworkImageBox(
-                    url: event.mainImage ?? event.thumbnail,
-                    fallbackUrl: fallbackUrl,
-                    width: double.infinity,
-                    height: double.infinity,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 14 : 18)),
-                    fit: BoxFit.cover,
-                  ),
+              AspectRatio(
+                aspectRatio: 3 / 4,
+                child: NetworkImageBox(
+                  url: event.mainImage ?? event.thumbnail,
+                  fallbackUrl: fallbackUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(isCompact ? 14 : 18)),
+                  fit: BoxFit.cover,
                 ),
               ),
 

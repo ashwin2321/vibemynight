@@ -50,10 +50,10 @@ class NetworkImageBox extends StatelessWidget {
     final effectiveUrl = resolveUrl(rawUrl);
 
     final targetCacheWidth = (width != null && width! > 0 && !width!.isInfinite)
-        ? (width! * 2.0).round().clamp(60, 1200)
-        : 800;
+        ? (width! * 1.5).round().clamp(60, 600)
+        : 480;
     final targetCacheHeight = (height != null && height! > 0 && !height!.isInfinite)
-        ? (height! * 2.0).round().clamp(60, 1200)
+        ? (height! * 1.5).round().clamp(60, 600)
         : null;
 
     if (effectiveUrl == null) {
@@ -223,8 +223,8 @@ class NetworkImageBox extends StatelessWidget {
   }
 }
 
-/// Lightweight, zero-dependency pulsing neon shimmer box for smooth image loading.
-class NeonShimmerPlaceholder extends StatefulWidget {
+/// Ultra-lightweight, 0-CPU static gradient placeholder for instant 60fps image rendering.
+class NeonShimmerPlaceholder extends StatelessWidget {
   final double? height;
   final double? width;
   final BorderRadius borderRadius;
@@ -237,57 +237,23 @@ class NeonShimmerPlaceholder extends StatefulWidget {
   });
 
   @override
-  State<NeonShimmerPlaceholder> createState() => _NeonShimmerPlaceholderState();
-}
-
-class _NeonShimmerPlaceholderState extends State<NeonShimmerPlaceholder>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: widget.borderRadius,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          final progress = _controller.value;
-          final startStop = (progress - 0.35).clamp(0.0, 1.0);
-          final midStop = progress.clamp(0.0, 1.0);
-          final endStop = (progress + 0.35).clamp(0.0, 1.0);
-
-          return Container(
-            height: widget.height,
-            width: widget.width,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [startStop, midStop, endStop],
-                colors: const [
-                  Color(0xFF130E26),
-                  Color(0xFF281C4F),
-                  Color(0xFF130E26),
-                ],
-              ),
-            ),
-          );
-        },
+      borderRadius: borderRadius,
+      child: Container(
+        height: height,
+        width: width,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF130E26),
+              Color(0xFF221644),
+              Color(0xFF130E26),
+            ],
+          ),
+        ),
       ),
     );
   }
