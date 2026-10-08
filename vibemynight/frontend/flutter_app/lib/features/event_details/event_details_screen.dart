@@ -52,6 +52,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   int _quantity = 1;
   int _activeGalleryIndex = 0;
   bool _rulesExpanded = false;
+  bool _isAboutExpanded = false;
   int? _openFaqIndex;
 
   static const _faqs = [
@@ -479,20 +480,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 _buildBreadcrumb(context, event),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    children: [
-                      _buildLeftColumn(context, event, selectedDaySummary?.id),
-                      const SizedBox(height: 32),
-                      _buildStickySidebar(
-                        context,
-                        event,
-                        selectedDaySummary?.id,
-                        settingsAsync.value,
-                      ),
-                    ],
-                  ),
+                  child: _buildLeftColumn(context, event, selectedDaySummary?.id),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 80),
                 const AppFooter(),
               ],
             ),
@@ -725,15 +715,49 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
 
         const SizedBox(height: 32),
 
-        // About The Event Section
+        // About The Event Section (Collapsible on mobile for compact scrolling)
         if (event.description != null && event.description!.isNotEmpty) ...[
-          const Text('About The Event', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, letterSpacing: -0.3)),
-          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('About The Event', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19, letterSpacing: -0.3)),
+              if (event.description!.length > 140)
+                InkWell(
+                  onTap: () => setState(() => _isAboutExpanded = !_isAboutExpanded),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _isAboutExpanded ? 'Show Less' : 'Read More',
+                          style: const TextStyle(
+                            color: AppColors.neonPink,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(
+                          _isAboutExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: AppColors.neonPink,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
             event.description!,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.65),
+            maxLines: _isAboutExpanded ? null : 3,
+            overflow: _isAboutExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13.5, height: 1.55),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
         ],
 
         // Highlights Badges
@@ -1265,37 +1289,41 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceGlass,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Things to Know', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, letterSpacing: -0.2)),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 500;
-              return Wrap(
-                spacing: 24,
-                runSpacing: 16,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 500;
+        final spacing = isWide ? 20.0 : 10.0;
+        final itemWidth = (constraints.maxWidth - (isWide ? 40 : 28) - spacing) / 2;
+
+        return Container(
+          padding: EdgeInsets.all(isWide ? 20 : 14),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Things to Know', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.2)),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: spacing,
+                runSpacing: isWide ? 14 : 10,
                 children: specs.map((item) {
                   return _buildSpecItem(
                     icon: item.icon,
                     title: item.title,
                     value: item.value,
-                    width: isWide ? (constraints.maxWidth - 24) / 2 : double.infinity,
+                    width: itemWidth,
+                    isCompact: !isWide,
                   );
                 }).toList(),
-              );
-            },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1304,28 +1332,49 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     required String title,
     required String value,
     required double width,
+    bool isCompact = false,
   }) {
     return SizedBox(
       width: width,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(isCompact ? 6 : 8),
             decoration: BoxDecoration(
               color: AppColors.neonPurple.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 18, color: AppColors.neonPink),
+            child: Icon(icon, size: isCompact ? 15 : 18, color: AppColors.neonPink),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 2),
-                Text(value, style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600, height: 1.3)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: isCompact ? 10.5 : 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: isCompact ? 12 : 13,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
