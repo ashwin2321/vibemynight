@@ -105,6 +105,32 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
+  String _formatDayTiming(String? startTime, String? endTime) {
+    final start = _formatSingleTime(startTime);
+    final end = _formatSingleTime(endTime);
+    if (start.isNotEmpty && end.isNotEmpty) {
+      return '$start - $end';
+    }
+    return start.isNotEmpty ? start : (end.isNotEmpty ? end : '8:00 PM - 12:00 AM');
+  }
+
+  String _formatSingleTime(String? timeStr) {
+    if (timeStr == null || timeStr.trim().isEmpty) return '';
+    final cleaned = timeStr.trim();
+    final parts = cleaned.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0]);
+      final min = int.tryParse(parts[1]);
+      if (hour != null && min != null) {
+        final isMidnight = hour == 0 || hour == 24;
+        final period = (hour >= 12 && hour < 24) ? 'PM' : 'AM';
+        final displayHour = isMidnight ? 12 : (hour > 12 ? hour - 12 : hour);
+        final minStr = min == 0 ? '00' : (min < 10 ? '0$min' : '$min');
+        return min == 0 ? '$displayHour:00 $period' : '$displayHour:$minStr $period';
+      }
+    }
+    return cleaned;
+  }
 
   void _proceedToInquiry(EventDetail event, EventDayDetail day, TicketCategory? pass) {
     QuickBookingModal.show(
@@ -1289,41 +1315,43 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 500;
-        final spacing = isWide ? 20.0 : 10.0;
-        final itemWidth = (constraints.maxWidth - (isWide ? 40 : 28) - spacing) / 2;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Things to Know', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.2)),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 520;
+              final spacing = isWide ? 16.0 : 8.0;
+              // 2 equal columns filling 100% of container width on phone
+              final itemWidth = (constraints.maxWidth - spacing) / 2;
 
-        return Container(
-          padding: EdgeInsets.all(isWide ? 20 : 14),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceGlass,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Things to Know', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.2)),
-              const SizedBox(height: 12),
-              Wrap(
+              return Wrap(
                 spacing: spacing,
-                runSpacing: isWide ? 14 : 10,
+                runSpacing: 12,
                 children: specs.map((item) {
                   return _buildSpecItem(
                     icon: item.icon,
                     title: item.title,
                     value: item.value,
-                    width: itemWidth,
+                    width: itemWidth.clamp(130.0, 500.0),
                     isCompact: !isWide,
                   );
                 }).toList(),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -1337,7 +1365,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     return SizedBox(
       width: width,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.all(isCompact ? 6 : 8),
@@ -1368,7 +1396,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   value,
                   style: TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: isCompact ? 12 : 13,
+                    fontSize: isCompact ? 11.5 : 13,
                     fontWeight: FontWeight.w600,
                     height: 1.25,
                   ),
@@ -1453,7 +1481,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ),
                   if (day.startTime != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(8),
@@ -1465,7 +1493,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           const Icon(Icons.access_time, size: 14, color: AppColors.neonBlue),
                           const SizedBox(width: 5),
                           Text(
-                            '${day.startTime} - ${day.endTime ?? ""}',
+                            _formatDayTiming(day.startTime, day.endTime),
                             style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -1481,41 +1509,52 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             if (day.artists.isNotEmpty) ...[
               const Text('Performing Artists Lineup', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: day.artists.map((a) {
-                  return Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceGlass,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.divider),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        NetworkImageBox(url: a.photoUrl, height: 44, width: 44, borderRadius: BorderRadius.circular(22)),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 520;
+                  final artistWidth = isWide ? (constraints.maxWidth - 12) / 2 : double.infinity;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    children: day.artists.map((a) {
+                      return Container(
+                        width: artistWidth,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceGlass,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Row(
                           children: [
-                            Text(a.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text(a.type, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                            NetworkImageBox(url: a.photoUrl, height: 46, width: 46, borderRadius: BorderRadius.circular(23)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(a.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                                  const SizedBox(height: 2),
+                                  Text(a.type, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            if (a.isPrimary) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(colors: AppColors.brandGradient),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text('HEADLINER', style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w800)),
+                              ),
+                            ],
                           ],
                         ),
-                        if (a.isPrimary) ...[
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                            decoration: BoxDecoration(color: AppColors.neonPurple, borderRadius: BorderRadius.circular(6)),
-                            child: const Text('HEADLINER', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ],
-                    ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               ),
               const SizedBox(height: 24),
             ],
