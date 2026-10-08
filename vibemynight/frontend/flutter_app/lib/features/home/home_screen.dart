@@ -1279,7 +1279,7 @@ class _FeaturedNightsSectionState extends State<_FeaturedNightsSection> {
                       itemCount: filtered.length,
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.58,
+                        childAspectRatio: 0.49,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 12,
                       ),
