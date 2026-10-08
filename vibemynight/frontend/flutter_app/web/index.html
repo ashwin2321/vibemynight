@@ -40,10 +40,29 @@
   <meta name="apple-mobile-web-app-title" content="VibeMyNight">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
+  <!-- High-Speed CDN & API Preconnect / DNS-Prefetch -->
+  <link rel="preconnect" href="https://vibemynight.onrender.com" crossorigin>
+  <link rel="dns-prefetch" href="https://vibemynight.onrender.com">
+  <link rel="preconnect" href="https://in.bmscdn.com" crossorigin>
+  <link rel="dns-prefetch" href="https://in.bmscdn.com">
+  <link rel="preconnect" href="https://assets.district.in" crossorigin>
+  <link rel="dns-prefetch" href="https://assets.district.in">
+  <link rel="preconnect" href="https://showmates.in" crossorigin>
+  <link rel="dns-prefetch" href="https://showmates.in">
+
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>VibeMyNight - Event Discovery & Passes</title>
+  <script>
+    // High-speed parallel background warm-up of core endpoints
+    try {
+      if (window.fetch) {
+        fetch('https://vibemynight.onrender.com/api/v1/events', { priority: 'high', mode: 'cors' }).catch(function(){});
+        fetch('https://vibemynight.onrender.com/api/v1/settings/public', { priority: 'high', mode: 'cors' }).catch(function(){});
+      }
+    } catch(e) {}
+  </script>
   <style>
     * {
       box-sizing: border-box;

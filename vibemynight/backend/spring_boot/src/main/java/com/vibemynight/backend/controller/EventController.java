@@ -48,12 +48,14 @@ public class EventController {
     }
 
     @GetMapping("/api/v1/events/{slug}")
-    public ApiResponse<EventDetailDto> getBySlug(@PathVariable String slug) {
+    public org.springframework.http.ResponseEntity<ApiResponse<EventDetailDto>> getBySlug(@PathVariable String slug) {
         Event event = eventService.getBySlug(slug);
         List<Facility> facilities = eventFacilityRepository.findByEventId(event.getId()).stream()
                 .map(ef -> ef.getFacility())
                 .toList();
-        return ApiResponse.ok(eventMapper.toDetailDto(event, facilities));
+        return org.springframework.http.ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(60, java.util.concurrent.TimeUnit.SECONDS).cachePublic().mustRevalidate())
+                .body(ApiResponse.ok(eventMapper.toDetailDto(event, facilities)));
     }
 
     // ---------- Admin ----------

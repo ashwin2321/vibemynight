@@ -43,20 +43,24 @@ public class EventDayController {
     // ---------- Public ----------
 
     @GetMapping("/api/v1/events/{eventId}/days")
-    public ApiResponse<List<EventDaySummaryDto>> listDaysForEvent(@PathVariable Long eventId) {
+    public org.springframework.http.ResponseEntity<ApiResponse<List<EventDaySummaryDto>>> listDaysForEvent(@PathVariable Long eventId) {
         List<EventDaySummaryDto> days = eventDayService.findByEvent(eventId).stream()
                 .map(eventDayMapper::toSummaryDto)
                 .toList();
-        return ApiResponse.ok(days);
+        return org.springframework.http.ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(60, java.util.concurrent.TimeUnit.SECONDS).cachePublic().mustRevalidate())
+                .body(ApiResponse.ok(days));
     }
 
     @GetMapping("/api/v1/event-days/{id}")
-    public ApiResponse<EventDayDetailDto> getDayDetail(@PathVariable Long id) {
+    public org.springframework.http.ResponseEntity<ApiResponse<EventDayDetailDto>> getDayDetail(@PathVariable Long id) {
         EventDay day = eventDayService.getById(id);
         List<Facility> facilities = eventDayFacilityRepository.findByEventDayId(id).stream()
                 .map(edf -> edf.getFacility())
                 .toList();
-        return ApiResponse.ok(eventDayMapper.toDetailDto(day, facilities));
+        return org.springframework.http.ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(60, java.util.concurrent.TimeUnit.SECONDS).cachePublic().mustRevalidate())
+                .body(ApiResponse.ok(eventDayMapper.toDetailDto(day, facilities)));
     }
 
     // ---------- Admin ----------

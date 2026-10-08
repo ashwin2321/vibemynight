@@ -19,7 +19,7 @@ public class SettingsController {
     // ---------- Public ----------
 
     @GetMapping("/api/v1/settings/public")
-    public ApiResponse<SettingsPublicDto> getPublicSettings() {
+    public org.springframework.http.ResponseEntity<ApiResponse<SettingsPublicDto>> getPublicSettings() {
         Settings s = settingsService.getSettings();
         SettingsPublicDto dto = SettingsPublicDto.builder()
                 .websiteName(s.getWebsiteName())
@@ -35,7 +35,9 @@ public class SettingsController {
                 .upiVpa(s.getUpiVpa())
                 .upiMerchantName(s.getUpiMerchantName())
                 .build();
-        return ApiResponse.ok(dto);
+        return org.springframework.http.ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(120, java.util.concurrent.TimeUnit.SECONDS).cachePublic().mustRevalidate())
+                .body(ApiResponse.ok(dto));
     }
 
     // ---------- Admin ----------
