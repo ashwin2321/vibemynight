@@ -1,48 +1,51 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "frontend/flutter_app/build/web",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "src": "^/api/(.*)$",
+      "dest": "https://vibemynight.onrender.com/api/$1"
     },
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "src": "^/sitemap\\.xml$",
+      "dest": "https://vibemynight.onrender.com/sitemap.xml"
     },
     {
-      "source": "/(.*)\\.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "src": "^/sitemap-(.*)\\.xml$",
+      "dest": "https://vibemynight.onrender.com/sitemap-$1.xml"
     },
     {
-      "source": "/(.*)\\.wasm",
-      "headers": [
+      "src": "^/robots\\.txt$",
+      "dest": "https://vibemynight.onrender.com/robots.txt"
+    },
+    {
+      "src": "^/events/([^/]+)$",
+      "has": [
         {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
         }
-      ]
+      ],
+      "dest": "https://vibemynight.onrender.com/events/$1"
+    },
+    {
+      "src": "^/artists/([^/]+)$",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Googlebot|bingbot|PinterestBot|vkShare|quora|outbrain|embedly|bitlybot).*"
+        }
+      ],
+      "dest": "https://vibemynight.onrender.com/artists/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/.*$",
+      "dest": "/index.html"
     }
   ]
 }
